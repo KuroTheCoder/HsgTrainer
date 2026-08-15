@@ -2,14 +2,16 @@
 import { Link, NavLink, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { PALETTES, useTheme } from "./theme";
 import { SECTIONS } from "./sections";
-import { IconBolt, IconClock, IconGear, IconPen, IconPlus, IconTarget, IconTool, SectionIcon } from "./icons";
+import { IconBolt, IconBook, IconClock, IconGear, IconPen, IconPlus, IconTarget, IconTool, SectionIcon } from "./icons";
 import { NOTES_CHANGED_EVENT, noteIdsForSection } from "./reader";
+import { WORD_LIST_CHANGED_EVENT, getWordList } from "./vocab";
 import Home from "./pages/Home";
 import Practice from "./pages/Practice";
 import Mistakes from "./pages/Mistakes";
 import Contribute from "./pages/Contribute";
 import Admin from "./pages/Admin";
 import Tools from "./pages/Tools";
+import WordList from "./pages/WordList";
 
 function PaletteIcon() {
   return (
@@ -99,6 +101,14 @@ function Brand() {
 }
 
 function NavLinks() {
+  const [vocabCount, setVocabCount] = useState(() => Object.keys(getWordList()).length);
+
+  useEffect(() => {
+    const bump = () => setVocabCount(Object.keys(getWordList()).length);
+    window.addEventListener(WORD_LIST_CHANGED_EVENT, bump);
+    return () => window.removeEventListener(WORD_LIST_CHANGED_EVENT, bump);
+  }, []);
+
   return (
     <>
       <NavLink to="/practice" className={({ isActive }) => (isActive ? "active" : "")}>
@@ -108,6 +118,11 @@ function NavLinks() {
       <NavLink to="/mistakes" className={({ isActive }) => (isActive ? "active" : "")}>
         <IconTarget size={15} />
         My mistakes
+      </NavLink>
+      <NavLink to="/words" className={({ isActive }) => (isActive ? "active" : "")}>
+        <IconBook size={15} />
+        Word list
+        {vocabCount > 0 && <span className="nav-count">{vocabCount}</span>}
       </NavLink>
       <NavLink to="/contribute" className={({ isActive }) => (isActive ? "active" : "")}>
         <IconPlus size={15} />
@@ -125,6 +140,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/": "Home",
   "/practice": "Practice",
   "/mistakes": "My mistakes",
+  "/words": "Word list",
   "/contribute": "Contribute",
   "/tools": "Free tools",
   "/admin": "Admin",
@@ -384,6 +400,7 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/practice" element={<Practice />} />
             <Route path="/mistakes" element={<Mistakes />} />
+            <Route path="/words" element={<WordList />} />
             <Route path="/contribute" element={<Contribute />} />
             <Route path="/tools" element={<Tools />} />
             <Route path="/admin" element={<Admin />} />

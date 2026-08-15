@@ -5,6 +5,7 @@ import { DIFFICULTIES, SECTIONS, cefrBand, sectionGradient, sectionMeta } from "
 import { IconCheck, IconSparkle, IconX, SectionIcon } from "../icons";
 import { ScoreRing } from "../components/ScoreRing";
 import { NoteBox, Reader } from "../components/Reader";
+import DictPopup, { type DictRequest } from "../components/DictPopup";
 import { renderMarkdown } from "../md";
 import type { AnswerResult, CriterionScores, Question, WritingFeedback, WritingQuestion } from "../types";
 
@@ -57,6 +58,41 @@ function CreditsDots({ remaining }: { remaining: number }) {
   );
 }
 
+function KeyWords({ words, onLookup }: { words: string[]; onLookup: (word: string, x: number, y: number) => void }) {
+  if (!words.length) return null;
+  return (
+    <div className="key-words">
+      <span className="key-words-label">Key words & phrases</span>
+      <div className="chip-row">
+        {words.map((kw) => (
+          <button
+            key={kw}
+            className="chip-btn chip-keyword"
+            title="Look up in the dictionary"
+            onClick={(e) => {
+              const r = e.currentTarget.getBoundingClientRect();
+              onLookup(kw, r.left, r.bottom + 6);
+            }}
+          >
+            {kw}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** Sections whose question type equals the section itself — the type tag
+ *  would duplicate the section label (e.g. "word-form" in a Word Formation set). */
+const SECTION_TYPES: Record<string, string> = {
+  "word-formation": "word-form",
+  cloze: "cloze",
+};
+
+function redundantTypeTag(section: string, qtype: string): boolean {
+  return SECTION_TYPES[section] === qtype;
+}
+
 export default function Practice() {
   const [params] = useSearchParams();
   const initialSection = params.get("section") ?? "lexico-grammar";
@@ -69,6 +105,7 @@ export default function Practice() {
   const [sessionId, setSessionId] = useState<number | null>(null);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [results, setResults] = useState<AnswerResult[] | null>(null);
+  const [dict, setDict] = useState<DictRequest | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -207,6 +244,7 @@ export default function Practice() {
       <div className="page-head">
         <h2>Practice</h2>
       </div>
+      {dict && <DictPopup word={dict.word} x={dict.x} y={dict.y} onClose={() => setDict(null)} />}
       <StepsBar step={step} />
       <span className="sr-only" role="status">
         {busy ? "Working, please wait" : ""}
@@ -320,11 +358,11 @@ export default function Practice() {
                       {i + 1}.
                     </span>
                   </span>
-                  <span className="tag accent">{q.qtype}</span>
+                  {!redundantTypeTag(section, q.qtype) && <span className="tag accent">{q.qtype}</span>}
                   <span className={`tag cefr ${cefrBand(q.difficulty)}`}>{q.difficulty}</span>
                   {!answers[q.id]?.trim() && <span className="tag bad">unanswered</span>}
                 </div>
-                <Reader questionId={q.id} text={q.prompt} className="prompt" />
+                <Reader questionId={q.id} text={q.prompt} className="prompt" onLookup={(w, x, y) => setDict({ word: w, x, y })} />
                 {q.qtype === "mcq" && q.options.length > 0 ? (
                   <div className="options">
                     {q.options.map((opt, oi) => (
@@ -403,6 +441,7 @@ export default function Practice() {
                   <span className={`tag ${r.correct ? "ok" : "bad"}`}>{r.correct ? "Correct" : "Wrong"}</span>
                 </div>
                 <p className="prompt">{renderMarkdown(questions[i]?.prompt ?? "")}</p>
+                <KeyWords words={questions[i]?.keyWords ?? []} onLookup={(w, x, y) => setDict({ word: w, x, y })} />
                 <p className="small">
                   Your answer: <b>{r.yourAnswer}</b>
                   {!r.correct && (
@@ -430,7 +469,7 @@ export default function Practice() {
               </button>
             </div>
           </div>
-          <Reader questionId={writingQ.id} text={writingQ.prompt} className="prompt" />
+          <Reader questionId={writingQ.id} text={writingQ.prompt} className="prompt" onLookup={(w, x, y) => setDict({ word: w, x, y })} />
           <textarea
             rows={12}
             className="answer-input"
@@ -486,6 +525,8 @@ export default function Practice() {
             </div>
           </div>
           <div className="card panel">
+            <p className="prompt" style={{ marginTop: 0 }}>{renderMarkdown(writingQ.prompt)}</p>
+            <KeyWords words={writingQ.keyWords ?? []} onLookup={(w, x, y) => setDict({ word: w, x, y })} />
             {writingFeedback.status !== "ok" && (
               <div className="banner warn" role="alert">
                 {writingFeedback.error}

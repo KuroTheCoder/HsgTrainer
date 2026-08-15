@@ -79,5 +79,6 @@ Demo runbook:
 
 - The tunnel URL changes every run — fine for a pitch, never for a product link.
 - Guests share one local D1 database, so practice sessions and mistakes interact across devices. Reset state with `wrangler d1 execute hsg_trainer --local --command "DELETE FROM answers; DELETE FROM sessions;"` between demo groups if needed.
+- Mistakes can be cleaned from the UI as admin: the Mistakes page shows "Clear selected" / "Clear all" buttons (backed by `DELETE /api/mistakes`, admin bearer token; `?ids=` for selected rows, or `?section=` to scope a full clear).
 - Everything runs on your machine: kill the terminals and the demo disappears. The tunnel stays up as long as both processes and `cloudflared` run.
 - Do **not** commit `.dev.vars`; the demo admin panel is protected by the bearer token only — keep the token strong and unshared.

@@ -143,6 +143,15 @@ function ReviewQueue({ onChanged }: { onChanged?: () => void }) {
     }
   };
 
+  const keyWordsOf = (q: AdminQuestion): string[] => {
+    try {
+      const v = JSON.parse(q.key_words ?? "[]") as unknown;
+      return Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : [];
+    } catch {
+      return [];
+    }
+  };
+
   const load = useCallback(async () => {
     setBusy(true);
     setError(null);
@@ -202,6 +211,15 @@ function ReviewQueue({ onChanged }: { onChanged?: () => void }) {
             Key: <b>{q.answer}</b>
             {variantsOf(q).length > 0 && ` · variants: ${variantsOf(q).join(", ")}`}
           </p>
+          {keyWordsOf(q).length > 0 && (
+            <div className="row-chips">
+              {keyWordsOf(q).map((kw) => (
+                <span key={kw} className="tag">
+                  {kw}
+                </span>
+              ))}
+            </div>
+          )}
           <div className="row">
             {status !== "verified" && (
               <button className="btn btn-sm btn-primary" onClick={() => decide(q.id, "verified")}>
@@ -241,6 +259,7 @@ function AddQuestion() {
     answer: "",
     acceptedVariants: "",
     tags: "",
+    keyWords: "",
     difficulty: "B1",
   });
   const [errors, setErrors] = useState<FormErrors>({});
@@ -293,6 +312,7 @@ function AddQuestion() {
       answer: form.answer,
       acceptedVariants: form.acceptedVariants ? form.acceptedVariants.split("|").map((s) => s.trim()).filter(Boolean) : [],
       tags: form.tags ? form.tags.split(",").map((s) => s.trim()).filter(Boolean) : [],
+      keyWords: form.keyWords ? form.keyWords.split(",").map((s) => s.trim()).filter(Boolean) : [],
       difficulty: form.difficulty,
     };
     if (form.qtype === "mcq") payload.options = form.options.split("|").map((s) => s.trim()).filter(Boolean);
@@ -314,7 +334,7 @@ function AddQuestion() {
       const res = await api.adminCreateQuestion(payload);
       setResult(`Created #${res.id} as ${res.status}.`);
       setErrors({});
-      setForm((f) => ({ ...f, prompt: "", answer: "", acceptedVariants: "", tags: "" }));
+      setForm((f) => ({ ...f, prompt: "", answer: "", acceptedVariants: "", tags: "", keyWords: "" }));
     } catch (e) {
       setError(e instanceof Error ? e.message : "create failed");
     } finally {
@@ -447,6 +467,10 @@ function AddQuestion() {
           Tags (comma-separated)
           <input value={form.tags} onChange={(e) => set("tags", e.target.value)} placeholder="stress, phrasal-verbs" />
         </label>
+        <label className="field wide">
+          Key words & phrases (comma-separated) — shown to students for quick dictionary lookup
+          <input value={form.keyWords} onChange={(e) => set("keyWords", e.target.value)} placeholder="at variance, abrupt, ratify" />
+        </label>
       </div>
       <button className="btn btn-primary" onClick={() => void submit()} disabled={busy}>
         {busy ? "Creating…" : "Create draft"}
@@ -468,7 +492,7 @@ function AddQuestion() {
 // ---------------- bulk import ----------------
 
 const CSV_COLUMNS = [
-  "qtype", "section", "prompt", "options", "answer", "accepted_variants", "tags", "difficulty",
+  "qtype", "section", "prompt", "options", "answer", "accepted_variants", "tags", "key_words", "difficulty",
   "source_type", "source_name", "source_year", "source_grade", "source_province",
 ];
 
@@ -485,6 +509,7 @@ function downloadCsvTemplate() {
     "A",
     "",
     "collocations",
+    "at variance, ratify",
     "3",
     "official",
     "Đề HSG Quốc gia 2023",
@@ -554,6 +579,7 @@ function BulkImport() {
           answer: get("answer"),
           acceptedVariants: get("accepted_variants") ? splitPipe(get("accepted_variants")) : [],
           tags: get("tags") ? get("tags").split(",").map((x) => x.trim()).filter(Boolean) : [],
+          keyWords: get("key_words") ? get("key_words").split(",").map((x) => x.trim()).filter(Boolean) : [],
           difficulty: get("difficulty") ? String(get("difficulty")) : "B1",
         });
       }

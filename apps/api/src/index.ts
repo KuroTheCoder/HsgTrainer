@@ -21,7 +21,7 @@ app.use(
       return allowed.includes(origin) ? origin : null;
     },
     allowHeaders: ["Content-Type", "Authorization", "X-Anon-Id"],
-    allowMethods: ["GET", "POST", "PATCH", "OPTIONS"],
+    allowMethods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
   }),
 );
 

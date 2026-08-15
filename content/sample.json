@@ -12,173 +12,391 @@
       "qtype": "mcq",
       "section": "phonetics",
       "prompt": "Choose the word whose underlined part is pronounced differently from the others.",
-      "options": ["breathe", "beneath", "threat", "smooth"],
+      "options": [
+        "breathe",
+        "beneath",
+        "threat",
+        "smooth"
+      ],
       "answer": "C",
-      "acceptedVariants": ["threat"],
-      "tags": ["pronunciation", "th-sounds"],
-      "difficulty": "B1"
+      "acceptedVariants": [
+        "threat"
+      ],
+      "tags": [
+        "pronunciation",
+        "th-sounds"
+      ],
+      "difficulty": "B1",
+      "keyWords": [
+        "breathe",
+        "beneath",
+        "threat"
+      ]
     },
     {
       "qtype": "mcq",
       "section": "phonetics",
       "prompt": "Choose the word that differs from the other three in the position of primary stress.",
-      "options": ["photography", "economics", "intelligence", "comprehensive"],
+      "options": [
+        "photography",
+        "economics",
+        "intelligence",
+        "comprehensive"
+      ],
       "answer": "D",
-      "tags": ["stress"],
-      "difficulty": "B2"
+      "tags": [
+        "stress"
+      ],
+      "difficulty": "B2",
+      "keyWords": [
+        "photography",
+        "economics",
+        "comprehensive"
+      ]
     },
     {
       "qtype": "mcq",
       "section": "phonetics",
       "prompt": "Which word contains a silent letter?",
-      "options": ["resign", "recent", "resemble", "resort"],
+      "options": [
+        "resign",
+        "recent",
+        "resemble",
+        "resort"
+      ],
       "answer": "A",
-      "tags": ["silent-letters"],
-      "difficulty": "B1"
+      "tags": [
+        "silent-letters"
+      ],
+      "difficulty": "B1",
+      "keyWords": [
+        "resign",
+        "resemble"
+      ]
     },
     {
       "qtype": "mcq",
       "section": "lexico-grammar",
       "prompt": "Choose the best option: The committee's decision was ____ by the board.",
-      "options": ["ratified", "rectified", "rebutted", "refuted"],
+      "options": [
+        "ratified",
+        "rectified",
+        "rebutted",
+        "refuted"
+      ],
       "answer": "A",
-      "tags": ["collocations", "formal-register"],
-      "difficulty": "B2"
+      "tags": [
+        "collocations",
+        "formal-register"
+      ],
+      "difficulty": "B2",
+      "keyWords": [
+        "ratified",
+        "rectified",
+        "rebutted",
+        "refuted"
+      ]
     },
     {
       "qtype": "mcq",
       "section": "lexico-grammar",
       "prompt": "Choose the best option: Far from ____ the situation, the new policy has made it worse.",
-      "options": ["improving", "improve", "improved", "having improved"],
+      "options": [
+        "improving",
+        "improve",
+        "improved",
+        "having improved"
+      ],
       "answer": "A",
-      "tags": ["preposition-infinitive", "fronting"],
-      "difficulty": "C1"
+      "tags": [
+        "preposition-infinitive",
+        "fronting"
+      ],
+      "difficulty": "C1",
+      "keyWords": [
+        "far from + -ing",
+        "improving"
+      ]
     },
     {
       "qtype": "mcq",
       "section": "lexico-grammar",
       "prompt": "Choose the closest in meaning: The minister's remarks were **at variance** with the official position.",
-      "options": ["in conflict", "in agreement", "in keeping", "in touch"],
+      "options": [
+        "in conflict",
+        "in agreement",
+        "in keeping",
+        "in touch"
+      ],
       "answer": "A",
-      "tags": ["idioms", "register"],
-      "difficulty": "C1"
+      "tags": [
+        "idioms",
+        "register"
+      ],
+      "difficulty": "C1",
+      "keyWords": [
+        "at variance"
+      ]
     },
     {
       "qtype": "mcq",
       "section": "lexico-grammar",
       "prompt": "Choose the best option: Only when the evidence was reviewed ____ the magnitude of the fraud.",
-      "options": ["did they realise", "they realised", "they did realise", "realised they"],
+      "options": [
+        "did they realise",
+        "they realised",
+        "they did realise",
+        "realised they"
+      ],
       "answer": "A",
-      "tags": ["inversion"],
-      "difficulty": "C1"
+      "tags": [
+        "inversion"
+      ],
+      "difficulty": "C1",
+      "keyWords": [
+        "magnitude",
+        "only when"
+      ]
     },
     {
       "qtype": "mcq",
       "section": "lexico-grammar",
       "prompt": "Choose the best option: The negotiations came to an ____ halt when neither side would yield.",
-      "options": ["abrupt", "abusive", "abundant", "abstract"],
+      "options": [
+        "abrupt",
+        "abusive",
+        "abundant",
+        "abstract"
+      ],
       "answer": "A",
-      "tags": ["collocations"],
-      "difficulty": "B2"
+      "tags": [
+        "collocations"
+      ],
+      "difficulty": "B2",
+      "keyWords": [
+        "abrupt",
+        "halt",
+        "negotiations"
+      ]
     },
     {
       "qtype": "mcq",
       "section": "lexico-grammar",
       "prompt": "Choose the best option: ____ as she was, she refused to compromise on principle.",
-      "options": ["Exhausted", "Exhausting", "Having exhausted", "To exhaust"],
+      "options": [
+        "Exhausted",
+        "Exhausting",
+        "Having exhausted",
+        "To exhaust"
+      ],
       "answer": "A",
-      "tags": ["adjectival-fronting"],
-      "difficulty": "C2"
+      "tags": [
+        "adjectival-fronting"
+      ],
+      "difficulty": "C2",
+      "keyWords": [
+        "exhausted",
+        "compromise",
+        "on principle"
+      ]
     },
     {
       "qtype": "mcq",
       "section": "lexico-grammar",
       "prompt": "Choose the best option: The proposal met with ____ silence from the audience.",
-      "options": ["deafening", "deafened", "deaf", "deafly"],
+      "options": [
+        "deafening",
+        "deafened",
+        "deaf",
+        "deafly"
+      ],
       "answer": "A",
-      "tags": ["collocations", "adjectives"],
-      "difficulty": "B2"
+      "tags": [
+        "collocations",
+        "adjectives"
+      ],
+      "difficulty": "B2",
+      "keyWords": [
+        "deafening silence",
+        "met with"
+      ]
     },
     {
       "qtype": "word-form",
       "section": "word-formation",
       "prompt": "Give the correct form of the word in capitals: The lecturer's arguments were both lucid and (PERSUADE) ____.",
       "answer": "persuasive",
-      "acceptedVariants": ["persuasively"],
-      "tags": ["derivation", "adjectives"],
-      "difficulty": "B2"
+      "acceptedVariants": [
+        "persuasively"
+      ],
+      "tags": [
+        "derivation",
+        "adjectives"
+      ],
+      "difficulty": "B2",
+      "keyWords": [
+        "lucid",
+        "persuasive"
+      ]
     },
     {
       "qtype": "word-form",
       "section": "word-formation",
       "prompt": "Give the correct form of the word in capitals: The (RELY) ____ of the data was called into question.",
       "answer": "reliability",
-      "acceptedVariants": ["reliance"],
-      "tags": ["derivation", "nouns"],
-      "difficulty": "C1"
+      "acceptedVariants": [
+        "reliance"
+      ],
+      "tags": [
+        "derivation",
+        "nouns"
+      ],
+      "difficulty": "C1",
+      "keyWords": [
+        "reliability",
+        "called into question"
+      ]
     },
     {
       "qtype": "word-form",
       "section": "word-formation",
       "prompt": "Give the correct form of the word in capitals: Critics dismissed the report as (SUBSTANCE) ____.",
       "answer": "insubstantial",
-      "acceptedVariants": ["unsubstantial", "insubstantive"],
-      "tags": ["derivation", "negative-prefixes"],
-      "difficulty": "C2"
+      "acceptedVariants": [
+        "unsubstantial",
+        "insubstantive"
+      ],
+      "tags": [
+        "derivation",
+        "negative-prefixes"
+      ],
+      "difficulty": "C2",
+      "keyWords": [
+        "insubstantial",
+        "dismissed as"
+      ]
     },
     {
       "qtype": "cloze",
       "section": "cloze",
       "prompt": "Fill in the blank with ONE suitable word.\n\nThe monsoon season brings (1) ____ rains that transform the landscape, yet it also tests the resilience of local communities.",
       "answer": "torrential",
-      "acceptedVariants": ["heavy", "copious", "relentless"],
-      "tags": ["collocations"],
-      "difficulty": "B2"
+      "acceptedVariants": [
+        "heavy",
+        "copious",
+        "relentless"
+      ],
+      "tags": [
+        "collocations"
+      ],
+      "difficulty": "B2",
+      "keyWords": [
+        "monsoon",
+        "torrential",
+        "resilience"
+      ]
     },
     {
       "qtype": "cloze",
       "section": "cloze",
       "prompt": "Fill in the blank with ONE suitable word.\n\nHistorians have long debated (2) ____ the empire collapsed from within or was undone by external pressures.",
       "answer": "whether",
-      "acceptedVariants": ["if"],
-      "tags": ["conjunctions"],
-      "difficulty": "B2"
+      "acceptedVariants": [
+        "if"
+      ],
+      "tags": [
+        "conjunctions"
+      ],
+      "difficulty": "B2",
+      "keyWords": [
+        "collapse",
+        "whether"
+      ]
     },
     {
       "qtype": "cloze",
       "section": "cloze",
       "prompt": "Fill in the blank with ONE suitable word.\n\nFar from being a mere footnote, the treaty proved (3) ____ to the region's subsequent stability.",
       "answer": "central",
-      "acceptedVariants": ["key", "crucial", "vital", "essential"],
-      "tags": ["collocations"],
-      "difficulty": "C1"
+      "acceptedVariants": [
+        "key",
+        "crucial",
+        "vital",
+        "essential"
+      ],
+      "tags": [
+        "collocations"
+      ],
+      "difficulty": "C1",
+      "keyWords": [
+        "mere footnote",
+        "subsequent",
+        "stability"
+      ]
     },
     {
       "qtype": "mcq",
       "section": "reading",
       "prompt": "Read the passage and choose the best answer.\n\n\"The invention of movable type is often credited solely to Gutenberg, yet printing cultures in East Asia had experimented with ceramic and wooden type centuries earlier. What Gutenberg industrialized was not the idea of movable type itself but the efficient production of metal type and its integration with the press and oil-based ink — a system, not a single component.\"\n\nWhat does the author suggest was Gutenberg's real contribution?",
-      "options": ["Inventing movable type itself", "Combining components into a production system", "Introducing printing to Europe", "Improving ceramic type quality"],
+      "options": [
+        "Inventing movable type itself",
+        "Combining components into a production system",
+        "Introducing printing to Europe",
+        "Improving ceramic type quality"
+      ],
       "answer": "B",
-      "tags": ["inference"],
-      "difficulty": "C1"
+      "tags": [
+        "inference"
+      ],
+      "difficulty": "C1",
+      "keyWords": [
+        "movable type",
+        "integrated",
+        "component"
+      ]
     },
     {
       "qtype": "mcq",
       "section": "reading",
       "prompt": "Read the passage and choose the best answer.\n\n\"Despite its reputation as a purely aesthetic movement, Art Nouveau was deeply entangled with engineering: its sinuous ironwork was only possible because of advances in steel production, and its most ambitious buildings depended on the structural logic of new materials.\"\n\nThe author's main point is that Art Nouveau ____.",
-      "options": ["was primarily an engineering achievement", "relied on technological developments despite its artistic image", "rejected traditional materials", "declined because of industrialisation"],
+      "options": [
+        "was primarily an engineering achievement",
+        "relied on technological developments despite its artistic image",
+        "rejected traditional materials",
+        "declined because of industrialisation"
+      ],
       "answer": "B",
-      "tags": ["main-idea"],
-      "difficulty": "B2"
+      "tags": [
+        "main-idea"
+      ],
+      "difficulty": "B2",
+      "keyWords": [
+        "sinuous",
+        "ironwork",
+        "entangled",
+        "aesthetic"
+      ]
     },
     {
       "qtype": "mcq",
       "section": "reading",
       "prompt": "Read the passage and choose the best answer.\n\n\"Linguistic diversity is not a barrier to unity; it is a record of it. Each dialect preserves the history of the communities that shaped it, and the disappearance of a language erases evidence of migrations, trade routes, and cultural contact that no archive can fully reconstruct.\"\n\nThe word 'record' in the passage is closest in meaning to ____.",
-      "options": ["archival document", "testimony", "achievement", "recording studio"],
+      "options": [
+        "archival document",
+        "testimony",
+        "achievement",
+        "recording studio"
+      ],
       "answer": "B",
-      "tags": ["vocabulary-in-context"],
-      "difficulty": "C1"
+      "tags": [
+        "vocabulary-in-context"
+      ],
+      "difficulty": "C1",
+      "keyWords": [
+        "linguistic diversity",
+        "dialect",
+        "erode"
+      ]
     },
     {
       "qtype": "writing",
@@ -186,8 +404,14 @@
       "prompt": "Write an essay of about 250 words on the following topic:\n\n\"Some people argue that the study of classical literature is a luxury that modern education can no longer afford. Do you agree?\"\n\nSupport your position with reasons and examples. Pay attention to content, organization, vocabulary, and grammatical accuracy.",
       "answer": "Model guidance: state a clear position; structure with an introduction, two or three developed arguments, and a conclusion; use formal register and precise academic vocabulary; maintain cohesion between paragraphs.",
       "rubricRef": "hsg-essay",
-      "tags": ["essay"],
-      "difficulty": "C1"
+      "tags": [
+        "essay"
+      ],
+      "difficulty": "C1",
+      "keyWords": [
+        "classical literature",
+        "luxury"
+      ]
     },
     {
       "qtype": "writing",
@@ -195,8 +419,16 @@
       "prompt": "Write an essay of about 250 words on the following topic:\n\n\"Remote work has made employees more productive, but at the cost of workplace culture. Discuss the extent to which you agree or disagree.\"\n\nSupport your position with reasons and examples. Pay attention to content, organization, vocabulary, and grammatical accuracy.",
       "answer": "Model guidance: weigh both sides of the productivity/culture trade-off before taking a clear stance; build each body paragraph around one developed argument with a concrete example; link ideas with formal linking devices.",
       "rubricRef": "hsg-essay",
-      "tags": ["essay", "agree-disagree"],
-      "difficulty": "C1"
+      "tags": [
+        "essay",
+        "agree-disagree"
+      ],
+      "difficulty": "C1",
+      "keyWords": [
+        "remote work",
+        "workplace culture",
+        "trade-off"
+      ]
     },
     {
       "qtype": "writing",
@@ -204,8 +436,16 @@
       "prompt": "Write an essay of about 250 words on the following topic:\n\n\"Social media connects people across borders, yet it also isolates those who use it most. Discuss the causes of this paradox and suggest measures to address it.\"\n\nSupport your position with reasons and examples. Pay attention to content, organization, vocabulary, and grammatical accuracy.",
       "answer": "Model guidance: introduce the paradox; analyze two or three causes (e.g. algorithmic isolation, comparison culture, shallow interactions); propose realistic measures; end with a reasoned conclusion.",
       "rubricRef": "hsg-essay",
-      "tags": ["essay", "cause-solution"],
-      "difficulty": "C1"
+      "tags": [
+        "essay",
+        "cause-solution"
+      ],
+      "difficulty": "C1",
+      "keyWords": [
+        "paradox",
+        "algorithmic isolation",
+        "shallow interactions"
+      ]
     },
     {
       "qtype": "writing",
@@ -213,8 +453,16 @@
       "prompt": "Write an essay of about 250 words on the following topic:\n\n\"The best way to learn a language is to live in a country where it is spoken. To what extent do you agree?\"\n\nSupport your position with reasons and examples. Pay attention to content, organization, vocabulary, and grammatical accuracy.",
       "answer": "Model guidance: concede the advantages of immersion (exposure, necessity, natural acquisition) but argue that structured study, motivation, and modern technology can compensate; illustrate with examples.",
       "rubricRef": "hsg-essay",
-      "tags": ["essay", "education"],
-      "difficulty": "C1"
+      "tags": [
+        "essay",
+        "education"
+      ],
+      "difficulty": "C1",
+      "keyWords": [
+        "immersion",
+        "acquisition",
+        "compensate"
+      ]
     },
     {
       "qtype": "writing",
@@ -222,8 +470,16 @@
       "prompt": "Write an essay of about 250 words on the following topic:\n\n\"Cities should invest more in public transport than in roads for private cars. Discuss.\"\n\nSupport your position with reasons and examples. Pay attention to content, organization, vocabulary, and grammatical accuracy.",
       "answer": "Model guidance: compare costs and benefits (congestion, emissions, equity, economic development); consider counterarguments such as rural transport needs; reach a balanced but clear recommendation.",
       "rubricRef": "hsg-essay",
-      "tags": ["essay", "discussion"],
-      "difficulty": "B2"
+      "tags": [
+        "essay",
+        "discussion"
+      ],
+      "difficulty": "B2",
+      "keyWords": [
+        "congestion",
+        "emissions",
+        "equity"
+      ]
     },
     {
       "qtype": "writing",
@@ -231,8 +487,16 @@
       "prompt": "Write an essay of about 250 words on the following topic:\n\n\"Every student should be required to take at least one course in ethics before graduating. To what extent do you agree or disagree?\"\n\nSupport your position with reasons and examples. Pay attention to content, organization, vocabulary, and grammatical accuracy.",
       "answer": "Model guidance: define what an ethics course can realistically deliver; argue whether it changes behavior or merely raises awareness; address the counterargument of academic freedom; conclude with a qualified position.",
       "rubricRef": "hsg-essay",
-      "tags": ["essay", "education"],
-      "difficulty": "B2"
+      "tags": [
+        "essay",
+        "education"
+      ],
+      "difficulty": "B2",
+      "keyWords": [
+        "ethics",
+        "awareness",
+        "academic freedom"
+      ]
     }
   ]
 }

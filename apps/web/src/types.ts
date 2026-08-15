@@ -11,6 +11,7 @@ export interface Question {
   acceptedVariants: string[];
   difficulty: string;
   tags: string[];
+  keyWords: string[];
   verificationStatus: string;
   explanation: string | null;
 }
@@ -58,6 +59,7 @@ export interface AdminQuestion {
   difficulty: string;
   verification_status: string;
   tags: string;
+  key_words: string | null;
   explanation: string | null;
   source_name: string | null;
   source_type: string | null;
@@ -93,6 +95,7 @@ export interface WritingQuestion {
   prompt: string;
   difficulty: string;
   tags: string[];
+  keyWords: string[];
 }
 
 export interface CriterionScores {
