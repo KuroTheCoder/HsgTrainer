@@ -1,8 +1,8 @@
 ﻿import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
-import { api } from "../api";
+import { api, getAdminToken } from "../api";
 import { cefrBand, sectionMeta, SECTIONS } from "../sections";
-import { IconBolt, IconTarget, SectionIcon } from "../icons";
+import { IconBolt, IconTarget, IconTrash, SectionIcon } from "../icons";
 import { renderMarkdown } from "../md";
 import type { Mistake } from "../types";
 
@@ -23,7 +23,10 @@ export default function Mistakes() {
   const [section, setSection] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Set<number>>(new Set());
   const navigate = useNavigate();
+  const isAdmin = getAdminToken() !== null;
 
   const load = useCallback(async (sec: string) => {
     setBusy(true);
@@ -31,6 +34,7 @@ export default function Mistakes() {
     try {
       const res = await api.getMistakes(sec || undefined);
       setMistakes(res.mistakes);
+      setSelected(new Set());
     } catch (e) {
       setError(e instanceof Error ? e.message : "load failed");
     } finally {
@@ -46,6 +50,49 @@ export default function Mistakes() {
     const ids = [...new Set(mistakes.map((m) => m.questionId))];
     if (ids.length === 0) return;
     navigate(`/practice?questions=${ids.join(",")}`);
+  };
+
+  const toggleSelected = (answerId: number) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(answerId)) next.delete(answerId);
+      else next.add(answerId);
+      return next;
+    });
+  };
+
+  const clearSelected = async () => {
+    const ids = [...selected];
+    if (ids.length === 0) return;
+    if (!window.confirm(`Delete ${ids.length} mistake(s)? This cannot be undone.`)) return;
+    setBusy(true);
+    setError(null);
+    setNotice(null);
+    try {
+      const res = await api.deleteMistakes({ ids });
+      setNotice(`${res.deleted} mistake(s) deleted.`);
+      await load(section);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "delete failed");
+      setBusy(false);
+    }
+  };
+
+  const clearAll = async () => {
+    if (mistakes.length === 0) return;
+    const scope = section ? ` in ${sectionMeta(section)?.label ?? section}` : "";
+    if (!window.confirm(`Delete ALL mistake rows${scope}? This cannot be undone.`)) return;
+    setBusy(true);
+    setError(null);
+    setNotice(null);
+    try {
+      const res = await api.deleteMistakes({ section: section || undefined });
+      setNotice(`${res.deleted} mistake(s) deleted.`);
+      await load(section);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "delete failed");
+      setBusy(false);
+    }
   };
 
   const countBySection = new Map<string, number>();
@@ -88,6 +135,12 @@ export default function Mistakes() {
         </div>
       )}
 
+      {notice && (
+        <div className="banner ok" role="status">
+          {notice}
+        </div>
+      )}
+
       {!busy && mistakes.length === 0 && (
         <div className="card empty">
           <b>No mistakes yet</b>
@@ -118,10 +171,34 @@ export default function Mistakes() {
           </div>
           <div className="spread" style={{ marginTop: 10 }}>
             <span className="hint">Retry these in a fresh session — get them right to clear them.</span>
-            <button className="btn btn-primary btn-sm" onClick={practiceThese} disabled={mistakes.length === 0}>
-              <IconBolt size={14} />
-              Practice these
-            </button>
+            <div className="row">
+              <button className="btn btn-primary btn-sm" onClick={practiceThese} disabled={mistakes.length === 0}>
+                <IconBolt size={14} />
+                Practice these
+              </button>
+              {isAdmin && (
+                <>
+                  <button
+                    className="btn btn-sm btn-danger"
+                    onClick={() => void clearSelected()}
+                    disabled={selected.size === 0 || busy}
+                    title="Delete the selected mistakes"
+                  >
+                    <IconTrash size={14} />
+                    Clear selected{selected.size > 0 ? ` (${selected.size})` : ""}
+                  </button>
+                  <button
+                    className="btn btn-sm btn-danger"
+                    onClick={() => void clearAll()}
+                    disabled={mistakes.length === 0 || busy}
+                    title="Delete every mistake row (all users)"
+                  >
+                    <IconTrash size={14} />
+                    Clear all
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -129,8 +206,18 @@ export default function Mistakes() {
       {mistakes.map((m, i) => {
         const meta = sectionMeta(m.section);
         return (
-          <div key={m.answerId} className="question wrong" style={{ "--i": i } as CSSProperties}>
+          <div key={m.answerId} className={`question wrong ${selected.has(m.answerId) ? "row-selected" : ""}`} style={{ "--i": i } as CSSProperties}>
             <div className="question-head">
+              {isAdmin && (
+                <label className="row-check" title="Select for deletion">
+                  <input
+                    type="checkbox"
+                    checked={selected.has(m.answerId)}
+                    onChange={() => toggleSelected(m.answerId)}
+                  />
+                  <span className="sr-only">Select mistake {i + 1}</span>
+                </label>
+              )}
               <span className="qnum">
                 <span className="qnum-icon">
                   <SectionIcon icon={meta?.icon ?? ""} size={15} />

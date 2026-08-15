@@ -6,6 +6,7 @@ export interface QuestionFormValues {
   answer: string;
   acceptedVariants: string;
   tags: string;
+  keyWords: string;
   difficulty: string;
 }
 

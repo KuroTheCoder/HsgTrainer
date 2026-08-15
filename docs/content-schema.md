@@ -24,6 +24,7 @@
                                    // otherwise: the accepted answer text
       "acceptedVariants": [],      // additional accepted answers (word forms, spellings)
       "tags": ["collocations", "formal-register"],
+      "keyWords": ["ratified", "at variance"],  // words/phrases students should look up (optional)
       "difficulty": "C1",           // CEFR: A1 | A2 | B1 | B2 | C1 | C2
       "rubricRef": null            // "writing" tasks only — see docs/rubric.md
     }
@@ -55,13 +56,15 @@
 | community | `unverified` | gated/badged until review |
 | ai | `rejected` (blocked) | **no** until human verification |
 
-`prompt_hash` (SHA-256 of normalized prompt) dedupes: imports that hit an existing hash are reported, not inserted.
+`prompt_hash` (SHA-256 of normalized prompt) dedupes: imports that hit an existing hash are reported, not inserted. Re-imports with new `keyWords` update the existing row instead ("updated" report status).
+
+**`keyWords` (optional):** short list of words/phrases the submitter flagged for student lookup — tricky options, idioms, or essay-ready vocabulary. Rendered as tap chips under the prompt; a tap opens the quick dictionary + deep links (Cambridge, Cambridge EN→VI, Oxford, Wiktionary) and can save the word to the student's local word list. Keep entries to real dictionary lookups (max ~50, comma- or pipe-friendly in forms).
 
 ## Workflows
 
 ### A. Google Sheet → CSV → admin bulk import (recommended for bulk)
 
-Columns: `qtype, section, prompt, options (pipe-separated), answer, accepted_variants (pipe-separated), tags (comma-separated), difficulty, source_type, source_name, source_year, source_grade, source_province`
+Columns: `qtype, section, prompt, options (pipe-separated), answer, accepted_variants (pipe-separated), tags (comma-separated), key_words (comma-separated), difficulty, source_type, source_name, source_year, source_grade, source_province`
 
 Export as CSV → paste into admin Bulk Import → validation report (per-row errors, dupe warnings) → drafts created.
 

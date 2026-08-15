@@ -29,6 +29,7 @@ export default function Contribute() {
     answer: "",
     acceptedVariants: "",
     tags: "",
+    keyWords: "",
     difficulty: "B1",
   });
   const [done, setDone] = useState<string | null>(null);
@@ -73,6 +74,7 @@ export default function Contribute() {
       answer: form.answer,
       acceptedVariants: form.acceptedVariants ? form.acceptedVariants.split("|").map((s) => s.trim()).filter(Boolean) : [],
       tags: form.tags ? form.tags.split(",").map((s) => s.trim()).filter(Boolean) : [],
+      keyWords: form.keyWords ? form.keyWords.split(",").map((s) => s.trim()).filter(Boolean) : [],
       difficulty: form.difficulty,
     };
     if (form.qtype === "mcq") payload.options = form.options.split("|").map((s) => s.trim()).filter(Boolean);
@@ -80,7 +82,7 @@ export default function Contribute() {
       const res = await api.contribute(payload);
       setDone(`Submitted — ${res.message} It will go live after a human review.`);
       setErrors({});
-      setForm((f) => ({ ...f, prompt: "", answer: "", acceptedVariants: "", tags: "", options: "" }));
+      setForm((f) => ({ ...f, prompt: "", answer: "", acceptedVariants: "", tags: "", keyWords: "", options: "" }));
     } catch (e) {
       setError(e instanceof Error ? e.message : "submission failed");
     } finally {
@@ -188,6 +190,10 @@ export default function Contribute() {
           <label className="field">
             Accepted variants (pipe-separated)
             <input value={form.acceptedVariants} onChange={(e) => set("acceptedVariants", e.target.value)} />
+          </label>
+          <label className="field wide">
+            Key words & phrases (comma-separated) — shown to students for quick dictionary lookup
+            <input value={form.keyWords} onChange={(e) => set("keyWords", e.target.value)} placeholder="at variance, abrupt, ratify" />
           </label>
         </div>
         <button className="btn btn-primary" onClick={() => void submit()} disabled={busy}>

@@ -107,8 +107,8 @@ admin.post("/questions", async (c) => {
 
   const inserted = await c.env.DB.prepare(
     `INSERT INTO questions
-      (source_id, qtype, section, prompt, options, answer, accepted_variants, rubric_ref, tags, difficulty, verification_status, prompt_hash, submitted_by)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      (source_id, qtype, section, prompt, options, answer, accepted_variants, rubric_ref, tags, key_words, difficulty, verification_status, prompt_hash, submitted_by)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   )
     .bind(
       sourceId,
@@ -120,6 +120,7 @@ admin.post("/questions", async (c) => {
       JSON.stringify(draft.acceptedVariants ?? []),
       draft.rubricRef ?? null,
       JSON.stringify(draft.tags ?? []),
+      JSON.stringify(draft.keyWords ?? []),
       draft.difficulty ?? "B1",
       status,
       promptHash,
@@ -152,14 +153,17 @@ admin.post("/questions/bulk", async (c) => {
         .bind(promptHash)
         .first<{ id: number }>();
       if (dup) {
-        report.push({ index: i, status: "duplicate", id: dup.id });
+        await c.env.DB.prepare("UPDATE questions SET key_words = ? WHERE id = ?")
+          .bind(JSON.stringify(draft.keyWords ?? []), dup.id)
+          .run();
+        report.push({ index: i, status: "updated", id: dup.id });
         continue;
       }
       const status = source ? statusForSourceType(source.type) : fallbackStatus;
       const inserted = await c.env.DB.prepare(
         `INSERT INTO questions
-          (source_id, qtype, section, prompt, options, answer, accepted_variants, rubric_ref, tags, difficulty, verification_status, prompt_hash, submitted_by)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          (source_id, qtype, section, prompt, options, answer, accepted_variants, rubric_ref, tags, key_words, difficulty, verification_status, prompt_hash, submitted_by)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
         .bind(
           sourceId,
@@ -171,6 +175,7 @@ admin.post("/questions/bulk", async (c) => {
           JSON.stringify(draft.acceptedVariants ?? []),
           draft.rubricRef ?? null,
           JSON.stringify(draft.tags ?? []),
+          JSON.stringify(draft.keyWords ?? []),
           draft.difficulty ?? "B1",
           status,
           promptHash,
@@ -224,6 +229,7 @@ admin.patch("/questions/:id", async (c) => {
   jsonListField("options", "options");
   jsonListField("accepted_variants", "acceptedVariants");
   jsonListField("tags", "tags");
+  jsonListField("key_words", "keyWords");
   cefrField("difficulty", "difficulty");
 
   if (typeof body.verificationStatus === "string" && (VERIFICATION_STATUSES as readonly string[]).includes(body.verificationStatus)) {

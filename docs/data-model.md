@@ -44,6 +44,7 @@ Every question points at a **source** (where it came from) and carries a **verif
 | explanation | TEXT | cached; generated once by AI, stored forever |
 | explanation_generated_at | TEXT | ISO — when the cached explanation was generated (powers the daily AI budget) |
 | tags | TEXT (JSON) | skill, topic tags e.g. ["stress","phrasal-verbs"] |
+| key_words | TEXT (JSON) | string[] of words/phrases flagged for student dictionary lookup (default `[]`) |
 | difficulty | TEXT | CEFR band: `A1` \| `A2` \| `B1` \| `B2` \| `C1` \| `C2` (default `B1`) |
 | verification_status | TEXT | `unverified` \| `verified` \| `rejected` (default `unverified`) |
 | prompt_hash | TEXT UNIQUE | SHA-256 of normalized prompt |
@@ -70,6 +71,7 @@ Practice attempt: one row per set a user runs.
 ### answers
 
 One row per question answered within a session. This is the mistake ledger.
+A correct retry of a previously-wrong question deletes the older wrong rows for that question + anon (`score = 0` answers); the ledger only keeps the latest attempts. Admin can also delete wrong rows directly via `DELETE /api/mistakes` (see `operations.md`).
 
 | Column | Type | Notes |
 |---|---|---|

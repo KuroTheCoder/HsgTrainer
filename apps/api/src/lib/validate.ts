@@ -25,6 +25,7 @@ export const questionDraftSchema = z.object({
   acceptedVariants: z.array(z.string().min(1)).max(50).optional(),
   rubricRef: z.string().max(100).optional().nullable(),
   tags: z.array(z.string().min(1)).max(20).optional(),
+  keyWords: z.array(z.string().min(1)).max(50).optional(),
   difficulty: z.enum(CEFR_LEVELS).optional(),
 });
 

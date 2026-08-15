@@ -20,6 +20,7 @@ export interface QuestionRow {
   rubric_ref: string | null;
   explanation: string | null;
   tags: string | null;
+  key_words: string | null;
   difficulty: CefrLevel;
   verification_status: VerificationStatus;
   prompt_hash: string;
@@ -73,6 +74,7 @@ export function toQuestionShape(row: QuestionRow) {
     acceptedVariants: parseJsonList(row.accepted_variants),
     difficulty: row.difficulty,
     tags: parseJsonList(row.tags),
+    keyWords: parseJsonList(row.key_words),
     verificationStatus: row.verification_status,
     explanation: row.explanation,
   };

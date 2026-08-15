@@ -63,6 +63,13 @@ export const api = {
   getMistakes: (section?: string) =>
     request<{ mistakes: import("./types").Mistake[] }>(`/mistakes${section ? `?section=${encodeURIComponent(section)}` : ""}`),
 
+  deleteMistakes: (opts: { ids?: number[]; section?: string } = {}) => {
+    const qs = new URLSearchParams();
+    if (opts.ids?.length) qs.set("ids", opts.ids.join(","));
+    if (opts.section) qs.set("section", opts.section);
+    return request<{ deleted: number }>(`/mistakes?${qs}`, { method: "DELETE" });
+  },
+
   submitAnswers: (sessionId: number, answers: { questionId: number; response: string }[]) =>
     request<SessionResult>(`/sessions/${sessionId}/answers`, {
       method: "POST",

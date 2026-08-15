@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import type { Env } from "../env";
+import { adminAuth } from "../middleware/adminAuth";
 import { DETERMINISTIC_TYPES, toQuestionShape, type QuestionRow } from "../types";
 import { scoreQuestion } from "../lib/scoring";
 import { generateExplanation } from "../ai/adapter";
@@ -118,20 +119,41 @@ practice.post("/sessions/:id/answers", async (c) => {
 
   let score = 0;
   const wrongDeterministic: QuestionRow[] = [];
+  const cleared: { questionId: number; removed: number }[] = [];
   for (const a of body.answers) {
     const q = byId.get(a.questionId);
     if (!q) continue;
-    const s = scoreQuestion(q, a.response);
+    const response = String(a.response ?? "");
+    const s = scoreQuestion(q, response);
     if (s.correct) score += s.score;
     else if (DETERMINISTIC_TYPES.includes(q.qtype) && !q.explanation) wrongDeterministic.push(q);
     await c.env.DB.prepare(
       `INSERT INTO answers (session_id, question_id, response, score) VALUES (?, ?, ?, ?)`,
     )
-      .bind(sessionId, q.id, a.response, s.score)
+      .bind(sessionId, q.id, response, s.score)
       .run();
+    // Retry promise: getting it right clears earlier wrong rows for this
+    // question + anon (the ledger only keeps your latest attempts per question).
+    if (s.correct) {
+      const { results: stale } = await c.env.DB.prepare(
+        `SELECT a.id FROM answers a
+         JOIN sessions s ON s.id = a.session_id
+         WHERE s.anon_id = ? AND a.question_id = ? AND a.score = 0`,
+      )
+        .bind(session.anon_id, q.id)
+        .all<{ id: number }>();
+      if (stale.length > 0) {
+        const removed = await c.env.DB.prepare(
+          `DELETE FROM answers WHERE id IN (${stale.map(() => "?").join(",")})`,
+        )
+          .bind(...stale.map((r) => r.id))
+          .run();
+        cleared.push({ questionId: q.id, removed: Number(removed.meta.changes ?? 0) });
+      }
+    }
     resultsOut.push({
       questionId: q.id,
-      yourAnswer: a.response,
+      yourAnswer: response,
       correct: s.correct,
       expected: s.expected,
       explanation: q.explanation,
@@ -140,31 +162,36 @@ practice.post("/sessions/:id/answers", async (c) => {
 
   // Explanation cache: generate once per question (only for wrong answers),
   // under the daily budget. Deterministic types only — writing is M3.
+  // Best-effort: a DB/AI failure here must never fail the submission itself.
   if (wrongDeterministic.length > 0) {
-    const cap = Math.max(0, parseInt(c.env.EXPLAIN_DAILY_CAP ?? "100", 10) || 0);
-    if (cap > 0) {
-      const { results: countRows } = await c.env.DB.prepare(
-        `SELECT COUNT(*) AS n FROM questions
-         WHERE explanation IS NOT NULL AND explanation_generated_at >= datetime('now', 'start of day')`,
-      ).all<{ n: number }>();
-      const used = countRows[0]?.n ?? 0;
-      const budget = Math.max(0, cap - used);
-      const generated = new Map<number, string>();
-      for (const q of wrongDeterministic.slice(0, budget)) {
-        const text = await generateExplanation(c.env, q);
-        if (text) {
-          generated.set(q.id, text);
-          await c.env.DB.prepare(
-            `UPDATE questions SET explanation = ?, explanation_generated_at = datetime('now') WHERE id = ?`,
-          )
-            .bind(text, q.id)
-            .run();
+    try {
+      const cap = Math.max(0, parseInt(c.env.EXPLAIN_DAILY_CAP ?? "100", 10) || 0);
+      if (cap > 0) {
+        const { results: countRows } = await c.env.DB.prepare(
+          `SELECT COUNT(*) AS n FROM questions
+           WHERE explanation IS NOT NULL AND explanation_generated_at >= datetime('now', 'start of day')`,
+        ).all<{ n: number }>();
+        const used = countRows[0]?.n ?? 0;
+        const budget = Math.max(0, cap - used);
+        const generated = new Map<number, string>();
+        for (const q of wrongDeterministic.slice(0, budget)) {
+          const text = await generateExplanation(c.env, q);
+          if (text) {
+            generated.set(q.id, text);
+            await c.env.DB.prepare(
+              `UPDATE questions SET explanation = ?, explanation_generated_at = datetime('now') WHERE id = ?`,
+            )
+              .bind(text, q.id)
+              .run();
+          }
+        }
+        for (const r of resultsOut) {
+          const gen = generated.get(r.questionId);
+          if (gen) r.explanation = gen;
         }
       }
-      for (const r of resultsOut) {
-        const gen = generated.get(r.questionId);
-        if (gen) r.explanation = gen;
-      }
+    } catch {
+      // explanation cache unavailable → proceed without explanations
     }
   }
 
@@ -174,6 +201,7 @@ practice.post("/sessions/:id/answers", async (c) => {
     sessionId,
     score,
     total: resultsOut.length,
+    cleared,
     results: resultsOut,
   });
 });
@@ -235,6 +263,39 @@ practice.get("/mistakes", async (c) => {
       answeredAt: r.answered_at,
     })),
   });
+});
+
+// Admin-only mistake cleanup: delete selected answer rows (?ids=1,2,3) or,
+// without ids, clear every wrong answer (optionally scoped by ?section=).
+practice.delete("/mistakes", adminAuth, async (c) => {
+  const ids = (c.req.query("ids") ?? "")
+    .split(",")
+    .map((s) => Number(s.trim()))
+    .filter((n) => Number.isInteger(n) && n > 0)
+    .slice(0, 200);
+
+  let sql: string;
+  const params: string[] = [];
+  if (ids.length > 0) {
+    sql = `DELETE FROM answers WHERE id IN (${ids.map(() => "?").join(",")})`;
+    params.push(...ids.map(String));
+  } else {
+    const section = c.req.query("section") ?? null;
+    sql = `DELETE FROM answers WHERE id IN (
+      SELECT a.id FROM answers a
+      JOIN questions q ON q.id = a.question_id
+      WHERE a.score = 0
+        AND q.qtype IN (${DETERMINISTIC_TYPES.map(() => "?").join(",")})`;
+    params.push(...DETERMINISTIC_TYPES);
+    if (section) {
+      sql += ` AND q.section = ?`;
+      params.push(section);
+    }
+    sql += `)`;
+  }
+
+  const { meta } = await c.env.DB.prepare(sql).bind(...params).run();
+  return c.json({ deleted: Number(meta.changes ?? 0) });
 });
 
 // Session result (review page / mistake ledger).
