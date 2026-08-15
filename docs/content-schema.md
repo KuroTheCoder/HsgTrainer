@@ -24,7 +24,7 @@
                                    // otherwise: the accepted answer text
       "acceptedVariants": [],      // additional accepted answers (word forms, spellings)
       "tags": ["collocations", "formal-register"],
-      "difficulty": 3,             // 1–5
+      "difficulty": "C1",           // CEFR: A1 | A2 | B1 | B2 | C1 | C2
       "rubricRef": null            // "writing" tasks only — see docs/rubric.md
     }
   ]

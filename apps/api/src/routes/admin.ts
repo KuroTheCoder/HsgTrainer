@@ -3,7 +3,7 @@ import type { Env } from "../env";
 import { adminAuth } from "../middleware/adminAuth";
 import { issueAdminToken } from "../lib/auth";
 import { sha256Hex } from "../lib/hash";
-import { questionDraftSchema, sourceSchema, bulkImportSchema, VERIFICATION_STATUSES } from "../lib/validate";
+import { questionDraftSchema, sourceSchema, bulkImportSchema, VERIFICATION_STATUSES, CEFR_LEVELS } from "../lib/validate";
 import type { QuestionRow, SourceType, VerificationStatus } from "../types";
 
 const admin = new Hono<{ Bindings: Env }>();
@@ -120,7 +120,7 @@ admin.post("/questions", async (c) => {
       JSON.stringify(draft.acceptedVariants ?? []),
       draft.rubricRef ?? null,
       JSON.stringify(draft.tags ?? []),
-      draft.difficulty ?? 3,
+      draft.difficulty ?? "B1",
       status,
       promptHash,
       "admin",
@@ -171,7 +171,7 @@ admin.post("/questions/bulk", async (c) => {
           JSON.stringify(draft.acceptedVariants ?? []),
           draft.rubricRef ?? null,
           JSON.stringify(draft.tags ?? []),
-          draft.difficulty ?? 3,
+          draft.difficulty ?? "B1",
           status,
           promptHash,
           "admin",
@@ -210,8 +210,8 @@ admin.patch("/questions/:id", async (c) => {
       params.push(JSON.stringify(body[key]));
     }
   };
-  const numberField = (col: string, key: string) => {
-    if (typeof body[key] === "number") {
+  const cefrField = (col: string, key: string) => {
+    if (typeof body[key] === "string" && (CEFR_LEVELS as readonly string[]).includes(body[key] as string)) {
       updates.push(`${col} = ?`);
       params.push(body[key]);
     }
@@ -224,7 +224,7 @@ admin.patch("/questions/:id", async (c) => {
   jsonListField("options", "options");
   jsonListField("accepted_variants", "acceptedVariants");
   jsonListField("tags", "tags");
-  numberField("difficulty", "difficulty");
+  cefrField("difficulty", "difficulty");
 
   if (typeof body.verificationStatus === "string" && (VERIFICATION_STATUSES as readonly string[]).includes(body.verificationStatus)) {
     updates.push("verification_status = ?", "reviewed_by = ?", "reviewed_at = datetime('now')");

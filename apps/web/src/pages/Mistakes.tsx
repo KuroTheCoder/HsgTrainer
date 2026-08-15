@@ -1,9 +1,22 @@
-﻿import { useCallback, useEffect, useState, type CSSProperties } from "react";
+﻿import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api";
-import { sectionMeta, SECTIONS } from "../sections";
+import { cefrBand, sectionMeta, SECTIONS } from "../sections";
 import { IconBolt, IconTarget, SectionIcon } from "../icons";
+import { renderMarkdown } from "../md";
 import type { Mistake } from "../types";
+
+function timeAgo(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const min = 60_000;
+  const hour = 3_600_000;
+  const day = 86_400_000;
+  if (diff < min) return "just now";
+  if (diff < hour) return `${Math.floor(diff / min)}m ago`;
+  if (diff < day) return `${Math.floor(diff / hour)}h ago`;
+  if (diff < 30 * day) return `${Math.floor(diff / day)}d ago`;
+  return new Date(iso).toLocaleDateString();
+}
 
 export default function Mistakes() {
   const [mistakes, setMistakes] = useState<Mistake[]>([]);
@@ -38,6 +51,18 @@ export default function Mistakes() {
   const countBySection = new Map<string, number>();
   for (const m of mistakes) countBySection.set(m.section, (countBySection.get(m.section) ?? 0) + 1);
 
+  const topGap = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const m of mistakes) {
+      for (const t of m.tags) counts.set(t, (counts.get(t) ?? 0) + 1);
+    }
+    let best: { tag: string; count: number } | null = null;
+    for (const [tag, n] of counts) {
+      if (!best || n > best.count) best = { tag, count: n };
+    }
+    return best;
+  }, [mistakes]);
+
   return (
     <div className="page">
       <div className="page-head">
@@ -57,7 +82,11 @@ export default function Mistakes() {
         </div>
       </div>
 
-      {error && <div className="banner error">{error}</div>}
+      {error && (
+        <div className="banner error" role="alert">
+          {error}
+        </div>
+      )}
 
       {!busy && mistakes.length === 0 && (
         <div className="card empty">
@@ -67,7 +96,7 @@ export default function Mistakes() {
       )}
 
       {countBySection.size > 0 && (
-        <div className="card panel" style={{ padding: "16px 20px", marginBottom: 18 }}>
+        <div className="card panel mistake-summary" style={{ padding: "16px 20px", marginBottom: 18 }}>
           <div className="row">
             <span className="tag accent">
               <IconTarget size={12} /> {mistakes.length} mistake(s)
@@ -81,6 +110,11 @@ export default function Mistakes() {
                 </span>
               );
             })}
+            {topGap && (
+              <span className="tag accent" title={`Most frequent tag across your mistakes (${topGap.count})`}>
+                Top gap: {topGap.tag}
+              </span>
+            )}
           </div>
           <div className="spread" style={{ marginTop: 10 }}>
             <span className="hint">Retry these in a fresh session — get them right to clear them.</span>
@@ -103,19 +137,19 @@ export default function Mistakes() {
                   {meta?.short ?? m.section} · {m.qtype}
                 </span>
               </span>
-              <span className="tag">difficulty {m.difficulty}</span>
+              <span className={`tag cefr ${cefrBand(m.difficulty)}`}>{m.difficulty}</span>
               {m.tags.map((t) => (
                 <span key={t} className="tag">
                   {t}
                 </span>
               ))}
-              <span className="tag">{new Date(m.answeredAt).toLocaleDateString()}</span>
+              <span className="tag">{timeAgo(m.answeredAt)}</span>
             </div>
-            <p className="prompt">{m.prompt}</p>
+            <p className="prompt">{renderMarkdown(m.prompt)}</p>
             <p className="small">
               Your answer: <b>{m.yourAnswer}</b> — correct: <b>{m.expected}</b>
             </p>
-            {m.explanation && <p className="explanation">{m.explanation}</p>}
+            {m.explanation && <p className="explanation">{renderMarkdown(m.explanation)}</p>}
           </div>
         );
       })}

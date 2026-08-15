@@ -75,12 +75,21 @@ export function sectionMeta(key: string | null | undefined): SectionMeta | undef
 
 export const DIFFICULTIES = [
   { value: "", label: "All" },
-  { value: "1", label: "1 · easy" },
-  { value: "2", label: "2" },
-  { value: "3", label: "3" },
-  { value: "4", label: "4" },
-  { value: "5", label: "5 · hard" },
+  { value: "A1", label: "A1", title: "A1 · beginner" },
+  { value: "A2", label: "A2", title: "A2 · elementary" },
+  { value: "B1", label: "B1", title: "B1 · intermediate" },
+  { value: "B2", label: "B2", title: "B2 · upper-intermediate" },
+  { value: "C1", label: "C1", title: "C1 · advanced" },
+  { value: "C2", label: "C2", title: "C2 · proficient" },
 ];
+
+export function cefrBand(level: string): "beginner" | "intermediate" | "advanced" {
+  if (level === "A1" || level === "A2") return "beginner";
+  if (level === "B1" || level === "B2") return "intermediate";
+  return "advanced";
+}
+
+export const CEFR_OPTIONS = ["A1", "A2", "B1", "B2", "C1", "C2"];
 
 /** Soft gradient from a section color — used for icon tiles and card tops. */
 export function sectionGradient(color: string): string {

@@ -1,6 +1,8 @@
 ﻿import { useState } from "react";
 import { api } from "../api";
-import { sectionMeta } from "../sections";
+import { CEFR_OPTIONS, sectionMeta } from "../sections";
+import { validateField, validateForm, type FormErrors, type QuestionFormValues } from "../formRules";
+import { ErrorSummary, type FormError } from "../components/ErrorSummary";
 
 const TYPES: Record<string, string> = {
   mcq: "MCQ",
@@ -12,8 +14,14 @@ const TYPES: Record<string, string> = {
 };
 const SECTIONS = ["phonetics", "lexico-grammar", "word-formation", "cloze", "reading", "writing"];
 
+function errorsToList(errors: FormErrors): FormError[] {
+  return (Object.keys(errors) as (keyof FormErrors)[])
+    .map((k) => ({ field: `c-${k}`, message: errors[k]! }))
+    .filter((e) => e.message);
+}
+
 export default function Contribute() {
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<QuestionFormValues>({
     qtype: "mcq",
     section: "lexico-grammar",
     prompt: "",
@@ -21,15 +29,40 @@ export default function Contribute() {
     answer: "",
     acceptedVariants: "",
     tags: "",
-    difficulty: "3",
+    difficulty: "B1",
   });
   const [done, setDone] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<FormErrors>({});
   const [busy, setBusy] = useState(false);
 
-  const set = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
+  const set = (k: string, v: string) => {
+    setForm((f) => ({ ...f, [k]: v }));
+    setErrors((prev) => {
+      const keys = k === "qtype" ? (["prompt", "options", "answer"] as const) : [k];
+      const next = { ...prev };
+      for (const key of keys) delete next[key as keyof FormErrors];
+      return next;
+    });
+  };
+
+  const onBlur = (k: keyof FormErrors) => {
+    setErrors((prev) => {
+      const msg = validateField(form, k);
+      const next = { ...prev };
+      if (msg) next[k] = msg;
+      else delete next[k];
+      return next;
+    });
+  };
 
   const submit = async () => {
+    const errs = validateForm(form);
+    if (Object.values(errs).some(Boolean)) {
+      setErrors(errs);
+      setError(null);
+      return;
+    }
     setBusy(true);
     setError(null);
     setDone(null);
@@ -40,12 +73,13 @@ export default function Contribute() {
       answer: form.answer,
       acceptedVariants: form.acceptedVariants ? form.acceptedVariants.split("|").map((s) => s.trim()).filter(Boolean) : [],
       tags: form.tags ? form.tags.split(",").map((s) => s.trim()).filter(Boolean) : [],
-      difficulty: Number(form.difficulty),
+      difficulty: form.difficulty,
     };
     if (form.qtype === "mcq") payload.options = form.options.split("|").map((s) => s.trim()).filter(Boolean);
     try {
       const res = await api.contribute(payload);
       setDone(`Submitted — ${res.message} It will go live after a human review.`);
+      setErrors({});
       setForm((f) => ({ ...f, prompt: "", answer: "", acceptedVariants: "", tags: "", options: "" }));
     } catch (e) {
       setError(e instanceof Error ? e.message : "submission failed");
@@ -61,10 +95,10 @@ export default function Contribute() {
       </div>
       <div className="card panel">
         <p className="hint" style={{ marginTop: 0 }}>
-          Share a good HSG-style question with the community. Submissions start{" "}
-          <b>unverified</b> and go live\n          only after a human review — provenance is what keeps
-          the bank trustworthy.
+          Share a good HSG-style question with the community. Submissions start <b>unverified</b> and go live only
+          after a human review — provenance is what keeps the bank trustworthy.
         </p>
+        <ErrorSummary errors={errorsToList(errors)} />
         <div className="field-grid">
           <label className="field">
             Type
@@ -87,9 +121,9 @@ export default function Contribute() {
             </select>
           </label>
           <label className="field">
-            Difficulty
+            Difficulty (CEFR)
             <select value={form.difficulty} onChange={(e) => set("difficulty", e.target.value)}>
-              {[1, 2, 3, 4, 5].map((d) => (
+              {CEFR_OPTIONS.map((d) => (
                 <option key={d} value={d}>
                   {d}
                 </option>
@@ -102,28 +136,73 @@ export default function Contribute() {
           </label>
           <label className="field wide">
             Prompt (include the passage inline for cloze/reading)
-            <textarea value={form.prompt} onChange={(e) => set("prompt", e.target.value)} rows={4} />
+            <textarea
+              id="c-prompt"
+              value={form.prompt}
+              onChange={(e) => set("prompt", e.target.value)}
+              onBlur={() => onBlur("prompt")}
+              rows={4}
+              aria-invalid={errors.prompt ? true : undefined}
+              aria-describedby={errors.prompt ? "c-prompt-error" : undefined}
+            />
+            {errors.prompt && (
+              <span className="field-error" id="c-prompt-error">
+                {errors.prompt}
+              </span>
+            )}
           </label>
           {form.qtype === "mcq" && (
             <label className="field wide">
               Options (pipe-separated, e.g. "ratified|rectified|rebutted|refuted")
-              <input value={form.options} onChange={(e) => set("options", e.target.value)} />
+              <input
+                id="c-options"
+                value={form.options}
+                onChange={(e) => set("options", e.target.value)}
+                onBlur={() => onBlur("options")}
+                aria-invalid={errors.options ? true : undefined}
+                aria-describedby={errors.options ? "c-options-error" : undefined}
+              />
+              {errors.options && (
+                <span className="field-error" id="c-options-error">
+                  {errors.options}
+                </span>
+              )}
             </label>
           )}
           <label className="field">
             Answer {form.qtype === "mcq" ? "(letter A–D)" : ""}
-            <input value={form.answer} onChange={(e) => set("answer", e.target.value)} />
+            <input
+              id="c-answer"
+              value={form.answer}
+              onChange={(e) => set("answer", e.target.value)}
+              onBlur={() => onBlur("answer")}
+              aria-invalid={errors.answer ? true : undefined}
+              aria-describedby={errors.answer ? "c-answer-error" : undefined}
+            />
+            {errors.answer && (
+              <span className="field-error" id="c-answer-error">
+                {errors.answer}
+              </span>
+            )}
           </label>
           <label className="field">
             Accepted variants (pipe-separated)
             <input value={form.acceptedVariants} onChange={(e) => set("acceptedVariants", e.target.value)} />
           </label>
         </div>
-        <button className="btn btn-primary" onClick={submit} disabled={busy || !form.prompt || !form.answer}>
+        <button className="btn btn-primary" onClick={() => void submit()} disabled={busy}>
           {busy ? "Submitting…" : "Submit for review"}
         </button>
-        {done && <div className="banner ok">{done}</div>}
-        {error && <div className="banner error">{error}</div>}
+        {done && (
+          <div className="banner ok" role="status">
+            {done}
+          </div>
+        )}
+        {error && (
+          <div className="banner error" role="alert">
+            {error}
+          </div>
+        )}
       </div>
     </div>
   );

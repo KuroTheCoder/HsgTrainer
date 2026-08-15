@@ -6,6 +6,8 @@ export type VerificationStatus = "unverified" | "verified" | "rejected";
 
 export type SourceType = "official" | "community" | "ai";
 
+export type CefrLevel = "A1" | "A2" | "B1" | "B2" | "C1" | "C2";
+
 export interface QuestionRow {
   id: number;
   source_id: number | null;
@@ -18,7 +20,7 @@ export interface QuestionRow {
   rubric_ref: string | null;
   explanation: string | null;
   tags: string | null;
-  difficulty: number;
+  difficulty: CefrLevel;
   verification_status: VerificationStatus;
   prompt_hash: string;
   submitted_by: string | null;
@@ -32,7 +34,7 @@ export interface SessionRow {
   anon_id: string;
   section: string | null;
   skill: string | null;
-  difficulty: number | null;
+  difficulty: string | null;
   question_count: number;
   score: number;
   created_at: string;

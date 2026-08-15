@@ -70,7 +70,7 @@ contribute.post("/", async (c) => {
       JSON.stringify(draft.acceptedVariants ?? []),
       draft.rubricRef ?? null,
       JSON.stringify(draft.tags ?? []),
-      draft.difficulty ?? 3,
+      draft.difficulty ?? "B1",
       promptHash,
       anon,
     )

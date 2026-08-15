@@ -44,7 +44,7 @@ Every question points at a **source** (where it came from) and carries a **verif
 | explanation | TEXT | cached; generated once by AI, stored forever |
 | explanation_generated_at | TEXT | ISO — when the cached explanation was generated (powers the daily AI budget) |
 | tags | TEXT (JSON) | skill, topic tags e.g. ["stress","phrasal-verbs"] |
-| difficulty | INTEGER | 1–5 |
+| difficulty | TEXT | CEFR band: `A1` \| `A2` \| `B1` \| `B2` \| `C1` \| `C2` (default `B1`) |
 | verification_status | TEXT | `unverified` \| `verified` \| `rejected` (default `unverified`) |
 | prompt_hash | TEXT UNIQUE | SHA-256 of normalized prompt |
 | submitted_by | TEXT | anon id or "system" |
@@ -62,7 +62,7 @@ Practice attempt: one row per set a user runs.
 | anon_id | TEXT | anonymous user id — client-generated UUID sent as `X-Anon-Id` header |
 | section | TEXT | filter used |
 | skill | TEXT | filter used |
-| difficulty | INTEGER | filter used |
+| difficulty | TEXT | CEFR band filter used |
 | question_count | INTEGER | |
 | score | INTEGER | raw correct count |
 | created_at | TEXT | ISO |

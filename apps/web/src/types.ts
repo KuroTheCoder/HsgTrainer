@@ -9,7 +9,7 @@ export interface Question {
   prompt: string;
   options: string[];
   acceptedVariants: string[];
-  difficulty: number;
+  difficulty: string;
   tags: string[];
   verificationStatus: string;
   explanation: string | null;
@@ -55,7 +55,7 @@ export interface AdminQuestion {
   answer: string;
   accepted_variants: string;
   options: string | null;
-  difficulty: number;
+  difficulty: string;
   verification_status: string;
   tags: string;
   explanation: string | null;
@@ -82,7 +82,7 @@ export interface Mistake {
   expected: string;
   explanation: string | null;
   tags: string[];
-  difficulty: number;
+  difficulty: string;
   answeredAt: string;
 }
 
@@ -91,7 +91,7 @@ export interface WritingQuestion {
   qtype: QuestionType;
   section: Section;
   prompt: string;
-  difficulty: number;
+  difficulty: string;
   tags: string[];
 }
 

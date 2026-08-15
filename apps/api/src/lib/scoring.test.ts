@@ -16,7 +16,7 @@ function q(partial: Partial<QuestionRow>): QuestionRow {
     rubric_ref: null,
     explanation: null,
     tags: "[]",
-    difficulty: 3,
+    difficulty: "B2",
     verification_status: "verified",
     prompt_hash: "x",
     submitted_by: null,

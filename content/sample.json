@@ -16,7 +16,7 @@
       "answer": "C",
       "acceptedVariants": ["threat"],
       "tags": ["pronunciation", "th-sounds"],
-      "difficulty": 2
+      "difficulty": "B1"
     },
     {
       "qtype": "mcq",
@@ -25,7 +25,7 @@
       "options": ["photography", "economics", "intelligence", "comprehensive"],
       "answer": "D",
       "tags": ["stress"],
-      "difficulty": 3
+      "difficulty": "B2"
     },
     {
       "qtype": "mcq",
@@ -34,7 +34,7 @@
       "options": ["resign", "recent", "resemble", "resort"],
       "answer": "A",
       "tags": ["silent-letters"],
-      "difficulty": 2
+      "difficulty": "B1"
     },
     {
       "qtype": "mcq",
@@ -43,7 +43,7 @@
       "options": ["ratified", "rectified", "rebutted", "refuted"],
       "answer": "A",
       "tags": ["collocations", "formal-register"],
-      "difficulty": 3
+      "difficulty": "B2"
     },
     {
       "qtype": "mcq",
@@ -52,7 +52,7 @@
       "options": ["improving", "improve", "improved", "having improved"],
       "answer": "A",
       "tags": ["preposition-infinitive", "fronting"],
-      "difficulty": 4
+      "difficulty": "C1"
     },
     {
       "qtype": "mcq",
@@ -61,7 +61,7 @@
       "options": ["in conflict", "in agreement", "in keeping", "in touch"],
       "answer": "A",
       "tags": ["idioms", "register"],
-      "difficulty": 4
+      "difficulty": "C1"
     },
     {
       "qtype": "mcq",
@@ -70,7 +70,7 @@
       "options": ["did they realise", "they realised", "they did realise", "realised they"],
       "answer": "A",
       "tags": ["inversion"],
-      "difficulty": 4
+      "difficulty": "C1"
     },
     {
       "qtype": "mcq",
@@ -79,7 +79,7 @@
       "options": ["abrupt", "abusive", "abundant", "abstract"],
       "answer": "A",
       "tags": ["collocations"],
-      "difficulty": 3
+      "difficulty": "B2"
     },
     {
       "qtype": "mcq",
@@ -88,7 +88,7 @@
       "options": ["Exhausted", "Exhausting", "Having exhausted", "To exhaust"],
       "answer": "A",
       "tags": ["adjectival-fronting"],
-      "difficulty": 5
+      "difficulty": "C2"
     },
     {
       "qtype": "mcq",
@@ -97,7 +97,7 @@
       "options": ["deafening", "deafened", "deaf", "deafly"],
       "answer": "A",
       "tags": ["collocations", "adjectives"],
-      "difficulty": 3
+      "difficulty": "B2"
     },
     {
       "qtype": "word-form",
@@ -106,7 +106,7 @@
       "answer": "persuasive",
       "acceptedVariants": ["persuasively"],
       "tags": ["derivation", "adjectives"],
-      "difficulty": 3
+      "difficulty": "B2"
     },
     {
       "qtype": "word-form",
@@ -115,7 +115,7 @@
       "answer": "reliability",
       "acceptedVariants": ["reliance"],
       "tags": ["derivation", "nouns"],
-      "difficulty": 4
+      "difficulty": "C1"
     },
     {
       "qtype": "word-form",
@@ -124,7 +124,7 @@
       "answer": "insubstantial",
       "acceptedVariants": ["unsubstantial", "insubstantive"],
       "tags": ["derivation", "negative-prefixes"],
-      "difficulty": 5
+      "difficulty": "C2"
     },
     {
       "qtype": "cloze",
@@ -133,7 +133,7 @@
       "answer": "torrential",
       "acceptedVariants": ["heavy", "copious", "relentless"],
       "tags": ["collocations"],
-      "difficulty": 3
+      "difficulty": "B2"
     },
     {
       "qtype": "cloze",
@@ -142,7 +142,7 @@
       "answer": "whether",
       "acceptedVariants": ["if"],
       "tags": ["conjunctions"],
-      "difficulty": 3
+      "difficulty": "B2"
     },
     {
       "qtype": "cloze",
@@ -151,7 +151,7 @@
       "answer": "central",
       "acceptedVariants": ["key", "crucial", "vital", "essential"],
       "tags": ["collocations"],
-      "difficulty": 4
+      "difficulty": "C1"
     },
     {
       "qtype": "mcq",
@@ -160,7 +160,7 @@
       "options": ["Inventing movable type itself", "Combining components into a production system", "Introducing printing to Europe", "Improving ceramic type quality"],
       "answer": "B",
       "tags": ["inference"],
-      "difficulty": 4
+      "difficulty": "C1"
     },
     {
       "qtype": "mcq",
@@ -169,7 +169,7 @@
       "options": ["was primarily an engineering achievement", "relied on technological developments despite its artistic image", "rejected traditional materials", "declined because of industrialisation"],
       "answer": "B",
       "tags": ["main-idea"],
-      "difficulty": 3
+      "difficulty": "B2"
     },
     {
       "qtype": "mcq",
@@ -178,7 +178,7 @@
       "options": ["archival document", "testimony", "achievement", "recording studio"],
       "answer": "B",
       "tags": ["vocabulary-in-context"],
-      "difficulty": 4
+      "difficulty": "C1"
     },
     {
       "qtype": "writing",
@@ -187,7 +187,52 @@
       "answer": "Model guidance: state a clear position; structure with an introduction, two or three developed arguments, and a conclusion; use formal register and precise academic vocabulary; maintain cohesion between paragraphs.",
       "rubricRef": "hsg-essay",
       "tags": ["essay"],
-      "difficulty": 4
+      "difficulty": "C1"
+    },
+    {
+      "qtype": "writing",
+      "section": "writing",
+      "prompt": "Write an essay of about 250 words on the following topic:\n\n\"Remote work has made employees more productive, but at the cost of workplace culture. Discuss the extent to which you agree or disagree.\"\n\nSupport your position with reasons and examples. Pay attention to content, organization, vocabulary, and grammatical accuracy.",
+      "answer": "Model guidance: weigh both sides of the productivity/culture trade-off before taking a clear stance; build each body paragraph around one developed argument with a concrete example; link ideas with formal linking devices.",
+      "rubricRef": "hsg-essay",
+      "tags": ["essay", "agree-disagree"],
+      "difficulty": "C1"
+    },
+    {
+      "qtype": "writing",
+      "section": "writing",
+      "prompt": "Write an essay of about 250 words on the following topic:\n\n\"Social media connects people across borders, yet it also isolates those who use it most. Discuss the causes of this paradox and suggest measures to address it.\"\n\nSupport your position with reasons and examples. Pay attention to content, organization, vocabulary, and grammatical accuracy.",
+      "answer": "Model guidance: introduce the paradox; analyze two or three causes (e.g. algorithmic isolation, comparison culture, shallow interactions); propose realistic measures; end with a reasoned conclusion.",
+      "rubricRef": "hsg-essay",
+      "tags": ["essay", "cause-solution"],
+      "difficulty": "C1"
+    },
+    {
+      "qtype": "writing",
+      "section": "writing",
+      "prompt": "Write an essay of about 250 words on the following topic:\n\n\"The best way to learn a language is to live in a country where it is spoken. To what extent do you agree?\"\n\nSupport your position with reasons and examples. Pay attention to content, organization, vocabulary, and grammatical accuracy.",
+      "answer": "Model guidance: concede the advantages of immersion (exposure, necessity, natural acquisition) but argue that structured study, motivation, and modern technology can compensate; illustrate with examples.",
+      "rubricRef": "hsg-essay",
+      "tags": ["essay", "education"],
+      "difficulty": "C1"
+    },
+    {
+      "qtype": "writing",
+      "section": "writing",
+      "prompt": "Write an essay of about 250 words on the following topic:\n\n\"Cities should invest more in public transport than in roads for private cars. Discuss.\"\n\nSupport your position with reasons and examples. Pay attention to content, organization, vocabulary, and grammatical accuracy.",
+      "answer": "Model guidance: compare costs and benefits (congestion, emissions, equity, economic development); consider counterarguments such as rural transport needs; reach a balanced but clear recommendation.",
+      "rubricRef": "hsg-essay",
+      "tags": ["essay", "discussion"],
+      "difficulty": "B2"
+    },
+    {
+      "qtype": "writing",
+      "section": "writing",
+      "prompt": "Write an essay of about 250 words on the following topic:\n\n\"Every student should be required to take at least one course in ethics before graduating. To what extent do you agree or disagree?\"\n\nSupport your position with reasons and examples. Pay attention to content, organization, vocabulary, and grammatical accuracy.",
+      "answer": "Model guidance: define what an ethics course can realistically deliver; argue whether it changes behavior or merely raises awareness; address the counterargument of academic freedom; conclude with a qualified position.",
+      "rubricRef": "hsg-essay",
+      "tags": ["essay", "education"],
+      "difficulty": "B2"
     }
   ]
 }

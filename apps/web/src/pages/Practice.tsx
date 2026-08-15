@@ -1,9 +1,11 @@
 ﻿import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { useSearchParams } from "react-router-dom";
 import { api } from "../api";
-import { DIFFICULTIES, SECTIONS, sectionGradient, sectionMeta } from "../sections";
+import { DIFFICULTIES, SECTIONS, cefrBand, sectionGradient, sectionMeta } from "../sections";
 import { IconCheck, IconSparkle, IconX, SectionIcon } from "../icons";
 import { ScoreRing } from "../components/ScoreRing";
+import { NoteBox, Reader } from "../components/Reader";
+import { renderMarkdown } from "../md";
 import type { AnswerResult, CriterionScores, Question, WritingFeedback, WritingQuestion } from "../types";
 
 type Phase = "config" | "running" | "results" | "writing" | "writing-result";
@@ -32,6 +34,26 @@ function StepsBar({ step }: { step: number }) {
         );
       })}
     </div>
+  );
+}
+
+function Stamp({ tone, text }: { tone: "ok" | "warn" | "bad"; text: string }) {
+  return (
+    <div className={`stamp ${tone}`} aria-hidden="true">
+      {text}
+    </div>
+  );
+}
+
+function CreditsDots({ remaining }: { remaining: number }) {
+  return (
+    <span className="credits" title="AI feedback credits left today">
+      <span className="credits-label">AI credits</span>
+      {Array.from({ length: 3 }, (_, i) => (
+        <i key={i} className={i < remaining ? "on" : ""} aria-hidden="true" />
+      ))}
+      <span className="muted small">{remaining} left today</span>
+    </span>
   );
 }
 
@@ -170,6 +192,8 @@ export default function Practice() {
 
   const setAnswer = (id: number, value: string) => setAnswers((a) => ({ ...a, [id]: value }));
 
+  const wordCount = useMemo(() => writingResponse.trim().split(/\s+/).filter(Boolean).length, [writingResponse]);
+
   const scoreSummary = useMemo(() => {
     if (!results) return null;
     const correct = results.filter((r) => r.correct).length;
@@ -184,6 +208,9 @@ export default function Practice() {
         <h2>Practice</h2>
       </div>
       <StepsBar step={step} />
+      <span className="sr-only" role="status">
+        {busy ? "Working, please wait" : ""}
+      </span>
 
       {phase === "config" && (
         <div className="card panel">
@@ -219,6 +246,8 @@ export default function Practice() {
                     <button
                       key={d.value || "any"}
                       className={`chip-btn ${difficulty === d.value ? "active" : ""}`}
+                      title={d.title}
+                      aria-pressed={difficulty === d.value}
                       onClick={() => setDifficulty(d.value)}
                     >
                       {d.label}
@@ -270,12 +299,20 @@ export default function Practice() {
                 {busy ? "Scoring…" : "Submit"}
               </button>
             </div>
-            {error && <div className="banner error">{error}</div>}
+            {error && (
+              <div className="banner error" role="alert">
+                {error}
+              </div>
+            )}
           </div>
 
           <div className="card panel">
             {questions.map((q, i) => (
-              <div key={q.id} className="question" style={{ "--i": i } as CSSProperties}>
+              <div
+                key={q.id}
+                className={`question ${answers[q.id]?.trim() ? "" : "unanswered"}`}
+                style={{ "--i": i } as CSSProperties}
+              >
                 <div className="question-head">
                   <span className="qnum">
                     <span className="qnum-icon">
@@ -284,9 +321,10 @@ export default function Practice() {
                     </span>
                   </span>
                   <span className="tag accent">{q.qtype}</span>
-                  {q.difficulty > 3 && <span className="tag">difficulty {q.difficulty}</span>}
+                  <span className={`tag cefr ${cefrBand(q.difficulty)}`}>{q.difficulty}</span>
+                  {!answers[q.id]?.trim() && <span className="tag bad">unanswered</span>}
                 </div>
-                <p className="prompt">{q.prompt}</p>
+                <Reader questionId={q.id} text={q.prompt} className="prompt" />
                 {q.qtype === "mcq" && q.options.length > 0 ? (
                   <div className="options">
                     {q.options.map((opt, oi) => (
@@ -312,6 +350,9 @@ export default function Practice() {
                     onChange={(e) => setAnswer(q.id, e.target.value)}
                   />
                 )}
+                <div className="question-actions">
+                  <NoteBox questionId={q.id} section={q.section} label="Note" />
+                </div>
               </div>
             ))}
             <button
@@ -330,6 +371,10 @@ export default function Practice() {
         <>
           <div className="card summary">
             <ScoreRing value={scoreSummary.correct} max={scoreSummary.total} tone={ringTone(scoreSummary.pct)} />
+            <Stamp
+              tone={ringTone(scoreSummary.pct)}
+              text={scoreSummary.pct >= 80 ? "A+" : scoreSummary.pct >= 60 ? "Keep going" : "Try again"}
+            />
             <div className="summary-meta">
               <h3>
                 {scoreSummary.pct >= 80 ? "Strong work!" : scoreSummary.pct >= 60 ? "Good — keep going" : "Room to grow"}
@@ -357,7 +402,7 @@ export default function Practice() {
                   </span>
                   <span className={`tag ${r.correct ? "ok" : "bad"}`}>{r.correct ? "Correct" : "Wrong"}</span>
                 </div>
-                <p className="prompt">{questions[i]?.prompt ?? ""}</p>
+                <p className="prompt">{renderMarkdown(questions[i]?.prompt ?? "")}</p>
                 <p className="small">
                   Your answer: <b>{r.yourAnswer}</b>
                   {!r.correct && (
@@ -367,7 +412,7 @@ export default function Practice() {
                     </>
                   )}
                 </p>
-                {r.explanation && <p className="explanation">{r.explanation}</p>}
+                {r.explanation && <p className="explanation">{renderMarkdown(r.explanation)}</p>}
               </div>
             ))}
           </div>
@@ -378,19 +423,33 @@ export default function Practice() {
         <div className="card panel">
           <div className="spread" style={{ marginBottom: 8 }}>
             <strong>Writing prompt</strong>
-            <button className="btn btn-sm btn-ghost" onClick={() => void drawWriting()} disabled={busy}>
-              Another prompt
-            </button>
+            <div className="row">
+              {remaining !== null && <CreditsDots remaining={remaining} />}
+              <button className="btn btn-sm btn-ghost" onClick={() => void drawWriting()} disabled={busy}>
+                Another prompt
+              </button>
+            </div>
           </div>
-          <p className="prompt">{writingQ.prompt}</p>
+          <Reader questionId={writingQ.id} text={writingQ.prompt} className="prompt" />
           <textarea
             rows={12}
             className="answer-input"
             placeholder="Write your essay here…"
             value={writingResponse}
             onChange={(e) => setWritingResponse(e.target.value)}
+            aria-describedby="writing-word-count"
           />
-          {error && <div className="banner error">{error}</div>}
+          <div className="question-actions">
+            <NoteBox questionId={writingQ.id} section="writing" label="Note" />
+          </div>
+          <p className="hint" id="writing-word-count" style={{ marginTop: 6 }}>
+            ≈ {wordCount} words
+          </p>
+          {error && (
+            <div className="banner error" role="alert">
+              {error}
+            </div>
+          )}
           <button
             className="btn btn-primary btn-lg btn-block"
             style={{ marginTop: 14 }}
@@ -400,7 +459,6 @@ export default function Practice() {
             <IconSparkle size={17} />
             {busy ? "Scoring with AI…" : "Get AI feedback"}
           </button>
-          {remaining !== null && <p className="hint">{remaining} AI feedback left today.</p>}
         </div>
       )}
 
@@ -408,6 +466,10 @@ export default function Practice() {
         <>
           <div className="card summary">
             <ScoreRing value={writingFeedback.total ?? 0} max={20} tone={ringTone(((writingFeedback.total ?? 0) / 20) * 100)} />
+            <Stamp
+              tone={ringTone(((writingFeedback.total ?? 0) / 20) * 100)}
+              text={((writingFeedback.total ?? 0) / 20) * 100 >= 80 ? "A+" : ((writingFeedback.total ?? 0) / 20) * 100 >= 60 ? "Keep going" : "Try again"}
+            />
             <div className="summary-meta">
               <h3>Band {writingFeedback.band ?? "—"}</h3>
               <p className="muted">
@@ -415,6 +477,7 @@ export default function Practice() {
                   ? "Scored against the HSG rubric. Your essay is saved to your history."
                   : "Feedback unavailable right now."}
               </p>
+              {remaining !== null && <CreditsDots remaining={remaining} />}
               <div className="row">
                 <button className="btn btn-primary" onClick={() => setPhase("config")}>
                   New set
@@ -423,7 +486,11 @@ export default function Practice() {
             </div>
           </div>
           <div className="card panel">
-            {writingFeedback.status !== "ok" && <div className="banner warn">{writingFeedback.error}</div>}
+            {writingFeedback.status !== "ok" && (
+              <div className="banner warn" role="alert">
+                {writingFeedback.error}
+              </div>
+            )}
             {writingFeedback.status === "ok" && writingFeedback.criterionScores && (
               <>
                 <div className="criterion-grid">

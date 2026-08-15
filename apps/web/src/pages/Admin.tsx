@@ -1,13 +1,39 @@
 ﻿import { useCallback, useEffect, useState } from "react";
 import { api, clearAdminToken, getAdminToken, setAdminToken } from "../api";
 import { parseCsv } from "../csv";
+import { validateField, validateForm, type FormErrors, type QuestionFormValues } from "../formRules";
+import { ErrorSummary, type FormError } from "../components/ErrorSummary";
 import type { AdminQuestion, BulkReportItem, Source } from "../types";
 
 type Tab = "queue" | "add" | "bulk" | "sources";
 
+function errorsToList(errors: FormErrors): FormError[] {
+  return (Object.keys(errors) as (keyof FormErrors)[])
+    .map((k) => ({ field: `a-${k}`, message: errors[k]! }))
+    .filter((e) => e.message);
+}
+
 export default function Admin() {
   const [token, setToken] = useState<string | null>(getAdminToken());
   const [tab, setTab] = useState<Tab>("queue");
+  const [counts, setCounts] = useState<{ unverified: number; verified: number; rejected: number } | null>(null);
+
+  const loadCounts = useCallback(async () => {
+    try {
+      const [u, v, r] = await Promise.all([
+        api.adminQueue("unverified"),
+        api.adminQueue("verified"),
+        api.adminQueue("rejected"),
+      ]);
+      setCounts({ unverified: u.questions.length, verified: v.questions.length, rejected: r.questions.length });
+    } catch {
+      // counts are decorative; never block the page on them
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadCounts();
+  }, [loadCounts]);
 
   if (!token) return <Login onLogin={setToken} />;
 
@@ -27,12 +53,21 @@ export default function Admin() {
       </div>
       <div className="seg">
         {(["queue", "add", "bulk", "sources"] as Tab[]).map((t) => (
-          <button key={t} className={tab === t ? "active" : ""} onClick={() => setTab(t)}>
+          <button
+            key={t}
+            className={tab === t ? "active" : ""}
+            onClick={() => setTab(t)}
+            aria-label={t === "queue" && counts ? `${TAB_LABELS[t]}, ${counts.unverified} pending` : TAB_LABELS[t]}
+          >
             {TAB_LABELS[t]}
+            {t === "queue" && (counts?.unverified ?? 0) > 0 && <span className="tab-badge">{counts!.unverified}</span>}
           </button>
         ))}
       </div>
-      {tab === "queue" && <ReviewQueue />}
+      <span className="sr-only" role="status">
+        {counts ? `${counts.unverified} questions in the review queue` : ""}
+      </span>
+      {tab === "queue" && <ReviewQueue onChanged={() => void loadCounts()} />}
       {tab === "add" && <AddQuestion />}
       {tab === "bulk" && <BulkImport />}
       {tab === "sources" && <Sources />}
@@ -85,14 +120,14 @@ function Login({ onLogin }: { onLogin: (token: string) => void }) {
       <button className="btn btn-primary" onClick={submit} disabled={busy}>
         {busy ? "Logging in…" : "Login"}
       </button>
-      {error && <div className="banner error">{error}</div>}
+      {error && <div className="banner error" role="alert">{error}</div>}
     </div>
   );
 }
 
 // ---------------- review queue ----------------
 
-function ReviewQueue() {
+function ReviewQueue({ onChanged }: { onChanged?: () => void }) {
   const [status, setStatus] = useState("unverified");
   const [items, setItems] = useState<AdminQuestion[]>([]);
   const [busy, setBusy] = useState(false);
@@ -129,6 +164,7 @@ function ReviewQueue() {
     try {
       await api.adminUpdateQuestion(id, { verificationStatus });
       await load();
+      onChanged?.();
     } catch (e) {
       setError(e instanceof Error ? e.message : "update failed");
     }
@@ -146,7 +182,7 @@ function ReviewQueue() {
           Refresh
         </button>
       </div>
-      {error && <div className="banner error">{error}</div>}
+      {error && <div className="banner error" role="alert">{error}</div>}
       {!busy && items.length === 0 && (
         <div className="empty">
           <b>Nothing here</b>
@@ -194,9 +230,10 @@ function ReviewQueue() {
 
 const TYPES = ["mcq", "fill-blank", "word-form", "cloze", "transformation", "writing"];
 const SECTIONS = ["phonetics", "lexico-grammar", "word-formation", "cloze", "reading", "writing"];
+const CEFR_OPTIONS = ["A1", "A2", "B1", "B2", "C1", "C2"];
 
 function AddQuestion() {
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<QuestionFormValues>({
     qtype: "mcq",
     section: "lexico-grammar",
     prompt: "",
@@ -204,8 +241,9 @@ function AddQuestion() {
     answer: "",
     acceptedVariants: "",
     tags: "",
-    difficulty: "3",
+    difficulty: "B1",
   });
+  const [errors, setErrors] = useState<FormErrors>({});
   const [sources, setSources] = useState<Source[]>([]);
   const [sourceId, setSourceId] = useState("");
   const [newSource, setNewSource] = useState(false);
@@ -218,9 +256,33 @@ function AddQuestion() {
     api.adminSources().then((r) => setSources(r.sources)).catch(() => undefined);
   }, []);
 
-  const set = (k: string, v: string) => setForm((f) => ({ ...f, [k]: v }));
+  const set = (k: string, v: string) => {
+    setForm((f) => ({ ...f, [k]: v }));
+    setErrors((prev) => {
+      const keys = k === "qtype" ? (["prompt", "options", "answer"] as const) : [k];
+      const next = { ...prev };
+      for (const key of keys) delete next[key as keyof FormErrors];
+      return next;
+    });
+  };
+
+  const onBlur = (k: keyof FormErrors) => {
+    setErrors((prev) => {
+      const msg = validateField(form, k);
+      const next = { ...prev };
+      if (msg) next[k] = msg;
+      else delete next[k];
+      return next;
+    });
+  };
 
   const submit = async () => {
+    const errs = validateForm(form);
+    if (Object.values(errs).some(Boolean)) {
+      setErrors(errs);
+      setError(null);
+      return;
+    }
     setBusy(true);
     setError(null);
     setResult(null);
@@ -231,26 +293,27 @@ function AddQuestion() {
       answer: form.answer,
       acceptedVariants: form.acceptedVariants ? form.acceptedVariants.split("|").map((s) => s.trim()).filter(Boolean) : [],
       tags: form.tags ? form.tags.split(",").map((s) => s.trim()).filter(Boolean) : [],
-      difficulty: Number(form.difficulty),
+      difficulty: form.difficulty,
     };
     if (form.qtype === "mcq") payload.options = form.options.split("|").map((s) => s.trim()).filter(Boolean);
     let sid = sourceId ? Number(sourceId) : null;
-    if (newSource && newSourceForm.name) {
-      const created = await api.adminCreateSource({
-        type: newSourceForm.type as Source["type"],
-        name: newSourceForm.name,
-        year: newSourceForm.year ? Number(newSourceForm.year) : null,
-      });
-      sid = created.id;
-      setSources((prev) => [
-        ...prev,
-        { id: created.id, type: newSourceForm.type as Source["type"], name: newSourceForm.name, grade: null, year: newSourceForm.year ? Number(newSourceForm.year) : null, province: null, url: null, attribution_note: null },
-      ]);
-    }
-    if (sid) payload.sourceId = sid;
     try {
+      if (newSource && newSourceForm.name) {
+        const created = await api.adminCreateSource({
+          type: newSourceForm.type as Source["type"],
+          name: newSourceForm.name,
+          year: newSourceForm.year ? Number(newSourceForm.year) : null,
+        });
+        sid = created.id;
+        setSources((prev) => [
+          ...prev,
+          { id: created.id, type: newSourceForm.type as Source["type"], name: newSourceForm.name, grade: null, year: newSourceForm.year ? Number(newSourceForm.year) : null, province: null, url: null, attribution_note: null },
+        ]);
+      }
+      if (sid) payload.sourceId = sid;
       const res = await api.adminCreateQuestion(payload);
-      setResult(`Created #${res.id}  as ${res.status}.`);
+      setResult(`Created #${res.id} as ${res.status}.`);
+      setErrors({});
       setForm((f) => ({ ...f, prompt: "", answer: "", acceptedVariants: "", tags: "" }));
     } catch (e) {
       setError(e instanceof Error ? e.message : "create failed");
@@ -261,7 +324,8 @@ function AddQuestion() {
 
   return (
     <div className="card panel">
-      <h3>add</h3>
+      <h3>Add a question</h3>
+      <ErrorSummary errors={errorsToList(errors)} />
       <div className="field-grid">
         <label className="field">
           Type
@@ -280,9 +344,9 @@ function AddQuestion() {
           </select>
         </label>
         <label className="field">
-          Difficulty
+          Difficulty (CEFR)
           <select value={form.difficulty} onChange={(e) => set("difficulty", e.target.value)}>
-            {[1, 2, 3, 4, 5].map((d) => (
+            {CEFR_OPTIONS.map((d) => (
               <option key={d} value={d}>
                 {d}
               </option>
@@ -326,17 +390,54 @@ function AddQuestion() {
         )}
         <label className="field wide">
           Prompt (include the passage inline for cloze/reading)
-          <textarea value={form.prompt} onChange={(e) => set("prompt", e.target.value)} rows={4} />
+          <textarea
+            id="a-prompt"
+            value={form.prompt}
+            onChange={(e) => set("prompt", e.target.value)}
+            onBlur={() => onBlur("prompt")}
+            rows={4}
+            aria-invalid={errors.prompt ? true : undefined}
+            aria-describedby={errors.prompt ? "a-prompt-error" : undefined}
+          />
+          {errors.prompt && (
+            <span className="field-error" id="a-prompt-error">
+              {errors.prompt}
+            </span>
+          )}
         </label>
         {form.qtype === "mcq" && (
           <label className="field wide">
             Options (pipe-separated, e.g. "ratified|rectified|rebutted|refuted")
-            <input value={form.options} onChange={(e) => set("options", e.target.value)} />
+            <input
+              id="a-options"
+              value={form.options}
+              onChange={(e) => set("options", e.target.value)}
+              onBlur={() => onBlur("options")}
+              aria-invalid={errors.options ? true : undefined}
+              aria-describedby={errors.options ? "a-options-error" : undefined}
+            />
+            {errors.options && (
+              <span className="field-error" id="a-options-error">
+                {errors.options}
+              </span>
+            )}
           </label>
         )}
         <label className="field">
           Answer {form.qtype === "mcq" ? "(letter A–D)" : ""}
-          <input value={form.answer} onChange={(e) => set("answer", e.target.value)} />
+          <input
+            id="a-answer"
+            value={form.answer}
+            onChange={(e) => set("answer", e.target.value)}
+            onBlur={() => onBlur("answer")}
+            aria-invalid={errors.answer ? true : undefined}
+            aria-describedby={errors.answer ? "a-answer-error" : undefined}
+          />
+          {errors.answer && (
+            <span className="field-error" id="a-answer-error">
+              {errors.answer}
+            </span>
+          )}
         </label>
         <label className="field">
           Accepted variants (pipe-separated)
@@ -347,11 +448,19 @@ function AddQuestion() {
           <input value={form.tags} onChange={(e) => set("tags", e.target.value)} placeholder="stress, phrasal-verbs" />
         </label>
       </div>
-      <button className="btn btn-primary" onClick={submit} disabled={busy || !form.prompt || !form.answer}>
+      <button className="btn btn-primary" onClick={() => void submit()} disabled={busy}>
         {busy ? "Creating…" : "Create draft"}
       </button>
-      {result && <div className="banner ok">{result}</div>}
-      {error && <div className="banner error">{error}</div>}
+      {result && (
+        <div className="banner ok" role="status">
+          {result}
+        </div>
+      )}
+      {error && (
+        <div className="banner error" role="alert">
+          {error}
+        </div>
+      )}
     </div>
   );
 }
@@ -445,7 +554,7 @@ function BulkImport() {
           answer: get("answer"),
           acceptedVariants: get("accepted_variants") ? splitPipe(get("accepted_variants")) : [],
           tags: get("tags") ? get("tags").split(",").map((x) => x.trim()).filter(Boolean) : [],
-          difficulty: get("difficulty") ? Number(get("difficulty")) : 3,
+          difficulty: get("difficulty") ? String(get("difficulty")) : "B1",
         });
       }
 
@@ -460,7 +569,7 @@ function BulkImport() {
 
   return (
     <div className="card panel">
-      <h3>bulk</h3>
+      <h3>Bulk import</h3>
       <p className="hint">
         Paste canonical JSON (docs/content-schema.md) or Google-Sheet CSV with header:{" "}
         <code>{CSV_COLUMNS.join(",")}</code>  (options/variants pipe-separated).
@@ -477,7 +586,7 @@ function BulkImport() {
           Import CSV
         </button>
       </div>
-      {error && <div className="banner error">{error}</div>}
+      {error && <div className="banner error" role="alert">{error}</div>}
       {report && (
         <div>
           <h4>Report ({report.length} rows)</h4>
@@ -569,7 +678,7 @@ function Sources() {
       <button className="btn btn-primary" onClick={create} disabled={!form.name}>
         Add source
       </button>
-      {error && <div className="banner error">{error}</div>}
+      {error && <div className="banner error" role="alert">{error}</div>}
       <table>
         <thead>
           <tr>

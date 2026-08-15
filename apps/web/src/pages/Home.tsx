@@ -158,7 +158,7 @@ export default function Home() {
               <div className="mock-foot">
                 <ScoreRing value={4} max={5} size={44} stroke={5} tone="ok" />
                 <span>
-                  Correct — <b>difficulty 3</b>
+                  Correct — <b>C1 · advanced</b>
                 </span>
               </div>
             </div>
