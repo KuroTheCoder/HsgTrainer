@@ -1,0 +1,16 @@
+# Local dev secrets — copy to .dev.vars and fill in. Never commit .dev.vars.
+ADMIN_TOKEN=change-me
+# Optional until M3 (AI adapter degrades gracefully without them):
+AI_GEMINI_KEY=
+AI_GROQ_KEY=
+# Optional — max explanations generated per day (default 100):
+EXPLAIN_DAILY_CAP=
+# Optional — AI writing feedback per user per day (default 3):
+WRITE_DAILY_CAP=
+# Optional — public contributions per user per day (default 5):
+CONTRIBUTE_DAILY_CAP=
+# Optional — Workers AI last-resort provider:
+CF_ACCOUNT_ID=
+CF_API_TOKEN=
+# Comma-separated origins allowed via CORS (empty = http://localhost:5173 default)
+ALLOWED_ORIGINS=

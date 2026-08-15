@@ -1,0 +1,193 @@
+{
+  "source": {
+    "type": "official",
+    "name": "DEMO BANK — placeholder questions (replace with real papers)",
+    "grade": "12",
+    "year": 2026,
+    "province": null,
+    "attributionNote": "Placeholder demo content. Key real papers via the admin tools; see docs/content-schema.md."
+  },
+  "questions": [
+    {
+      "qtype": "mcq",
+      "section": "phonetics",
+      "prompt": "Choose the word whose underlined part is pronounced differently from the others.",
+      "options": ["breathe", "beneath", "threat", "smooth"],
+      "answer": "C",
+      "acceptedVariants": ["threat"],
+      "tags": ["pronunciation", "th-sounds"],
+      "difficulty": 2
+    },
+    {
+      "qtype": "mcq",
+      "section": "phonetics",
+      "prompt": "Choose the word that differs from the other three in the position of primary stress.",
+      "options": ["photography", "economics", "intelligence", "comprehensive"],
+      "answer": "D",
+      "tags": ["stress"],
+      "difficulty": 3
+    },
+    {
+      "qtype": "mcq",
+      "section": "phonetics",
+      "prompt": "Which word contains a silent letter?",
+      "options": ["resign", "recent", "resemble", "resort"],
+      "answer": "A",
+      "tags": ["silent-letters"],
+      "difficulty": 2
+    },
+    {
+      "qtype": "mcq",
+      "section": "lexico-grammar",
+      "prompt": "Choose the best option: The committee's decision was ____ by the board.",
+      "options": ["ratified", "rectified", "rebutted", "refuted"],
+      "answer": "A",
+      "tags": ["collocations", "formal-register"],
+      "difficulty": 3
+    },
+    {
+      "qtype": "mcq",
+      "section": "lexico-grammar",
+      "prompt": "Choose the best option: Far from ____ the situation, the new policy has made it worse.",
+      "options": ["improving", "improve", "improved", "having improved"],
+      "answer": "A",
+      "tags": ["preposition-infinitive", "fronting"],
+      "difficulty": 4
+    },
+    {
+      "qtype": "mcq",
+      "section": "lexico-grammar",
+      "prompt": "Choose the closest in meaning: The minister's remarks were **at variance** with the official position.",
+      "options": ["in conflict", "in agreement", "in keeping", "in touch"],
+      "answer": "A",
+      "tags": ["idioms", "register"],
+      "difficulty": 4
+    },
+    {
+      "qtype": "mcq",
+      "section": "lexico-grammar",
+      "prompt": "Choose the best option: Only when the evidence was reviewed ____ the magnitude of the fraud.",
+      "options": ["did they realise", "they realised", "they did realise", "realised they"],
+      "answer": "A",
+      "tags": ["inversion"],
+      "difficulty": 4
+    },
+    {
+      "qtype": "mcq",
+      "section": "lexico-grammar",
+      "prompt": "Choose the best option: The negotiations came to an ____ halt when neither side would yield.",
+      "options": ["abrupt", "abusive", "abundant", "abstract"],
+      "answer": "A",
+      "tags": ["collocations"],
+      "difficulty": 3
+    },
+    {
+      "qtype": "mcq",
+      "section": "lexico-grammar",
+      "prompt": "Choose the best option: ____ as she was, she refused to compromise on principle.",
+      "options": ["Exhausted", "Exhausting", "Having exhausted", "To exhaust"],
+      "answer": "A",
+      "tags": ["adjectival-fronting"],
+      "difficulty": 5
+    },
+    {
+      "qtype": "mcq",
+      "section": "lexico-grammar",
+      "prompt": "Choose the best option: The proposal met with ____ silence from the audience.",
+      "options": ["deafening", "deafened", "deaf", "deafly"],
+      "answer": "A",
+      "tags": ["collocations", "adjectives"],
+      "difficulty": 3
+    },
+    {
+      "qtype": "word-form",
+      "section": "word-formation",
+      "prompt": "Give the correct form of the word in capitals: The lecturer's arguments were both lucid and (PERSUADE) ____.",
+      "answer": "persuasive",
+      "acceptedVariants": ["persuasively"],
+      "tags": ["derivation", "adjectives"],
+      "difficulty": 3
+    },
+    {
+      "qtype": "word-form",
+      "section": "word-formation",
+      "prompt": "Give the correct form of the word in capitals: The (RELY) ____ of the data was called into question.",
+      "answer": "reliability",
+      "acceptedVariants": ["reliance"],
+      "tags": ["derivation", "nouns"],
+      "difficulty": 4
+    },
+    {
+      "qtype": "word-form",
+      "section": "word-formation",
+      "prompt": "Give the correct form of the word in capitals: Critics dismissed the report as (SUBSTANCE) ____.",
+      "answer": "insubstantial",
+      "acceptedVariants": ["unsubstantial", "insubstantive"],
+      "tags": ["derivation", "negative-prefixes"],
+      "difficulty": 5
+    },
+    {
+      "qtype": "cloze",
+      "section": "cloze",
+      "prompt": "Fill in the blank with ONE suitable word.\n\nThe monsoon season brings (1) ____ rains that transform the landscape, yet it also tests the resilience of local communities.",
+      "answer": "torrential",
+      "acceptedVariants": ["heavy", "copious", "relentless"],
+      "tags": ["collocations"],
+      "difficulty": 3
+    },
+    {
+      "qtype": "cloze",
+      "section": "cloze",
+      "prompt": "Fill in the blank with ONE suitable word.\n\nHistorians have long debated (2) ____ the empire collapsed from within or was undone by external pressures.",
+      "answer": "whether",
+      "acceptedVariants": ["if"],
+      "tags": ["conjunctions"],
+      "difficulty": 3
+    },
+    {
+      "qtype": "cloze",
+      "section": "cloze",
+      "prompt": "Fill in the blank with ONE suitable word.\n\nFar from being a mere footnote, the treaty proved (3) ____ to the region's subsequent stability.",
+      "answer": "central",
+      "acceptedVariants": ["key", "crucial", "vital", "essential"],
+      "tags": ["collocations"],
+      "difficulty": 4
+    },
+    {
+      "qtype": "mcq",
+      "section": "reading",
+      "prompt": "Read the passage and choose the best answer.\n\n\"The invention of movable type is often credited solely to Gutenberg, yet printing cultures in East Asia had experimented with ceramic and wooden type centuries earlier. What Gutenberg industrialized was not the idea of movable type itself but the efficient production of metal type and its integration with the press and oil-based ink — a system, not a single component.\"\n\nWhat does the author suggest was Gutenberg's real contribution?",
+      "options": ["Inventing movable type itself", "Combining components into a production system", "Introducing printing to Europe", "Improving ceramic type quality"],
+      "answer": "B",
+      "tags": ["inference"],
+      "difficulty": 4
+    },
+    {
+      "qtype": "mcq",
+      "section": "reading",
+      "prompt": "Read the passage and choose the best answer.\n\n\"Despite its reputation as a purely aesthetic movement, Art Nouveau was deeply entangled with engineering: its sinuous ironwork was only possible because of advances in steel production, and its most ambitious buildings depended on the structural logic of new materials.\"\n\nThe author's main point is that Art Nouveau ____.",
+      "options": ["was primarily an engineering achievement", "relied on technological developments despite its artistic image", "rejected traditional materials", "declined because of industrialisation"],
+      "answer": "B",
+      "tags": ["main-idea"],
+      "difficulty": 3
+    },
+    {
+      "qtype": "mcq",
+      "section": "reading",
+      "prompt": "Read the passage and choose the best answer.\n\n\"Linguistic diversity is not a barrier to unity; it is a record of it. Each dialect preserves the history of the communities that shaped it, and the disappearance of a language erases evidence of migrations, trade routes, and cultural contact that no archive can fully reconstruct.\"\n\nThe word 'record' in the passage is closest in meaning to ____.",
+      "options": ["archival document", "testimony", "achievement", "recording studio"],
+      "answer": "B",
+      "tags": ["vocabulary-in-context"],
+      "difficulty": 4
+    },
+    {
+      "qtype": "writing",
+      "section": "writing",
+      "prompt": "Write an essay of about 250 words on the following topic:\n\n\"Some people argue that the study of classical literature is a luxury that modern education can no longer afford. Do you agree?\"\n\nSupport your position with reasons and examples. Pay attention to content, organization, vocabulary, and grammatical accuracy.",
+      "answer": "Model guidance: state a clear position; structure with an introduction, two or three developed arguments, and a conclusion; use formal register and precise academic vocabulary; maintain cohesion between paragraphs.",
+      "rubricRef": "hsg-essay",
+      "tags": ["essay"],
+      "difficulty": 4
+    }
+  ]
+}
