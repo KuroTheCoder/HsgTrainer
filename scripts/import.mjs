@@ -37,7 +37,7 @@ async function main() {
     console.error(`login failed: ${login.status} — is ADMIN_TOKEN set in .dev.vars?`);
     process.exit(1);
   }
-  const { token } = (await login.json()) as { token: string };
+  const { token } = await login.json();
 
   const res = await fetch(`${base}/api/admin/questions/bulk`, {
     method: "POST",
@@ -48,7 +48,7 @@ async function main() {
     console.error(`import failed: ${res.status} ${await res.text()}`);
     process.exit(1);
   }
-  const { report } = (await res.json()) as { report: { index: number; status: string; id?: number; error?: string }[] };
+  const { report } = await res.json();
   for (const r of report) {
     console.log(`[${r.index}] ${r.status}${r.id ? ` id=${r.id}` : ""}${r.error ? ` error=${r.error}` : ""}`);
   }
