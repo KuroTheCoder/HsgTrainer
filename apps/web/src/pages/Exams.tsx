@@ -237,35 +237,37 @@ export default function Exams() {
               No full papers available yet — verified official papers appear here once the content team keys them.
             </p>
           )}
-          {papers.map((p) => (
-            <div key={p.id} className="card paper-card">
-              <div className="spread">
-                <div>
-                  <b>{p.name}</b>
-                  <div className="muted small">
-                    {[p.year ? String(p.year) : null, p.province, p.grade].filter(Boolean).join(" · ") || "Official paper"}
+          <div className="card-grid">
+            {papers.map((p) => (
+              <div key={p.id} className="card paper-card">
+                <div className="spread">
+                  <div>
+                    <b>{p.name}</b>
+                    <div className="muted small">
+                      {[p.year ? String(p.year) : null, p.province, p.grade].filter(Boolean).join(" · ") || "Official paper"}
+                    </div>
+                    <div className="row-chips" style={{ marginTop: 8 }}>
+                      {Object.entries(p.sections)
+                        .filter(([, n]) => n > 0)
+                        .map(([sec, n]) => {
+                          const meta = sectionMeta(sec);
+                          return (
+                            <span key={sec} className="tag" title={meta?.label}>
+                              <SectionIcon icon={meta?.icon ?? ""} size={11} /> {n} · {meta?.short ?? sec}
+                            </span>
+                          );
+                        })}
+                      <span className="tag accent">{p.total} total</span>
+                    </div>
                   </div>
-                  <div className="row-chips" style={{ marginTop: 8 }}>
-                    {Object.entries(p.sections)
-                      .filter(([, n]) => n > 0)
-                      .map(([sec, n]) => {
-                        const meta = sectionMeta(sec);
-                        return (
-                          <span key={sec} className="tag" title={meta?.label}>
-                            <SectionIcon icon={meta?.icon ?? ""} size={11} /> {n} · {meta?.short ?? sec}
-                          </span>
-                        );
-                      })}
-                    <span className="tag accent">{p.total} total</span>
-                  </div>
+                  <button className="btn btn-primary" onClick={() => void start(p)} disabled={busy}>
+                    <IconBolt size={14} />
+                    Start exam
+                  </button>
                 </div>
-                <button className="btn btn-primary" onClick={() => void start(p)} disabled={busy}>
-                  <IconBolt size={14} />
-                  Start exam
-                </button>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
 
@@ -406,7 +408,7 @@ export default function Exams() {
             </div>
           </div>
 
-          <div className="card panel">
+          <div className="card-grid">
             {results.map((r, i) => {
               const q = questions[i];
               const meta = q ? sectionMeta(q.section) : undefined;

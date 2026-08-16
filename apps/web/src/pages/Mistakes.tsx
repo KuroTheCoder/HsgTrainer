@@ -203,51 +203,53 @@ export default function Mistakes() {
         </div>
       )}
 
-      {mistakes.map((m, i) => {
-        const meta = sectionMeta(m.section);
-        return (
-          <div key={m.answerId} className={`question wrong ${selected.has(m.answerId) ? "row-selected" : ""}`} style={{ "--i": i } as CSSProperties}>
-            <div className="question-head">
-              {isAdmin && (
-                <label className="row-check" title="Select for deletion">
-                  <input
-                    type="checkbox"
-                    checked={selected.has(m.answerId)}
-                    onChange={() => toggleSelected(m.answerId)}
-                  />
-                  <span className="sr-only">Select mistake {i + 1}</span>
-                </label>
-              )}
-              <span className="qnum">
-                <span className="qnum-icon">
-                  <SectionIcon icon={meta?.icon ?? ""} size={15} />
-                  {meta?.short ?? m.section} · {m.qtype}
+      <div className="card-grid">
+        {mistakes.map((m, i) => {
+          const meta = sectionMeta(m.section);
+          return (
+            <div key={m.answerId} className={`question wrong ${selected.has(m.answerId) ? "row-selected" : ""}`} style={{ "--i": i } as CSSProperties}>
+              <div className="question-head">
+                {isAdmin && (
+                  <label className="row-check" title="Select for deletion">
+                    <input
+                      type="checkbox"
+                      checked={selected.has(m.answerId)}
+                      onChange={() => toggleSelected(m.answerId)}
+                    />
+                    <span className="sr-only">Select mistake {i + 1}</span>
+                  </label>
+                )}
+                <span className="qnum">
+                  <span className="qnum-icon">
+                    <SectionIcon icon={meta?.icon ?? ""} size={15} />
+                    {meta?.short ?? m.section} · {m.qtype}
+                  </span>
                 </span>
-              </span>
-              <span className={`tag cefr ${cefrBand(m.difficulty)}`}>{m.difficulty}</span>
-              {m.tags.map((t) => (
-                <span key={t} className="tag">
-                  {t}
-                </span>
-              ))}
-              <span className="tag">{timeAgo(m.answeredAt)}</span>
-              <button
-                className="btn btn-ghost btn-sm ml-auto"
-                onClick={() => navigate(`/practice?questions=${m.questionId}`)}
-                title="Drill this question in a fresh session — get it right to clear it"
-              >
-                <IconBolt size={12} />
-                Drill
-              </button>
+                <span className={`tag cefr ${cefrBand(m.difficulty)}`}>{m.difficulty}</span>
+                {m.tags.map((t) => (
+                  <span key={t} className="tag">
+                    {t}
+                  </span>
+                ))}
+                <span className="tag">{timeAgo(m.answeredAt)}</span>
+                <button
+                  className="btn btn-ghost btn-sm ml-auto"
+                  onClick={() => navigate(`/practice?questions=${m.questionId}`)}
+                  title="Drill this question in a fresh session — get it right to clear it"
+                >
+                  <IconBolt size={12} />
+                  Drill
+                </button>
+              </div>
+              <p className="prompt">{renderMarkdown(m.prompt)}</p>
+              <p className="small">
+                Your answer: <b>{m.yourAnswer}</b> — correct: <b>{m.expected}</b>
+              </p>
+              {m.explanation && <p className="explanation">{renderMarkdown(m.explanation)}</p>}
             </div>
-            <p className="prompt">{renderMarkdown(m.prompt)}</p>
-            <p className="small">
-              Your answer: <b>{m.yourAnswer}</b> — correct: <b>{m.expected}</b>
-            </p>
-            {m.explanation && <p className="explanation">{renderMarkdown(m.explanation)}</p>}
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 }

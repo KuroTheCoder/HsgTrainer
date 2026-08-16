@@ -429,7 +429,7 @@ export default function Practice() {
               </div>
             </div>
           </div>
-          <div className="card panel">
+          <div className="card-grid">
             {results.map((r, i) => (
               <div key={r.questionId} className={`question ${r.correct ? "ok" : "wrong"}`} style={{ "--i": i } as CSSProperties}>
                 <div className="question-head">

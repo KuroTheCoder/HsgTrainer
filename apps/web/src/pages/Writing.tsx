@@ -197,9 +197,11 @@ export default function Writing() {
         </div>
       )}
 
-      {entries.map((e) => (
-        <Entry key={e.id} entry={e} />
-      ))}
+      <div className="card-grid">
+        {entries.map((e) => (
+          <Entry key={e.id} entry={e} />
+        ))}
+      </div>
     </div>
   );
 }
