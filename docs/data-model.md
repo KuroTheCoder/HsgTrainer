@@ -61,17 +61,19 @@ Practice attempt: one row per set a user runs.
 |---|---|---|
 | id | INTEGER PK | |
 | anon_id | TEXT | anonymous user id — client-generated UUID sent as `X-Anon-Id` header |
-| section | TEXT | filter used |
-| skill | TEXT | filter used |
+| section | TEXT | filter used (null for full-paper exam draws) |
+| skill | TEXT | filter used; `'exam'` marks full-paper mock-exam sessions (see `/api/exams/papers` + `POST /api/sessions {paperId}`) |
 | difficulty | TEXT | CEFR band filter used |
 | question_count | INTEGER | |
-| score | INTEGER | raw correct count |
+| score | INTEGER | raw correct count (writing sessions: essay total /20) |
 | created_at | TEXT | ISO |
 
 ### answers
 
 One row per question answered within a session. This is the mistake ledger.
 A correct retry of a previously-wrong question deletes the older wrong rows for that question + anon (`score = 0` answers); the ledger only keeps the latest attempts. Admin can also delete wrong rows directly via `DELETE /api/mistakes` (see `operations.md`).
+
+The **writing bank** (`GET /api/writing/history`) reads the rows where `criterion_scores IS NOT NULL` (AI-scored essays); `response` holds the essay text and `feedback` the band/justification/fixes snapshot.
 
 | Column | Type | Notes |
 |---|---|---|

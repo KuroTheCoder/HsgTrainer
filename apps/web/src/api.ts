@@ -29,7 +29,8 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   if (token) headers.set("Authorization", `Bearer ${token}`);
   if (init.body && !headers.has("Content-Type")) headers.set("Content-Type", "application/json");
 
-  const res = await fetch(`/api${path}`, { ...init, headers });
+  const base = import.meta.env.VITE_API_BASE ?? "";
+  const res = await fetch(`${base}/api${path}`, { ...init, headers });
   if (!res.ok) {
     let detail = res.statusText;
     try {

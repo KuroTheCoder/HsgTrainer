@@ -29,6 +29,18 @@ CF_API_TOKEN=...     # optional — Workers AI last-resort provider
 
 Production: `wrangler secret put ADMIN_TOKEN` etc. The AI adapter degrades gracefully if no keys are set (returns a fallback response; writing scoring reports "unavailable").
 
+| Secret | Purpose | Default (dev) |
+|---|---|---|
+| `ADMIN_TOKEN` | Bearer token for admin endpoints | in `.dev.vars` |
+| `AI_GEMINI_KEY`, `AI_GROQ_KEY` | AI scoring/explanations (optional — degrades gracefully) | in `.dev.vars` |
+| `CF_ACCOUNT_ID`, `CF_API_TOKEN` | Workers AI last-resort provider | — |
+| `EXPLAIN_DAILY_CAP` | Max AI explanations/day | `100` |
+| `WRITE_DAILY_CAP` | AI writing feedback per user/day | `3` |
+| `CONTRIBUTE_DAILY_CAP` | Public contributions per user/day | `5` |
+| `ALLOWED_ORIGINS` | Comma-separated browser origins allowed by CORS | `http://localhost:5173` |
+
+> **Deploy gotcha:** in production the SPA (Pages) and API (Worker) are different origins. Set `ALLOWED_ORIGINS` to the Pages URL (e.g. `https://hsgtrainer.pages.dev`) **and** build the SPA with `VITE_API_BASE` pointing at the Worker URL (e.g. `https://hsg-trainer-api.<subdomain>.workers.dev`). The default `ALLOWED_ORIGINS` is localhost-only and will CORS-block the deployed SPA.
+
 ## Quota guardrails (the $0 contract — see architecture.md)
 
 1. Deterministic question types never call the AI.
@@ -48,6 +60,13 @@ npm run build                     # build all workspaces
 cd apps/api && wrangler deploy    # worker (routes, D1 binding, secrets)
 cd apps/web && wrangler pages deploy dist
 ```
+
+First-time steps:
+
+1. `cd apps/api && wrangler d1 create hsg_trainer` → copy the returned `database_id` into `wrangler.jsonc` (it's a placeholder).
+2. `wrangler d1 migrations apply hsg_trainer` (prod) to apply `apps/api/migrations/`.
+3. `wrangler secret put ADMIN_TOKEN AI_GEMINI_KEY ALLOWED_ORIGINS ...` (each interactively).
+4. Build the SPA with `VITE_API_BASE=<worker-url>` (e.g. `VITE_API_BASE=https://hsg-trainer-api.<subdomain>.workers.dev npm run build --workspace apps/web`) — see the gotcha above.
 
 Custom domain: add in Cloudflare dashboard; or keep `hsgtrainer.pages.dev`.
 

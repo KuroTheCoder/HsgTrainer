@@ -7,6 +7,7 @@
     {
       "binding": "DB",
       "database_name": "hsg_trainer",
+      // TODO(deploy): replace with the real D1 database_id from `wrangler d1 list`.
       "database_id": "00000000-0000-0000-0000-000000000000"
     }
   ]

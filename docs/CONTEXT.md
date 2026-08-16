@@ -10,10 +10,29 @@ Training platform for **Vietnam HSG English exams** (kỳ thi chọn học sinh 
 
 ## Core product loop
 
-1. Pick a section + skill + difficulty
+1. Pick a section + skill + difficulty (or run a full past paper as a timed mock exam)
 2. Do a set of questions
 3. Get instant per-question feedback (deterministic scoring for fixed-answer types; AI scoring for writing)
-4. Track weaknesses over time (analytics, later milestone)
+4. Study your weak spots: wrong answers land in the mistake ledger, re-drill them, and progress analytics track accuracy, streaks, and per-section gaps over time
+5. Writing bank: every AI-scored essay is saved with free on-device diagnostics (readability, vocabulary variety, style flags)
+
+## Feature map
+
+| Area | Status |
+|---|---|
+| Practice (deterministic sections, instant scoring) | Shipped |
+| Mistake ledger + study loop ("Study now", per-card drill, auto-clear) | Shipped |
+| Progress & analytics (/progress — accuracy, streaks, per-section bars, skill gaps) | Shipped |
+| Mock exam (/exams — past papers, timed run, per-section results, writing stage) | Shipped |
+| Writing bank (/writing — essay history + on-device diagnostics) | Shipped |
+| AI writing feedback (HSG rubric, 3 credits/day) | Shipped |
+| Contribute + admin review | Shipped |
+| Free tools archive (dictionaries, external graders with consent gate) | Shipped |
+| Vocabulary trainer (spaced repetition on the word list) | Roadmap |
+| Teacher/classroom dashboards, data sync/portability | Roadmap |
+| Content depth (key real papers) | Ongoing |
+
+See `docs/roadmap.md` for the deferred directions.
 
 ## Domain vocabulary
 
