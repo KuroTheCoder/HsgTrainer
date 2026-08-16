@@ -25,8 +25,8 @@
   --dot: rgba(236, 231, 216, 0.06);
   --margin-line: rgba(248, 113, 113, 0.16);
   --shadow-color: rgba(0, 0, 0, 0.45);
-  --shadow: 4px 4px 0 var(--shadow-color);
-  --shadow-sm: 3px 3px 0 var(--shadow-color);
+  --shadow: 5px 5px 0 var(--shadow-color);
+  --shadow-sm: 4px 4px 0 var(--shadow-color);
   --highlight: rgba(91, 155, 255, 0.32);
   --tape: rgba(245, 197, 66, 0.16);
   --radius: 26px 12px 24px 14px / 14px 26px 12px 24px;
@@ -222,13 +222,22 @@ body {
   font-family: var(--font);
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
+  background: var(--bg);
+  transition: background-color 0.35s ease, color 0.35s ease;
+}
+
+/* fixed pattern/gradient layer — separate element, because background-attachment: fixed
+   on <body> re-rasterizes and visibly shifts when the page content height changes */
+.bg-layer {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
   background:
     var(--bg-pattern),
     radial-gradient(920px 420px at 50% -180px, var(--accent-soft), transparent 72%),
     radial-gradient(760px 420px at 100% 118%, var(--accent-soft), transparent 76%),
     var(--bg);
-  background-attachment: fixed;
-  transition: background-color 0.35s ease, color 0.35s ease;
 }
 
 /* crossfade colors when the theme/palette/background changes */
@@ -541,8 +550,8 @@ a { color: var(--accent); }
   position: absolute;
   right: 0;
   top: calc(100% + 8px);
-  width: min(260px, 76vw);
-  padding: 12px;
+  width: min(360px, 88vw);
+  padding: 20px;
   z-index: 10;
   animation: pop 0.18s ease;
 }
@@ -578,14 +587,10 @@ a { color: var(--accent); }
   transform: rotate(-1deg);
 }
 
-.timer-durs { gap: 5px; }
-
-.timer-durs .chip-btn { padding: 4px 9px; font-size: 0.8rem; }
-
 .timer-settings-hint {
   font-size: 0.75rem;
   color: var(--muted);
-  margin: 10px 0 0;
+  margin: 12px 0 0;
   line-height: 1.45;
 }
 
@@ -864,7 +869,7 @@ h1 { font-weight: 700; }
   gap: 8px;
   background: var(--surface);
   color: var(--text);
-  border: 2px solid var(--line-soft);
+  border: 3px solid var(--line-soft);
   border-radius: 14px 10px 12px 11px / 11px 14px 10px 12px;
   padding: 12px 24px;
   font-size: 1.05rem;
@@ -873,7 +878,7 @@ h1 { font-weight: 700; }
   cursor: pointer;
   text-decoration: none;
   box-shadow:
-    0 5px 0 color-mix(in srgb, var(--line-soft) 70%, var(--shadow-color)),
+    0 6px 0 color-mix(in srgb, var(--line-soft) 70%, var(--shadow-color)),
     3px 3px 0 var(--shadow-color);
   transition: transform 0.12s ease, border-color 0.15s ease, color 0.25s ease,
     background-color 0.25s ease, box-shadow 0.12s ease, filter 0.12s ease, opacity 0.15s ease;
@@ -883,7 +888,7 @@ h1 { font-weight: 700; }
   border-color: var(--accent);
   transform: translateY(-2px) rotate(-0.6deg);
   box-shadow:
-    0 6px 0 color-mix(in srgb, var(--line-soft) 70%, var(--shadow-color)),
+    0 7px 0 color-mix(in srgb, var(--line-soft) 70%, var(--shadow-color)),
     4px 4px 0 var(--shadow-color);
 }
 
@@ -901,14 +906,14 @@ h1 { font-weight: 700; }
   border-color: var(--accent);
   color: var(--accent-ink);
   box-shadow:
-    0 5px 0 color-mix(in srgb, var(--accent) 62%, #000),
+    0 6px 0 color-mix(in srgb, var(--accent) 62%, #000),
     3px 3px 0 color-mix(in srgb, var(--accent) 45%, var(--shadow-color));
 }
 
 .btn-primary:hover:not(:disabled) {
   filter: brightness(1.05);
   box-shadow:
-    0 6px 0 color-mix(in srgb, var(--accent) 62%, #000),
+    0 7px 0 color-mix(in srgb, var(--accent) 62%, #000),
     4px 4px 0 color-mix(in srgb, var(--accent) 55%, var(--shadow-color));
 }
 
@@ -943,7 +948,7 @@ h1 { font-weight: 700; }
   position: relative;
   display: inline-block;
   padding-bottom: 8px;
-  text-shadow: 2px 2px 0 color-mix(in srgb, var(--shadow-color) 60%, transparent);
+  text-shadow: 3px 3px 0 color-mix(in srgb, var(--shadow-color) 60%, transparent);
 }
 
 .page-head h2::after {
@@ -959,11 +964,11 @@ h1 { font-weight: 700; }
 
 .card {
   background: var(--surface);
-  border: 2px solid var(--line-soft);
+  border: 3px solid var(--line-soft);
   border-radius: var(--radius);
   box-shadow:
-    4px 4px 0 var(--shadow-color),
-    8px 8px 0 color-mix(in srgb, var(--shadow-color) 40%, transparent);
+    5px 5px 0 var(--shadow-color),
+    10px 10px 0 color-mix(in srgb, var(--shadow-color) 40%, transparent);
   transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.2s ease;
 }
 
@@ -982,8 +987,8 @@ h1 { font-weight: 700; }
   border-color: var(--line);
   transform: translateY(-3px) rotate(-0.5deg);
   box-shadow:
-    6px 6px 0 var(--shadow-color),
-    10px 10px 0 color-mix(in srgb, var(--shadow-color) 40%, transparent);
+    7px 7px 0 var(--shadow-color),
+    12px 12px 0 color-mix(in srgb, var(--shadow-color) 40%, transparent);
 }
 
 .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
@@ -1454,8 +1459,8 @@ h1 { font-weight: 700; }
   font-weight: 500;
   cursor: pointer;
   box-shadow:
-    0 3px 0 color-mix(in srgb, var(--line-soft) 70%, var(--shadow-color)),
-    2px 2px 0 var(--shadow-color);
+    0 4px 0 color-mix(in srgb, var(--line-soft) 70%, var(--shadow-color)),
+    3px 3px 0 var(--shadow-color);
   transition: border-color 0.12s ease, background-color 0.2s ease, color 0.15s ease, transform 0.1s ease, box-shadow 0.1s ease;
 }
 
@@ -1473,8 +1478,8 @@ h1 { font-weight: 700; }
   color: var(--accent-ink);
   transform: rotate(-1deg);
   box-shadow:
-    0 3px 0 color-mix(in srgb, var(--accent) 62%, #000),
-    2px 2px 0 var(--shadow-color);
+    0 4px 0 color-mix(in srgb, var(--accent) 62%, #000),
+    3px 3px 0 var(--shadow-color);
 }
 
 /* questions */
@@ -2387,9 +2392,9 @@ textarea { resize: vertical; }
   max-width: 420px;
   padding: 34px 18px 16px;
   background: var(--surface-2);
-  border: 2px solid var(--line-soft);
+  border: 3px solid var(--line-soft);
   border-radius: 18px 12px 16px 13px / 13px 18px 12px 15px;
-  box-shadow: 3px 3px 0 var(--shadow-color);
+  box-shadow: 4px 4px 0 var(--shadow-color);
 }
 
 .snap-bubble {

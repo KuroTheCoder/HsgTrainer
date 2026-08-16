@@ -370,6 +370,7 @@ export default function App() {
 
   return (
     <div className="app-shell">
+      <div className="bg-layer" aria-hidden="true" />
       <BackgroundCrossfade />
       <div className="paper-doodles" aria-hidden="true">
         <svg className="doodle-star" viewBox="0 0 24 24">
