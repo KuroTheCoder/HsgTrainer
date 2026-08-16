@@ -24,6 +24,20 @@ export const IconVolume: FC<IconProps> = (p) => (
   </svg>
 );
 
+export const IconPlay: FC<IconProps> = (p) => (
+  <svg {...base(p)}>
+    <path d="M7 4.5v15l12-7.5z" />
+  </svg>
+);
+
+export const IconPalette: FC<IconProps> = (p) => (
+  <svg {...base(p)}>
+    <circle cx="12" cy="12" r="10" />
+    <path d="M12 2a7.35 7.35 0 0 0 4 10.65 7.35 7.35 0 0 1 4 6.1 8 8 0 0 1-8-16.75z" />
+    <circle cx="7.5" cy="11" r="0.5" fill="currentColor" />
+  </svg>
+);
+
 export const IconShuffle: FC<IconProps> = (p) => (
   <svg {...base(p)}>
     <path d="M16 3h5v5" />

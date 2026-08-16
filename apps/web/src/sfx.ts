@@ -1,7 +1,19 @@
 const SFX_KEY = "hsg-sfx-muted";
-const VOL_KEY = "hsg-sfx-volume";
+const VOL_KEY = "hsg-sfx-volumes";
 
 export type SfxName = "click" | "hover" | "pop" | "correct" | "wrong" | "complete" | "save" | "clear" | "warn";
+
+const DEFAULT_VOLUMES: Record<SfxName, number> = {
+  click: 0.8,
+  hover: 0.5,
+  pop: 0.8,
+  correct: 0.9,
+  wrong: 0.8,
+  complete: 0.9,
+  save: 0.8,
+  clear: 0.8,
+  warn: 0.9,
+};
 
 const COOLDOWN_MS: Partial<Record<SfxName, number>> = {
   hover: 120,
@@ -10,7 +22,7 @@ const COOLDOWN_MS: Partial<Record<SfxName, number>> = {
 };
 
 let muted = false;
-let volume = 1;
+let volumes: Record<string, number> = {};
 const cache = new Map<string, HTMLAudioElement | null>();
 const last = new Map<string, number>();
 
@@ -39,19 +51,30 @@ export function setSfxMuted(v: boolean) {
   write(SFX_KEY, v ? "1" : "0");
 }
 
-export function sfxVolume(): number {
-  return volume;
+export function sfxVolumes(): Record<string, number> {
+  return volumes;
 }
 
-export function setSfxVolume(v: number) {
-  volume = Math.min(1, Math.max(0, v));
-  write(VOL_KEY, String(Math.round(volume * 100)));
+export function setSfxVolumeFor(name: SfxName, v: number) {
+  volumes = { ...volumes, [name]: Math.min(1, Math.max(0, v)) };
+  write(VOL_KEY, JSON.stringify(volumes));
 }
 
 export function initSfx() {
   muted = read(SFX_KEY) === "1";
-  const v = Number(read(VOL_KEY));
-  volume = Number.isFinite(v) ? Math.min(1, Math.max(0, v / 100)) : 1;
+  volumes = {};
+  const raw = read(VOL_KEY);
+  if (raw) {
+    try {
+      const parsed = JSON.parse(raw) as Record<string, number>;
+      for (const name of Object.keys(DEFAULT_VOLUMES)) {
+        const v = parsed[name];
+        if (typeof v === "number" && Number.isFinite(v)) volumes[name] = Math.min(1, Math.max(0, v));
+      }
+    } catch {
+      /* corrupt map — fall through to defaults */
+    }
+  }
 }
 
 /** Plays an asset from /sfx/<name>.mp3. Missing files are silent (asset ownership lives outside the repo). */
@@ -70,7 +93,7 @@ export function play(name: SfxName) {
     cache.set(name, audio);
   }
   if (!audio) return;
-  audio.volume = volume;
+  audio.volume = volumes[name] ?? DEFAULT_VOLUMES[name] ?? 0.8;
   audio.currentTime = 0;
   void audio.play().catch(() => {
     /* blocked before first user gesture — fine, later plays unlock */

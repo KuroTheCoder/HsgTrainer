@@ -3,16 +3,17 @@ import { api } from "../api";
 import { cefrBand, sectionMeta, SECTIONS } from "../sections";
 import { IconBolt, IconCheck, IconSparkle, IconX, SectionIcon } from "../icons";
 import { ScoreRing } from "../components/ScoreRing";
+import SnapSlider from "../components/SnapSlider";
 import { NoteBox, Reader } from "../components/Reader";
 import DictPopup, { type DictRequest } from "../components/DictPopup";
 import { play, playScore } from "../sfx";
+import { launchConfetti } from "../confetti";
 import { renderMarkdown } from "../md";
 import type { AnswerResult, CriterionScores, ExamSectionResult, Paper, Question, WritingFeedback, WritingQuestion } from "../types";
 
 type Phase = "config" | "running" | "results" | "writing" | "writing-result";
 
 const OPTION_LETTERS = ["A", "B", "C", "D", "E", "F", "G", "H"];
-const TIME_LIMITS = [15, 30, 45, 60];
 
 const CRITERIA: { key: keyof CriterionScores; label: string }[] = [
   { key: "content", label: "Content" },
@@ -110,8 +111,10 @@ export default function Exams() {
           }
         );
       });
+      const pct = Math.round((full.filter((r) => r.correct).length / full.length) * 100);
       setResults(full);
-      playScore(Math.round((full.filter((r) => r.correct).length / full.length) * 100));
+      playScore(pct);
+      if (pct >= 80) launchConfetti({ count: pct === 100 ? 220 : 140 });
       setPhase("results");
     } catch (e) {
       setError(e instanceof Error ? e.message : "failed to submit");
@@ -227,13 +230,15 @@ export default function Exams() {
       {phase === "config" && (
         <div className="card panel">
           <h3>Time limit</h3>
-          <div className="chip-row">
-            {TIME_LIMITS.map((m) => (
-              <button key={m} className={`chip-btn ${timeLimit === m ? "active" : ""}`} onClick={() => setTimeLimit(m)}>
-                {m} min
-              </button>
-            ))}
-          </div>
+          <SnapSlider
+            min={5}
+            max={60}
+            step={5}
+            value={timeLimit}
+            onChange={setTimeLimit}
+            snapPoints={[15, 30, 45, 60]}
+            format={(v) => `${v} min`}
+          />
 
           <h3 style={{ marginTop: 18 }}>Pick a paper</h3>
           {!busy && papers.length === 0 && (
