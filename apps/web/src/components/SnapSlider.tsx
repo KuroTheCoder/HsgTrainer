@@ -40,7 +40,7 @@ export default function SnapSlider({ min, max, step, value, onChange, snapPoints
     const v = valueFromX(clientX);
     if (v !== lastValue.current) {
       onChange(v);
-      play("tick");
+      play("hover");
     }
   };
 
@@ -71,7 +71,7 @@ export default function SnapSlider({ min, max, step, value, onChange, snapPoints
     if (v !== null && v !== value) {
       e.preventDefault();
       onChange(v);
-      play("tick");
+      play("hover");
     }
   };
 

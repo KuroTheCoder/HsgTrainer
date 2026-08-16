@@ -3,9 +3,10 @@ import { api, clearAdminToken, getAdminToken, setAdminToken } from "../api";
 import { parseCsv } from "../csv";
 import { validateField, validateForm, type FormErrors, type QuestionFormValues } from "../formRules";
 import { ErrorSummary, type FormError } from "../components/ErrorSummary";
+import DebugPanel from "../components/DebugPanel";
 import type { AdminQuestion, BulkReportItem, Source } from "../types";
 
-type Tab = "overview" | "queue" | "add" | "bulk" | "sources";
+type Tab = "overview" | "queue" | "add" | "bulk" | "sources" | "debug";
 
 function errorsToList(errors: FormErrors): FormError[] {
   return (Object.keys(errors) as (keyof FormErrors)[])
@@ -52,7 +53,7 @@ export default function Admin() {
         </button>
       </div>
       <div className="seg">
-        {(["overview", "queue", "add", "bulk", "sources"] as Tab[]).map((t) => (
+        {(["overview", "queue", "add", "bulk", "sources", ...(import.meta.env.DEV ? (["debug"] as Tab[]) : [])] as Tab[]).map((t) => (
           <button
             key={t}
             className={tab === t ? "active" : ""}
@@ -72,6 +73,7 @@ export default function Admin() {
       {tab === "add" && <AddQuestion />}
       {tab === "bulk" && <BulkImport />}
       {tab === "sources" && <Sources />}
+      {tab === "debug" && import.meta.env.DEV && <DebugPanel />}
     </div>
   );
 }
@@ -82,6 +84,7 @@ const TAB_LABELS: Record<Tab, string> = {
   add: "Add question",
   bulk: "Bulk import",
   sources: "Sources",
+  debug: "Debug",
 };
 
 // ---------------- overview dashboard ----------------

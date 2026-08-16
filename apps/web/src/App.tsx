@@ -19,7 +19,6 @@ import Teachers from "./pages/Teachers";
 import Progress from "./pages/Progress";
 import Exams from "./pages/Exams";
 import Writing from "./pages/Writing";
-import DebugMenu from "./components/DebugMenu";
 
 function PaletteIcon() {
   return (
@@ -461,7 +460,6 @@ export default function App() {
           <Link to="/admin">Admin</Link>
         </footer>
       </div>
-      {import.meta.env.DEV && <DebugMenu />}
     </div>
   );
 }
