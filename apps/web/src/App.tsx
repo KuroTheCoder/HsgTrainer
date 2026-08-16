@@ -334,18 +334,15 @@ function TimerTool() {
           {prefs.mode === "timer" && (
             <>
               <div className="timer-settings-label">Countdown time</div>
-              <div className="chip-row timer-durs">
-                {TIMER_DURATIONS.map((m) => (
-                  <button
-                    key={m}
-                    className={`chip-btn ${prefs.durationMin === m ? "active" : ""}`}
-                    aria-pressed={prefs.durationMin === m}
-                    onClick={() => applyPrefs({ ...prefs, durationMin: m })}
-                  >
-                    {m} min
-                  </button>
-                ))}
-              </div>
+              <SnapSlider
+                min={5}
+                max={60}
+                step={1}
+                value={prefs.durationMin}
+                onChange={(m) => applyPrefs({ ...prefs, durationMin: m })}
+                snapPoints={TIMER_DURATIONS}
+                format={(v) => `${v} min`}
+              />
             </>
           )}
           <p className="timer-settings-hint">
