@@ -252,8 +252,8 @@ a { color: var(--accent); }
   border-radius: 12px 9px 11px 10px / 10px 12px 9px 11px;
   color: var(--muted);
   text-decoration: none;
-  font-weight: 500;
-  font-size: 1.02rem;
+  font-weight: 600;
+  font-size: 1.04rem;
   transition: color 0.15s ease, background-color 0.15s ease, transform 0.12s ease;
 }
 
@@ -266,11 +266,30 @@ a { color: var(--accent); }
 
 .sidebar-label {
   font-family: var(--font);
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--muted);
-  padding: 14px 12px 4px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--glabel, var(--muted));
+  padding: 16px 12px 5px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
 }
+.sidebar-label::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  flex-shrink: 0;
+  background: var(--glabel, var(--muted));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--glabel, var(--muted)) 20%, transparent);
+}
+.sidebar-label.label-train { --glabel: #3b82f6; }
+.sidebar-label.label-review { --glabel: #f59e0b; }
+.sidebar-label.label-saved { --glabel: #10b981; }
+.sidebar-label.label-community { --glabel: #8b5cf6; }
+.sidebar-label.label-account { --glabel: #ec4899; }
 
 .sidebar-sections { display: flex; flex-direction: column; gap: 2px; }
 

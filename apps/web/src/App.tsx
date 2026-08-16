@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { PALETTES, useTheme } from "./theme";
 import { SECTIONS } from "./sections";
@@ -117,7 +117,7 @@ function NavLinks() {
 
   return (
     <>
-      <div className="sidebar-label">Train</div>
+      <div className="sidebar-label label-train">Train</div>
       <NavLink to="/practice" className={({ isActive }) => (isActive ? "active" : "")}>
         <IconBolt size={15} />
         Practice
@@ -127,7 +127,7 @@ function NavLinks() {
         Mock exam
       </NavLink>
 
-      <div className="sidebar-label">Review</div>
+      <div className="sidebar-label label-review">Review</div>
       <NavLink to="/mistakes" className={({ isActive }) => (isActive ? "active" : "")}>
         <IconTarget size={15} />
         My mistakes
@@ -137,7 +137,7 @@ function NavLinks() {
         Progress
       </NavLink>
 
-      <div className="sidebar-label">Saved</div>
+      <div className="sidebar-label label-saved">Saved</div>
       <NavLink to="/writing" className={({ isActive }) => (isActive ? "active" : "")}>
         <IconPen size={15} />
         Writing bank
@@ -148,7 +148,7 @@ function NavLinks() {
         {vocabCount > 0 && <span className="nav-count">{vocabCount}</span>}
       </NavLink>
 
-      <div className="sidebar-label">Community</div>
+      <div className="sidebar-label label-community">Community</div>
       <NavLink to="/contribute" className={({ isActive }) => (isActive ? "active" : "")}>
         <IconPlus size={15} />
         Contribute
@@ -162,7 +162,7 @@ function NavLinks() {
         For teachers
       </NavLink>
 
-      <div className="sidebar-label">Account</div>
+      <div className="sidebar-label label-account">Account</div>
       <NavLink to="/account" className={({ isActive }) => (isActive ? "active" : "")}>
         <IconUser size={15} />
         Account
