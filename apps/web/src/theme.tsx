@@ -26,7 +26,7 @@ export interface BackgroundDef {
 }
 
 export const PALETTES: PaletteDef[] = [
-  { id: "ocean",   label: "Bút xanh",     swatch: "#5b9bff", dark: "#5b9bff", light: "#2f54d9" },
+  { id: "ocean",   label: "Bút xanh",     swatch: "#5b9bff", dark: "#6ea8ff", light: "#2f54d9" },
   { id: "cyan",    label: "Bút xanh ngọc", swatch: "#22d3ee", dark: "#22d3ee", light: "#0891b2" },
   { id: "emerald", label: "Bút xanh lá",  swatch: "#34d399", dark: "#34d399", light: "#059669" },
   { id: "teal",    label: "Bút xanh lục", swatch: "#2dd4bf", dark: "#2dd4bf", light: "#0d9488" },
@@ -35,9 +35,9 @@ export const PALETTES: PaletteDef[] = [
   { id: "sunset",  label: "Bút cam",      swatch: "#fb923c", dark: "#fb923c", light: "#ea580c" },
   { id: "rose",    label: "Bút hồng",     swatch: "#fb7185", dark: "#fb7185", light: "#e11d48" },
   { id: "red",     label: "Bút đỏ",       swatch: "#f87171", dark: "#f87171", light: "#dc2626" },
-  { id: "violet",  label: "Bút tím",      swatch: "#a78bfa", dark: "#a78bfa", light: "#7c3aed" },
+  { id: "violet",  label: "Bút tím",      swatch: "#a78bfa", dark: "#b49cff", light: "#7c3aed" },
   { id: "fuchsia", label: "Bút hồng tím", swatch: "#e879f9", dark: "#e879f9", light: "#c026d3" },
-  { id: "indigo",  label: "Bút chàm",     swatch: "#818cf8", dark: "#818cf8", light: "#4f46e5" },
+  { id: "indigo",  label: "Bút chàm",     swatch: "#818cf8", dark: "#97a3ff", light: "#4f46e5" },
 ];
 
 export const BACKGROUNDS: BackgroundDef[] = [

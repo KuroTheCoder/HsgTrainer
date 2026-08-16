@@ -16,7 +16,7 @@
   --ok: #34d399;
   --bad: #f87171;
   --warn: #fbbf24;
-  --accent: #5b9bff;
+  --accent: #6ea8ff;
   --accent-ink: #191829;
   --line: #ece7d8;
   --line-soft: rgba(236, 231, 216, 0.38);
@@ -72,13 +72,13 @@
 :root[data-palette="emerald"] { --accent: #34d399; --accent-ink: #052e21; }
 :root[data-palette="teal"] { --accent: #2dd4bf; --accent-ink: #042f2e; }
 :root[data-palette="lime"] { --accent: #a3e635; --accent-ink: #1a2e05; }
-:root[data-palette="violet"] { --accent: #a78bfa; --accent-ink: #1e1b4b; }
+:root[data-palette="violet"] { --accent: #b49cff; --accent-ink: #1e1b4b; }
 :root[data-palette="sunset"] { --accent: #fb923c; --accent-ink: #431407; }
 :root[data-palette="amber"] { --accent: #fbbf24; --accent-ink: #451a03; }
 :root[data-palette="rose"] { --accent: #fb7185; --accent-ink: #4c0519; }
 :root[data-palette="red"] { --accent: #f87171; --accent-ink: #450a0a; }
 :root[data-palette="fuchsia"] { --accent: #e879f9; --accent-ink: #4a044e; }
-:root[data-palette="indigo"] { --accent: #818cf8; --accent-ink: #1e1b4b; }
+:root[data-palette="indigo"] { --accent: #97a3ff; --accent-ink: #1e1b4b; }
 
 /* accent palettes — light */
 :root[data-theme="light"][data-palette="cyan"] { --accent: #0891b2; --accent-ink: #ffffff; }
@@ -114,8 +114,12 @@
 }
 
 :root {
-  --accent-soft: color-mix(in srgb, var(--accent) 14%, transparent);
+  --accent-soft: color-mix(in srgb, var(--accent) 9%, transparent);
   --highlight: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+
+:root[data-theme="light"] {
+  --accent-soft: color-mix(in srgb, var(--accent) 15%, transparent);
 }
 
 /* ---------- keyframes ---------- */
@@ -181,10 +185,20 @@ body {
   -webkit-font-smoothing: antialiased;
   background:
     var(--bg-pattern),
-    radial-gradient(640px 320px at 50% -120px, var(--accent-soft), transparent 70%),
+    radial-gradient(920px 420px at 50% -180px, var(--accent-soft), transparent 72%),
+    radial-gradient(760px 420px at 100% 118%, var(--accent-soft), transparent 76%),
     var(--bg);
   background-attachment: fixed;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: background-color 0.35s ease, color 0.35s ease;
+}
+
+/* crossfade colors when the theme/palette/background changes */
+*, *::before, *::after {
+  transition: color 0.35s ease, background-color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; }
 }
 
 /* notebook red margin line */
