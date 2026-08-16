@@ -1,97 +1,64 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { sectionGradient, SECTIONS } from "../sections";
+import { api } from "../api";
+import { sectionGradient, SECTIONS, sectionMeta } from "../sections";
 import {
   IconArrow,
   IconBolt,
   IconCheck,
   IconClock,
+  IconPen,
   IconPlus,
   IconShield,
-  IconShuffle,
   IconSparkle,
   IconTarget,
-  IconUser,
-  IconUsers,
-  IconX,
+  IconTrend,
   SectionIcon,
 } from "../icons";
 import { ScoreRing } from "../components/ScoreRing";
 import type { CSSProperties } from "react";
+import type { ProgressStats } from "../types";
 
-const PAINS = [
-  {
-    icon: <IconShuffle size={18} />,
-    title: "A different game",
-    text: "HSG papers test lexical depth and formats that school textbooks never touch.",
-  },
-  {
-    icon: <IconX size={18} />,
-    title: "Keys mark, never explain",
-    text: "Official answer keys say right or wrong — they never tell you why an option fails.",
-  },
-  {
-    icon: <IconClock size={18} />,
-    title: "Self-study is blind",
-    text: "No teacher, no tracker, no idea where you keep dropping points.",
-  },
-];
+function pct(n: number | null | undefined): string {
+  return n == null ? "—" : `${Math.round(n * 100)}%`;
+}
 
-const FEATURES = [
-  {
-    icon: <IconCheck size={20} />,
-    title: "Instant feedback",
-    text: "Check answers as you go — accepted variants, plus an explanation of every option so a wrong guess still teaches you something.",
-    tint: "#3b82f6",
-    cls: "bento-lg",
-  },
-  {
-    icon: <IconSparkle size={20} />,
-    title: "AI writing feedback",
-    text: "Essays are scored on content, organization, vocabulary, and grammar — with concrete fixes, not a vague grade.",
-    tint: "#f43f5e",
-    cls: "bento-lg",
-  },
-  {
-    icon: <IconTarget size={20} />,
-    title: "A ledger of your mistakes",
-    text: "Every wrong answer is remembered and grouped, so you drill exactly what you keep missing.",
-    tint: "#8b5cf6",
-    cls: "bento-md",
-  },
-  {
-    icon: <IconShield size={20} />,
-    title: "Human-verified content",
-    text: "Official papers come in as verified; community and AI content is reviewed by people before it reaches you.",
-    tint: "#10b981",
-    cls: "bento-md",
-  },
-];
-
-const CASES = [
-  {
-    icon: <IconUser size={18} />,
-    title: "For students",
-    items: [
-      "Practice any section, any difficulty — no account needed",
-      "See exactly where you lose marks, section by section",
-      "Drill your mistake ledger until weaknesses become strengths",
-    ],
-  },
-  {
-    icon: <IconUsers size={18} />,
-    title: "For teachers & clubs",
-    items: [
-      "Assign practice sets without grading homework by hand",
-      "Writing feedback at rubric level, ready to discuss in class",
-      "Free and unlimited — run an entire HSG team on it",
-    ],
-  },
-];
+function ringTone(acc: number | null): "ok" | "warn" | "bad" {
+  if (acc == null) return "bad";
+  if (acc >= 0.7) return "ok";
+  if (acc >= 0.4) return "warn";
+  return "bad";
+}
 
 export default function Home() {
+  const [stats, setStats] = useState<ProgressStats | null>(null);
+  const [mistakeCount, setMistakeCount] = useState<number | null>(null);
+  const [paperCount, setPaperCount] = useState<number | null>(null);
+  const [essayCount, setEssayCount] = useState<number | null>(null);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    Promise.allSettled([api.getStats(30), api.getMistakes(), api.getPapers(), api.getWritingHistory()]).then(
+      ([s, m, p, w]) => {
+        if (s.status === "fulfilled") setStats(s.value);
+        if (m.status === "fulfilled") setMistakeCount(m.value.mistakes.length);
+        if (p.status === "fulfilled") setPaperCount(p.value.papers.length);
+        if (w.status === "fulfilled") setEssayCount(w.value.entries.length);
+        setLoaded(true);
+      },
+    );
+  }, []);
+
+  const hasProgress = !!stats && stats.totalSessions > 0;
+  const topSections = (stats?.bySection ?? [])
+    .filter((s) => s.answered > 0)
+    .sort((a, b) => b.answered - a.answered)
+    .slice(0, 4);
+  const focusMeta = stats?.focus ? sectionMeta(stats.focus) : undefined;
+
   return (
-    <div className="landing-wrap">
-      <section className="hero">
+    <div className="landing-wrap home-dash">
+      <section className="hero home-hero">
         <div className="hero-grid">
           <div>
             <span className="hero-eyebrow">
@@ -101,19 +68,15 @@ export default function Home() {
             <h1>
               Train for the <em>HSG English</em> exam.
             </h1>
-            <p>
-              Real question formats from Vietnam học sinh giỏi papers — phonetics, lexico-grammar,
-              word formation, cloze, reading, and writing with AI rubric feedback. Instant results,
-              human-verified content, zero cost.
-            </p>
+            <p>Real exam formats, instant feedback, human-verified content — and a ledger that shows exactly where you keep dropping points.</p>
             <div className="hero-actions">
               <Link to="/practice" className="btn btn-primary btn-lg">
                 <IconBolt size={17} />
                 Start practicing
               </Link>
-              <Link to="/contribute" className="btn btn-ghost btn-lg">
-                <IconPlus size={17} />
-                Contribute a question
+              <Link to="/exams" className="btn btn-ghost btn-lg">
+                <IconClock size={17} />
+                Mock exam
               </Link>
             </div>
             <div className="hero-stats">
@@ -166,21 +129,122 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="problem-band">
-        <p className="lead">
-          <b>HSG exams don't look like school tests.</b> This is what usually happens when
-          candidates prepare on their own.
-        </p>
-        <div className="pain-grid">
-          {PAINS.map((p, i) => (
-            <div key={p.title} className="card pain-card" style={{ "--i": i } as CSSProperties}>
-              <span className="tile-icon">{p.icon}</span>
-              <b>{p.title}</b>
-              <p>{p.text}</p>
+      <h3 className="dash-title">
+        <IconTrend size={15} /> Jump back in
+      </h3>
+      <div className="quick-tiles">
+        <Link to="/practice" className="quick-tile">
+          <span className="tile-icon" style={{ background: "#3b82f61f", color: "#3b82f6" }}>
+            <IconBolt size={18} />
+          </span>
+          <span>
+            <b>Practice</b>
+            <span className="tile-sub">New set in any section</span>
+          </span>
+        </Link>
+        <Link to="/exams" className="quick-tile">
+          <span className="tile-icon" style={{ background: "#8b5cf61f", color: "#8b5cf6" }}>
+            <IconClock size={18} />
+          </span>
+          <span>
+            <b>Mock exam</b>
+            <span className="tile-sub">
+              {paperCount == null ? "Checking papers…" : paperCount === 0 ? "No full papers yet" : `${paperCount} paper${paperCount === 1 ? "" : "s"} ready`}
+            </span>
+          </span>
+        </Link>
+        <Link to="/mistakes" className="quick-tile">
+          <span className="tile-icon" style={{ background: "#f43f5e1f", color: "#f43f5e" }}>
+            <IconTarget size={18} />
+          </span>
+          <span>
+            <b>Mistakes</b>
+            <span className="tile-sub">
+              {mistakeCount == null ? "Checking…" : mistakeCount === 0 ? "All clear" : `${mistakeCount} to drill`}
+            </span>
+          </span>
+        </Link>
+        <Link to="/writing" className="quick-tile">
+          <span className="tile-icon" style={{ background: "#10b9811f", color: "#10b981" }}>
+            <IconPen size={18} />
+          </span>
+          <span>
+            <b>Writing bank</b>
+            <span className="tile-sub">
+              {essayCount == null ? "Checking…" : essayCount === 0 ? "Write your first essay" : `${essayCount} essay${essayCount === 1 ? "" : "s"} saved`}
+            </span>
+          </span>
+        </Link>
+      </div>
+
+      {!loaded && (
+        <section className="card panel dash-progress dash-loading" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </section>
+      )}
+
+      {loaded && !hasProgress && (
+        <section className="card panel dash-empty">
+          <b>Your progress will appear here</b>
+          <p>Run a practice session and this dashboard starts tracking accuracy, streaks, and your weakest sections.</p>
+          <Link to="/practice" className="btn btn-primary btn-sm">
+            <IconBolt size={14} /> Start practicing
+          </Link>
+        </section>
+      )}
+
+      {loaded && hasProgress && stats && (
+        <section className="card panel dash-progress">
+          <div className="dash-kpis">
+            <div className="dash-ring">
+              <ScoreRing value={stats.totalCorrect} max={Math.max(stats.totalAnswered, 1)} size={84} stroke={8} tone={ringTone(stats.accuracy)} />
+              <div>
+                <div className="stat-label">Accuracy</div>
+                <b>{pct(stats.accuracy)}</b>
+              </div>
             </div>
-          ))}
-        </div>
-      </section>
+            <div className="dash-kpi">
+              <span>Streak</span>
+              <b>{stats.streak} day{stats.streak === 1 ? "" : "s"}</b>
+            </div>
+            <div className="dash-kpi">
+              <span>Sessions</span>
+              <b>{stats.totalSessions}</b>
+            </div>
+          </div>
+
+          <div className="dash-mini-bars">
+            {topSections.map((s) => {
+              const meta = sectionMeta(s.section);
+              return (
+                <div key={s.section} className="dash-mini-row">
+                  <span className="b" title={meta?.label}>
+                    <SectionIcon icon={meta?.icon ?? ""} size={13} /> {meta?.short ?? s.section}
+                  </span>
+                  <div className="bar">
+                    <div className="bar-fill" style={{ width: `${Math.round(s.accuracy * 100)}%`, background: meta?.color ?? undefined }} />
+                  </div>
+                  <span className="dash-mini-num">{pct(s.accuracy)}</span>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="dash-side">
+            {focusMeta && (
+              <Link to={`/practice?section=${stats.focus ?? ""}`} className="focus-chip" style={{ "--fg": focusMeta.color } as CSSProperties}>
+                <IconTarget size={14} />
+                Focus: {focusMeta.short}
+              </Link>
+            )}
+            <Link to="/progress" className="btn btn-ghost btn-sm">
+              <IconTrend size={14} /> Full progress
+            </Link>
+          </div>
+        </section>
+      )}
 
       <h3 className="landing-title">
         Train every section <span className="muted">— real exam formats</span>
@@ -193,10 +257,7 @@ export default function Home() {
             className="card card-link section-card"
             style={{ "--i": i, "--card-tint": sectionGradient(s.color) } as CSSProperties}
           >
-            <span
-              className="tile-icon"
-              style={{ background: `${s.color}1f`, color: s.color }}
-            >
+            <span className="tile-icon" style={{ background: `${s.color}1f`, color: s.color }}>
               <SectionIcon icon={s.icon} size={22} />
             </span>
             <div className="card-body">
@@ -224,59 +285,20 @@ export default function Home() {
         </Link>
       </section>
 
-      <h3 className="landing-title">
-        Why it works <span className="muted">— built for real improvement</span>
-      </h3>
-      <div className="bento">
-        {FEATURES.map((f, i) => (
-          <div
-            key={f.title}
-            className={`card bento-card ${f.cls}`}
-            style={{ "--i": i, "--card-tint": sectionGradient(f.tint), "--card-fg": f.tint } as CSSProperties}
-          >
-            <span className="tile-icon">{f.icon}</span>
-            <h3>{f.title}</h3>
-            <p>{f.text}</p>
-          </div>
-        ))}
+      <div className="why-row">
+        <span className="why-point">
+          <IconCheck size={15} />
+          <b>Instant feedback</b> &middot; every option explained
+        </span>
+        <span className="why-point">
+          <IconShield size={15} />
+          <b>Human-verified</b> content only
+        </span>
+        <span className="why-point">
+          <IconSparkle size={15} />
+          <b>Free forever</b> &middot; no account needed
+        </span>
       </div>
-
-      <h3 className="landing-title">
-        Made for students and teachers
-      </h3>
-      <div className="use-cases">
-        {CASES.map((c, i) => (
-          <div key={c.title} className="card case-card" style={{ "--i": i } as CSSProperties}>
-            <div className="case-head">
-              <span className="tile-icon">{c.icon}</span>
-              <b>{c.title}</b>
-            </div>
-            <ul>
-              {c.items.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </div>
-
-      <section className="card cta-banner">
-        <h2>Your next HSG paper doesn't have to be a guess.</h2>
-        <p>
-          Start free in ten seconds — no account, no credit card, no ads. Practice, get feedback,
-          and keep the mistakes that matter.
-        </p>
-        <div className="hero-actions">
-          <Link to="/practice" className="btn btn-primary btn-lg">
-            <IconBolt size={17} />
-            Start practicing free
-          </Link>
-          <Link to="/contribute" className="btn btn-ghost btn-lg">
-            <IconPlus size={17} />
-            Share a question
-          </Link>
-        </div>
-      </section>
     </div>
   );
 }
