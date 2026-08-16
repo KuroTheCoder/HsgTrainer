@@ -91,6 +91,7 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ questionId, response }),
     }),
+  getWritingHistory: () => request<{ entries: import("./types").WritingHistoryEntry[] }>("/writing/history"),
 
   // public contributions
   contribute: (draft: Record<string, unknown>) =>

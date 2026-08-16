@@ -15,6 +15,7 @@ import WordList from "./pages/WordList";
 import Settings from "./pages/Settings";
 import Progress from "./pages/Progress";
 import Exams from "./pages/Exams";
+import Writing from "./pages/Writing";
 
 function PaletteIcon() {
   return (
@@ -130,6 +131,10 @@ function NavLinks() {
         <IconClock size={15} />
         Mock exam
       </NavLink>
+      <NavLink to="/writing" className={({ isActive }) => (isActive ? "active" : "")}>
+        <IconPen size={15} />
+        Writing bank
+      </NavLink>
       <NavLink to="/words" className={({ isActive }) => (isActive ? "active" : "")}>
         <IconBook size={15} />
         Word list
@@ -157,6 +162,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/mistakes": "My mistakes",
   "/progress": "Progress",
   "/exams": "Mock exam",
+  "/writing": "Writing bank",
   "/words": "Word list",
   "/contribute": "Contribute",
   "/tools": "Free tools",
@@ -420,6 +426,7 @@ export default function App() {
             <Route path="/mistakes" element={<Mistakes />} />
             <Route path="/progress" element={<Progress />} />
             <Route path="/exams" element={<Exams />} />
+            <Route path="/writing" element={<Writing />} />
             <Route path="/words" element={<WordList />} />
             <Route path="/contribute" element={<Contribute />} />
             <Route path="/tools" element={<Tools />} />

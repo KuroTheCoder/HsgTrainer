@@ -1988,6 +1988,33 @@ textarea { resize: vertical; }
   color: var(--warn);
 }
 
+.banner.info {
+  background: color-mix(in srgb, var(--accent) 9%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+.writing-note { display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; }
+.writing-entry { margin: 12px 0; }
+.writing-entry summary { display: flex; align-items: center; gap: 10px; cursor: pointer; list-style: none; }
+.writing-entry summary::-webkit-details-marker { display: none; }
+.writing-entry summary::before { content: "▸"; transition: transform 0.2s ease; color: var(--muted); }
+.writing-entry[open] summary::before { transform: rotate(90deg); }
+.essay-text {
+  white-space: pre-wrap;
+  font-size: 0.95rem;
+  line-height: 1.65;
+  background: var(--surface);
+  border: 1px solid var(--line-faint);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-top: 10px;
+}
+.flag-list { margin: 6px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+.flag-list li.warn { color: var(--warn); font-weight: 600; }
+.flag-list li.info { color: var(--muted); }
+.diagnostics { margin-top: 14px; }
+.diagnostics .stat-grid { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin: 10px 0 4px; }
+
 .hint { color: var(--muted); font-size: 0.85rem; }
 
 /* ---------- tables / admin ---------- */

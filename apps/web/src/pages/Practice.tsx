@@ -309,7 +309,8 @@ export default function Practice() {
           {isWriting && (
             <p className="hint" style={{ marginTop: 0, marginBottom: 18 }}>
               Writing is scored by AI on the HSG rubric — content, organization, vocabulary, grammar. You get 3
-              feedback credits per day.
+              feedback credits per day. Your essay is stored anonymously and used only to give you feedback (see the
+              Writing bank).
             </p>
           )}
 

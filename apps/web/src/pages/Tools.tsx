@@ -12,6 +12,8 @@ interface ExternalTool {
   purpose: string;
   free: string;
   href: string;
+  /** Optional explicit consent message shown before leaving to the site. */
+  consent?: string;
 }
 
 const BUILT_IN: BuiltInTool[] = [
@@ -34,6 +36,11 @@ const BUILT_IN: BuiltInTool[] = [
     name: "Dictionary",
     purpose: "Look up any word in a reading prompt — a ribbon on the popup opens your chosen dictionary (pick one in Settings).",
     to: "/practice",
+  },
+  {
+    name: "Writing bank",
+    purpose: "Every AI-scored essay is saved here with free on-device diagnostics — readability, vocabulary variety, and style flags (no AI needed).",
+    to: "/writing",
   },
   {
     name: "AI writing feedback",
@@ -129,6 +136,19 @@ const COMMUNITY: Record<string, ExternalTool[]> = {
       free: "Free on web",
       href: "https://hemingwayapp.com",
     },
+    {
+      name: "Engnovate",
+      purpose: "AI feedback on longer writing. Note: on the free tier your essay may be made public, so only submit work you are comfortable sharing.",
+      free: "2 evaluations / month",
+      href: "https://engnovate.com",
+      consent: "Engnovate's free tier may publish your essay publicly on its site. Continue to Engnovate?",
+    },
+    {
+      name: "ai4ielts",
+      purpose: "Automated IELTS-style essay marking. Uses the IELTS rubric, not the HSG rubric — useful for band-style practice.",
+      free: "20 credits / month",
+      href: "https://ai4ielts.com",
+    },
   ],
   "Level tests & practice": [
     {
@@ -175,7 +195,18 @@ export default function Tools() {
           <h3 className="tools-cat">{category}</h3>
           <div className="tools-grid">
             {tools.map((t) => (
-              <a key={t.name} href={t.href} target="_blank" rel="noopener noreferrer" className="tool-card">
+              <a
+                key={t.name}
+                href={t.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="tool-card"
+                onClick={(e) => {
+                  if (!t.consent) return;
+                  e.preventDefault();
+                  if (window.confirm(t.consent)) window.open(t.href, "_blank", "noopener,noreferrer");
+                }}
+              >
                 <b>
                   {t.name}
                   <IconExternal size={13} aria-hidden="true" />

@@ -106,4 +106,65 @@ writing.post("/score", async (c) => {
   return c.json({ sessionId, score, remaining: cap > 0 ? Math.max(0, cap - (await usedToday(c.env.DB, anon))) : null }, 201);
 });
 
+// Writing bank: every essay this anonymous user has had AI-scored, newest first.
+writing.get("/history", async (c) => {
+  const anon = anonId(c);
+  if (!anon) return c.json({ entries: [] });
+
+  const limit = Math.min(parseInt(c.req.query("limit") ?? "50", 10) || 50, 200);
+  const { results } = await c.env.DB.prepare(
+    `SELECT a.id, a.response, a.score, a.criterion_scores, a.feedback, a.created_at,
+       q.id AS question_id, q.prompt, q.difficulty
+     FROM answers a
+     JOIN sessions s ON s.id = a.session_id
+     JOIN questions q ON q.id = a.question_id
+     WHERE s.anon_id = ? AND a.criterion_scores IS NOT NULL
+     ORDER BY a.id DESC LIMIT ?`,
+  )
+    .bind(anon, limit)
+    .all<{
+      id: number;
+      response: string;
+      score: number;
+      criterion_scores: string | null;
+      feedback: string | null;
+      created_at: string;
+      question_id: number;
+      prompt: string;
+      difficulty: number;
+    }>();
+
+  return c.json({
+    entries: results.map((r) => {
+      let criterionScores: Record<string, number> | null = null;
+      let band: string | null = null;
+      let justification: string | null = null;
+      let fixes: string[] = [];
+      try {
+        if (r.criterion_scores) criterionScores = JSON.parse(r.criterion_scores);
+        if (r.feedback) {
+          const f = JSON.parse(r.feedback) as { band?: string; justification?: string; fixes?: string[] };
+          band = f.band ?? null;
+          justification = f.justification ?? null;
+          fixes = Array.isArray(f.fixes) ? f.fixes : [];
+        }
+      } catch {
+        /* unparseable JSON — leave null */
+      }
+      return {
+        id: r.id,
+        questionId: r.question_id,
+        prompt: r.prompt,
+        response: r.response,
+        score: r.score,
+        criterionScores,
+        band,
+        justification,
+        fixes,
+        createdAt: r.created_at,
+      };
+    }),
+  });
+});
+
 export default writing;

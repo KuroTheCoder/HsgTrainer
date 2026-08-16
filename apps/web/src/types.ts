@@ -161,6 +161,19 @@ export interface ExamSectionResult {
   answered: number;
 }
 
+export interface WritingHistoryEntry {
+  id: number;
+  questionId: number;
+  prompt: string;
+  response: string;
+  score: number;
+  criterionScores: Record<string, number> | null;
+  band: string | null;
+  justification: string | null;
+  fixes: string[];
+  createdAt: string;
+}
+
 export interface ProgressStats {
   days: number;
   totalSessions: number;
