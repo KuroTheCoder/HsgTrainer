@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { DICTIONARIES, getDefaultDictId, setDefaultDictId, getOpenMode, setOpenMode, type OpenMode } from "../dictionary";
-import { IconBook, IconExternal, IconGear } from "../icons";
+import { IconBook, IconExternal, IconGear, IconVolume } from "../icons";
 import ThemeControls from "../components/ThemeControls";
+import { setSfxMuted, setSfxVolume, sfxMuted, sfxVolume } from "../sfx";
 
 export default function Settings() {
   const [defaultId, setDefaultId] = useState(getDefaultDictId);
   const [openMode, setOpen] = useState<OpenMode>(getOpenMode);
+  const [sfxOn, setSfxOn] = useState(!sfxMuted());
+  const [volume, setVolume] = useState(sfxVolume());
 
   const choose = (id: string) => {
     setDefaultDictId(id);
@@ -17,10 +20,67 @@ export default function Settings() {
     setOpen(mode);
   };
 
+  const toggleSfx = (on: boolean) => {
+    setSfxMuted(!on);
+    setSfxOn(on);
+  };
+
+  const changeVolume = (v: number) => {
+    const vol = v / 100;
+    setSfxVolume(vol);
+    setVolume(vol);
+  };
+
   return (
     <div className="page">
       <div className="page-head">
         <h2>Settings</h2>
+      </div>
+      <div className="card panel">
+        <h3>
+          <IconVolume size={16} aria-hidden="true" /> Sounds
+        </h3>
+        <p className="muted">
+          Small sounds for clicks, hovers, answers, and countdown warnings. Sound starts only after your first
+          click (browser rule) — and stays off unless you turn it on here.
+        </p>
+        <div className="sfx-row">
+          <div className="chip-row" role="radiogroup" aria-label="Sound effects">
+            <button
+              className={`chip-btn ${sfxOn ? "active" : ""}`}
+              role="radio"
+              aria-checked={sfxOn}
+              onClick={() => toggleSfx(true)}
+            >
+              On
+            </button>
+            <button
+              className={`chip-btn ${!sfxOn ? "active" : ""}`}
+              role="radio"
+              aria-checked={!sfxOn}
+              onClick={() => toggleSfx(false)}
+            >
+              Off
+            </button>
+          </div>
+          <label className="volume-label">
+            Volume
+            <input
+              type="range"
+              min={0}
+              max={100}
+              step={5}
+              value={Math.round(volume * 100)}
+              disabled={!sfxOn}
+              onChange={(e) => changeVolume(Number(e.target.value))}
+            />
+            <span className="muted small">{Math.round(volume * 100)}%</span>
+          </label>
+        </div>
+        <p className="hint">
+          Drop your own sound files into <code>public/sfx/</code> (see the README there for filenames) — missing
+          files are simply silent.
+        </p>
       </div>
       <div className="card panel">
         <h3>

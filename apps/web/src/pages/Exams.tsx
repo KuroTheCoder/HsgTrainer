@@ -5,6 +5,7 @@ import { IconBolt, IconCheck, IconSparkle, IconX, SectionIcon } from "../icons";
 import { ScoreRing } from "../components/ScoreRing";
 import { NoteBox, Reader } from "../components/Reader";
 import DictPopup, { type DictRequest } from "../components/DictPopup";
+import { play, playScore } from "../sfx";
 import { renderMarkdown } from "../md";
 import type { AnswerResult, CriterionScores, ExamSectionResult, Paper, Question, WritingFeedback, WritingQuestion } from "../types";
 
@@ -110,6 +111,7 @@ export default function Exams() {
         );
       });
       setResults(full);
+      playScore(Math.round((full.filter((r) => r.correct).length / full.length) * 100));
       setPhase("results");
     } catch (e) {
       setError(e instanceof Error ? e.message : "failed to submit");
@@ -128,6 +130,7 @@ export default function Exams() {
     const id = window.setInterval(() => {
       const rem = Math.max(0, Math.round((deadlineRef.current - Date.now()) / 1000));
       setLeft(rem);
+      if (rem === 300 || rem === 60) play("warn");
       if (rem === 0) {
         window.clearInterval(id);
         void finishRef.current(true);
@@ -166,6 +169,7 @@ export default function Exams() {
       const res = await api.scoreWriting(writingQ.id, writingResponse);
       setWritingFeedback(res.score);
       setRemaining(res.remaining);
+      play("complete");
       setPhase("writing-result");
     } catch (e) {
       setError(e instanceof Error ? e.message : "scoring failed");

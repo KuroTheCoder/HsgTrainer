@@ -4,6 +4,7 @@ import { api, getAdminToken } from "../api";
 import { cefrBand, sectionMeta, SECTIONS } from "../sections";
 import { IconBolt, IconTarget, IconTrash, SectionIcon } from "../icons";
 import { renderMarkdown } from "../md";
+import { play } from "../sfx";
 import type { Mistake } from "../types";
 
 function timeAgo(iso: string): string {
@@ -71,6 +72,7 @@ export default function Mistakes() {
     try {
       const res = await api.deleteMistakes({ ids });
       setNotice(`${res.deleted} mistake(s) deleted.`);
+      play("clear");
       await load(section);
     } catch (e) {
       setError(e instanceof Error ? e.message : "delete failed");
@@ -88,6 +90,7 @@ export default function Mistakes() {
     try {
       const res = await api.deleteMistakes({ section: section || undefined });
       setNotice(`${res.deleted} mistake(s) deleted.`);
+      play("clear");
       await load(section);
     } catch (e) {
       setError(e instanceof Error ? e.message : "delete failed");

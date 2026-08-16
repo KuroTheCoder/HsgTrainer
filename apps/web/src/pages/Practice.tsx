@@ -6,6 +6,7 @@ import { IconCheck, IconSparkle, IconX, SectionIcon } from "../icons";
 import { ScoreRing } from "../components/ScoreRing";
 import { NoteBox, Reader } from "../components/Reader";
 import DictPopup, { type DictRequest } from "../components/DictPopup";
+import { play, playScore } from "../sfx";
 import { renderMarkdown } from "../md";
 import type { AnswerResult, CriterionScores, Question, WritingFeedback, WritingQuestion } from "../types";
 
@@ -203,6 +204,7 @@ export default function Practice() {
         questions.map((q) => ({ questionId: q.id, response: answers[q.id] ?? "" })),
       );
       setResults(res.results);
+      playScore(Math.round((res.results.filter((r) => r.correct).length / res.results.length) * 100));
       setPhase("results");
     } catch (e) {
       setError(e instanceof Error ? e.message : "failed to submit");
@@ -219,6 +221,7 @@ export default function Practice() {
       const res = await api.scoreWriting(writingQ.id, writingResponse);
       setWritingFeedback(res.score);
       setRemaining(res.remaining);
+      play("complete");
       setPhase("writing-result");
     } catch (e) {
       setError(e instanceof Error ? e.message : "scoring failed");

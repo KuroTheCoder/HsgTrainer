@@ -10,6 +10,7 @@ import {
   useTheme,
   type ThemePreset,
 } from "../theme";
+import { play } from "../sfx";
 
 export default function ThemeControls({ compact = false }: { compact?: boolean }) {
   const { theme, palette, background, intensity, custom, setTheme, setPalette, setBackground, setIntensity, setCustom, randomize, reset, applyPreset } = useTheme();
@@ -40,6 +41,7 @@ export default function ThemeControls({ compact = false }: { compact?: boolean }
     const id = typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : String(Date.now());
     setPresets((ps) => [...ps, { id, name, theme, palette, background, intensity, custom }].slice(-8));
     setPresetName("");
+    play("save");
   };
 
   const deletePreset = (id: string) => setPresets((ps) => ps.filter((p) => p.id !== id));

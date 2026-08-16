@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { dictionaryLinks, openDictionary } from "../dictionary";
 import { getWordList, removeWord, WORD_LIST_CHANGED_EVENT, type VocabEntry } from "../vocab";
 import { IconBook, IconExternal, IconTrash } from "../icons";
+import { play } from "../sfx";
 
 function formatDate(iso: string): string {
   try {
@@ -23,7 +24,7 @@ function WordCard({ word, entry }: { word: string; entry: VocabEntry }) {
           <span className="muted small">added {formatDate(entry.addedAt)}</span>
         </button>
         <div className="row">
-          <button className="btn btn-sm btn-ghost" onClick={() => removeWord(word)} title={`Remove "${word}" from your list`}>
+          <button className="btn btn-sm btn-ghost" onClick={() => { removeWord(word); play("clear"); }} title={`Remove "${word}" from your list`}>
             <IconTrash size={13} aria-hidden="true" />
             Remove
           </button>
