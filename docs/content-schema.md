@@ -58,7 +58,7 @@
 
 `prompt_hash` (SHA-256 of normalized prompt) dedupes: imports that hit an existing hash are reported, not inserted. Re-imports with new `keyWords` update the existing row instead ("updated" report status).
 
-**`keyWords` (optional):** short list of words/phrases the submitter flagged for student lookup — tricky options, idioms, or essay-ready vocabulary. Rendered as tap chips under the prompt; a tap opens the quick dictionary + deep links (Cambridge, Cambridge EN→VI, Oxford, Wiktionary) and can save the word to the student's local word list. Keep entries to real dictionary lookups (max ~50, comma- or pipe-friendly in forms).
+**`keyWords` (optional):** short list of words/phrases the submitter flagged for student lookup — tricky options, idioms, or essay-ready vocabulary. Rendered as tap chips under the prompt; a tap opens the lookup popup, which shows a one-click ribbon to the student's chosen default dictionary (Cambridge, Cambridge EN→VI, Oxford or Wiktionary — set in Settings), offers the other dictionaries as quick links, and can save the word to the student's local word list. The ribbon opens the dictionary in a new tab or a small floating window, per the Settings choice. Keep entries to real dictionary lookups (max ~50, comma- or pipe-friendly in forms).
 
 ## Workflows
 

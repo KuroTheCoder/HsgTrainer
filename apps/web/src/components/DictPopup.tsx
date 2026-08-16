@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { dictionaryLinks, lookupWord, openDictionaryWindow, type DictEntry } from "../dictionary";
+import { defaultDictUrl, dictionaryLinks, getDefaultDictId, openDictionary } from "../dictionary";
 import { addWord, hasWord } from "../vocab";
 import { IconBook, IconExternal, IconX } from "../icons";
 
@@ -10,45 +10,44 @@ export interface DictRequest {
   y: number;
 }
 
-/** Floating dictionary popup (portaled to body so ancestor transforms can't
- *  trap it). Shows the built-in quick definition, an "add to word list" toggle
- *  and deep links to real dictionaries in a mini window. */
+/** Floating dictionary popup (portaled to body). It stays glued to the word:
+ *  coordinates are document-space, so it scrolls with the text. A ribbon on
+ *  its side opens the user's default dictionary in one click (new tab or
+ *  small window, per the Settings choice), and the popup closes itself when
+ *  the user stops interacting with it. */
 export default function DictPopup({ word, x, y, onClose }: DictRequest & { onClose: () => void }) {
-  const [entry, setEntry] = useState<DictEntry | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [fallingBack, setFallingBack] = useState(false);
   const [saved, setSaved] = useState(() => hasWord(word));
+  const ref = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
-  const fallbackForRef = useRef<string | null>(null);
+  const links = dictionaryLinks(word);
+  const defaultId = getDefaultDictId();
+  const defaultName = links.find((l) => l.id === defaultId)?.name ?? "dictionary";
 
+  // Auto-close when the user stops looking the word up: click anywhere else
+  // (mousedown so the closing click can't leak into the page) or press Escape.
   useEffect(() => {
-    let alive = true;
-    setLoading(true);
-    setEntry(null);
-    setFallingBack(false);
-    void lookupWord(word).then((e) => {
-      if (!alive) return;
-      setEntry(e);
-      setLoading(false);
-      // Miss: auto-jump to a real dictionary instead of dead-ending.
-      if (!e && fallbackForRef.current !== word) {
-        fallbackForRef.current = word;
-        setFallingBack(true);
-        const first = dictionaryLinks(word)[0];
-        if (first) openDictionaryWindow(first.url);
-      }
-    });
-    return () => {
-      alive = false;
+    const onDown = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
     };
-  }, [word]);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [onClose]);
 
   useEffect(() => {
     closeRef.current?.focus();
   }, []);
 
-  const left = Math.max(8, Math.min(x, window.innerWidth - 336));
-  const top = Math.max(8, Math.min(y, window.innerHeight - 140));
+  const left = x + window.scrollX;
+  const top = y + window.scrollY;
+  const popupW = Math.min(360, window.innerWidth * 0.86);
+  const ribbonOnLeft = left + popupW + 130 > window.innerWidth;
 
   const toggleSave = () => {
     if (saved) return;
@@ -56,60 +55,59 @@ export default function DictPopup({ word, x, y, onClose }: DictRequest & { onClo
     setSaved(true);
   };
 
+  const openDefault = () => {
+    const url = defaultDictUrl(word);
+    if (url) openDictionary(url);
+  };
+
   return createPortal(
-    <div className="dict-pop" style={{ left, top }} role="dialog" aria-label={`Dictionary: ${word}`} aria-busy={loading}>
-      <button ref={closeRef} className="dict-close" onClick={onClose} aria-label="Close dictionary">
-        <IconX size={13} />
+    <div
+      ref={ref}
+      className="dict-pop"
+      style={{ left, top }}
+      role="dialog"
+      aria-label={`Dictionary: ${word}`}
+    >
+      <button
+        className={`dict-ribbon ${ribbonOnLeft ? "left" : "right"}`}
+        onClick={openDefault}
+        title={`Open in ${defaultName}`}
+        aria-label={`Open in ${defaultName}`}
+      >
+        <IconBook size={12} aria-hidden="true" />
+        <span className="dict-ribbon-name">{defaultName}</span>
+        <IconExternal size={10} aria-hidden="true" />
       </button>
-      <b className="dict-word">
-        <IconBook size={14} aria-hidden="true" />
-        {word}
-        {entry?.phonetic && <span> {entry.phonetic}</span>}
-      </b>
-      {loading && (
-        <div className="dict-skeleton" aria-hidden="true">
-          <i />
-          <i />
-          <i />
-        </div>
-      )}
-      {!loading && !entry && fallingBack && (
-        <em>
-          No quick entry found — opening {dictionaryLinks(word)[0]?.name ?? "a dictionary"}…
-        </em>
-      )}
-      {!loading && !entry && !fallingBack && <em>No quick entry found for “{word}”.</em>}
-      {!loading && entry && (
-        <ul className="dict-list">
-          {entry.meanings.map((m, i) => (
-            <li key={i}>
-              {m.partOfSpeech && <i>{m.partOfSpeech}.</i>} {m.definition}
-              {m.example && <em className="dict-example">“{m.example}”</em>}
-            </li>
-          ))}
-        </ul>
-      )}
-      <div className="dict-foot">
-        <button
-          className={`btn btn-sm ${saved ? "btn-ghost" : "btn-primary"}`}
-          onClick={toggleSave}
-          disabled={saved}
-        >
-          {saved ? "In your word list" : "+ Add to word list"}
+      <div className="dict-pop-body">
+        <button ref={closeRef} className="dict-close" onClick={onClose} aria-label="Close dictionary">
+          <IconX size={13} />
         </button>
-        <span className="dict-links-label">See in dictionary</span>
-        <div className="dict-links">
-          {dictionaryLinks(word).map((l) => (
-            <button
-              key={l.name}
-              className="dict-link"
-              onClick={() => openDictionaryWindow(l.url)}
-              title={l.hint ?? l.url}
-            >
-              <IconExternal size={11} aria-hidden="true" />
-              {l.name}
-            </button>
-          ))}
+        <b className="dict-word">
+          <IconBook size={14} aria-hidden="true" />
+          {word}
+        </b>
+        <div className="dict-foot">
+          <button
+            className={`btn btn-sm ${saved ? "btn-ghost" : "btn-primary"}`}
+            onClick={toggleSave}
+            disabled={saved}
+          >
+            {saved ? "In your word list" : "+ Add to word list"}
+          </button>
+          <span className="dict-links-label">See in dictionary</span>
+          <div className="dict-links">
+            {links.map((l) => (
+              <button
+                key={l.id}
+                className={`dict-link ${l.id === defaultId ? "is-default" : ""}`}
+                onClick={() => openDictionary(l.url)}
+                title={l.hint ?? l.url}
+              >
+                <IconExternal size={11} aria-hidden="true" />
+                {l.name}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </div>,

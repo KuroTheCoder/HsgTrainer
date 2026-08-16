@@ -1393,7 +1393,7 @@ mark {
   border: 2px solid var(--line-soft);
   border-radius: 12px 8px 10px 9px / 9px 12px 8px 10px;
   box-shadow: var(--shadow-sm);
-  z-index: 6;
+  z-index: 60;
   white-space: nowrap;
 }
 
@@ -1415,12 +1415,9 @@ mark {
 .reader-toolbar button:hover { background: var(--accent-soft); color: var(--accent); }
 
 .dict-pop {
-  position: fixed;
+  position: absolute;
   transform: translateX(-50%);
-  width: min(328px, 82vw);
-  max-height: 70vh;
-  overflow: auto;
-  padding: 12px 14px;
+  width: min(360px, 86vw);
   background: var(--surface);
   border: 2px dashed var(--line-soft);
   border-radius: 14px 10px 12px 11px / 11px 14px 10px 12px;
@@ -1428,8 +1425,53 @@ mark {
   z-index: 60;
   font-size: 0.86rem;
   text-align: left;
+}
+
+.dict-pop-body {
+  max-height: 70vh;
+  overflow: auto;
+  padding: 12px 14px;
   animation: pop 0.18s ease;
 }
+
+/* Ribbon: a small tab sticking out of the popup's side that opens the user's
+   default dictionary in one click (mode chosen in Settings). */
+.dict-ribbon {
+  position: absolute;
+  top: 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 11px;
+  border: 2px solid var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-family: var(--font);
+  font-size: 0.74rem;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 color-mix(in srgb, var(--accent) 45%, var(--shadow-color));
+  z-index: 61;
+  transition: filter 0.15s ease, transform 0.12s ease;
+}
+
+.dict-ribbon.right {
+  left: calc(100% + 8px);
+  border-radius: 0 999px 999px 0;
+  border-left-width: 0;
+}
+
+.dict-ribbon.left {
+  right: calc(100% + 8px);
+  border-radius: 999px 0 0 999px;
+  border-right-width: 0;
+}
+
+.dict-ribbon:hover { filter: brightness(0.94) saturate(1.08); transform: translateY(-1px); }
+
+.dict-ribbon-name { max-width: 110px; overflow: hidden; text-overflow: ellipsis; }
 
 .dict-close {
   position: sticky;
@@ -1452,28 +1494,6 @@ mark {
 .dict-word { display: flex; align-items: center; gap: 6px; font-size: 1rem; font-family: var(--font-display); margin: 0 0 6px; }
 .dict-word svg { color: var(--accent); }
 .dict-word span { color: var(--muted); font-weight: 400; }
-
-.dict-skeleton { display: flex; flex-direction: column; gap: 6px; padding: 2px 0 4px; }
-.dict-skeleton i {
-  display: block;
-  height: 10px;
-  border-radius: 6px;
-  background: linear-gradient(90deg, var(--line-faint) 25%, var(--surface-2) 50%, var(--line-faint) 75%);
-  background-size: 200% 100%;
-  animation: dict-shimmer 1.1s ease-in-out infinite;
-}
-.dict-skeleton i:nth-child(1) { width: 92%; }
-.dict-skeleton i:nth-child(2) { width: 78%; }
-.dict-skeleton i:nth-child(3) { width: 85%; }
-
-@keyframes dict-shimmer {
-  from { background-position: 200% 0; }
-  to { background-position: -200% 0; }
-}
-
-.dict-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
-.dict-list i { font-style: normal; color: var(--accent); font-weight: 700; }
-.dict-example { display: block; color: var(--muted); font-size: 0.8rem; margin-top: 2px; }
 
 .dict-foot { margin-top: 10px; border-top: 1px dashed var(--line-soft); padding-top: 8px; display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
 
@@ -1504,6 +1524,8 @@ mark {
 }
 
 .dict-link:hover { background: var(--accent-soft); border-color: var(--accent); transform: translateY(-1px) rotate(-1deg); }
+
+.dict-link.is-default { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
 
 .key-words {
   display: flex;

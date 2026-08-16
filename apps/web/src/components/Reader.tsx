@@ -1,4 +1,5 @@
 import { useRef, useState, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { renderMarkdown } from "../md";
 import { addHighlight, getHighlights, getNote, saveNote, type Note } from "../reader";
 import { IconPen } from "../icons";
@@ -66,21 +67,35 @@ export function Reader({
     dismiss();
   };
 
+  // The toolbar renders inside the question card, but its coordinates are
+  // viewport-space (from the selection rect). Portal it to <body> and use
+  // document-space absolute positioning so it stays glued to the word as the
+  // page scrolls (and a positioned ancestor can't offset it).
+  const toolbarEl =
+    toolbar &&
+    createPortal(
+      <span
+        className="reader-toolbar"
+        style={{ left: toolbar.x + window.scrollX, top: toolbar.y + window.scrollY }}
+        role="toolbar"
+        aria-label="Text tools"
+      >
+        {onLookup && (
+          <button onClick={() => onLookup(toolbar.text, toolbar.x, toolbar.y)} title="Look up in dictionary">
+            Dictionary
+          </button>
+        )}
+        <button onClick={highlight} title="Save as highlight">
+          Highlight
+        </button>
+      </span>,
+      document.body,
+    );
+
   return (
     <p ref={wrapRef} className={className} onMouseUp={onMouseUp}>
       {renderMarkdown(text, highlights)}
-      {toolbar && (
-        <span className="reader-toolbar" style={{ left: toolbar.x, top: toolbar.y }} role="toolbar" aria-label="Text tools">
-          {onLookup && (
-            <button onClick={() => onLookup(toolbar.text, toolbar.x, toolbar.y)} title="Look up in dictionary">
-              Dictionary
-            </button>
-          )}
-          <button onClick={highlight} title="Save as highlight">
-            Highlight
-          </button>
-        </span>
-      )}
+      {toolbarEl}
     </p>
   );
 }

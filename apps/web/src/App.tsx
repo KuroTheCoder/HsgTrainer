@@ -12,6 +12,7 @@ import Contribute from "./pages/Contribute";
 import Admin from "./pages/Admin";
 import Tools from "./pages/Tools";
 import WordList from "./pages/WordList";
+import Settings from "./pages/Settings";
 
 function PaletteIcon() {
   return (
@@ -132,6 +133,10 @@ function NavLinks() {
         <IconTool size={15} />
         Free tools
       </NavLink>
+      <NavLink to="/settings" className={({ isActive }) => (isActive ? "active" : "")}>
+        <IconGear size={15} />
+        Settings
+      </NavLink>
     </>
   );
 }
@@ -143,6 +148,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/words": "Word list",
   "/contribute": "Contribute",
   "/tools": "Free tools",
+  "/settings": "Settings",
   "/admin": "Admin",
 };
 
@@ -403,6 +409,7 @@ export default function App() {
             <Route path="/words" element={<WordList />} />
             <Route path="/contribute" element={<Contribute />} />
             <Route path="/tools" element={<Tools />} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="/admin" element={<Admin />} />
           </Routes>
         </main>

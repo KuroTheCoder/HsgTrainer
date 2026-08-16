@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { dictionaryLinks, lookupWord, openDictionaryWindow, type DictEntry } from "../dictionary";
+import { dictionaryLinks, openDictionary } from "../dictionary";
 import { getWordList, removeWord, WORD_LIST_CHANGED_EVENT, type VocabEntry } from "../vocab";
 import { IconBook, IconExternal, IconTrash } from "../icons";
 
@@ -12,26 +12,12 @@ function formatDate(iso: string): string {
 }
 
 function WordCard({ word, entry }: { word: string; entry: VocabEntry }) {
-  const [def, setDef] = useState<DictEntry | null>(null);
-  const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
-
-  const toggle = () => {
-    const next = !open;
-    setOpen(next);
-    if (next && !def && !loading) {
-      setLoading(true);
-      void lookupWord(word).then((d) => {
-        setDef(d);
-        setLoading(false);
-      });
-    }
-  };
 
   return (
     <div className="word-card">
       <div className="word-card-head">
-        <button className="word-card-word" onClick={toggle} aria-expanded={open}>
+        <button className="word-card-word" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
           <IconBook size={15} aria-hidden="true" />
           {word}
           <span className="muted small">added {formatDate(entry.addedAt)}</span>
@@ -45,24 +31,12 @@ function WordCard({ word, entry }: { word: string; entry: VocabEntry }) {
       </div>
       {open && (
         <div className="word-card-body">
-          {loading && <em>Looking up “{word}”…</em>}
-          {!loading && !def && <em>No quick entry found.</em>}
-          {!loading && def && (
-            <ul className="dict-list">
-              {def.meanings.map((m, i) => (
-                <li key={i}>
-                  {m.partOfSpeech && <i>{m.partOfSpeech}.</i>} {m.definition}
-                  {m.example && <em className="dict-example">“{m.example}”</em>}
-                </li>
-              ))}
-            </ul>
-          )}
           <div className="dict-links">
             {dictionaryLinks(word).map((l) => (
               <button
-                key={l.name}
+                key={l.id}
                 className="dict-link"
-                onClick={() => openDictionaryWindow(l.url)}
+                onClick={() => openDictionary(l.url)}
                 title={l.hint ?? l.url}
               >
                 <IconExternal size={11} aria-hidden="true" />

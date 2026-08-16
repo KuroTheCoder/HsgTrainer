@@ -32,7 +32,7 @@ const BUILT_IN: BuiltInTool[] = [
   },
   {
     name: "Dictionary",
-    purpose: "Built-in word lookup in every reading prompt — powered by the free dictionaryapi.dev.",
+    purpose: "Look up any word in a reading prompt — a ribbon on the popup opens your chosen dictionary (pick one in Settings).",
     to: "/practice",
   },
   {
