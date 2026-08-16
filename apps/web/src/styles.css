@@ -1250,6 +1250,7 @@ h1 { font-weight: 700; }
 }
 
 .question-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+.ml-auto { margin-left: auto; }
 
 .row-check {
   display: inline-flex;

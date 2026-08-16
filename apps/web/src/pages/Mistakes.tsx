@@ -170,11 +170,11 @@ export default function Mistakes() {
             )}
           </div>
           <div className="spread" style={{ marginTop: 10 }}>
-            <span className="hint">Retry these in a fresh session — get them right to clear them.</span>
+            <span className="hint">Study loop: drill these in a fresh session — get each one right and it clears from this list automatically.</span>
             <div className="row">
               <button className="btn btn-primary btn-sm" onClick={practiceThese} disabled={mistakes.length === 0}>
                 <IconBolt size={14} />
-                Practice these
+                Study now
               </button>
               {isAdmin && (
                 <>
@@ -231,6 +231,14 @@ export default function Mistakes() {
                 </span>
               ))}
               <span className="tag">{timeAgo(m.answeredAt)}</span>
+              <button
+                className="btn btn-ghost btn-sm ml-auto"
+                onClick={() => navigate(`/practice?questions=${m.questionId}`)}
+                title="Drill this question in a fresh session — get it right to clear it"
+              >
+                <IconBolt size={12} />
+                Drill
+              </button>
             </div>
             <p className="prompt">{renderMarkdown(m.prompt)}</p>
             <p className="small">
