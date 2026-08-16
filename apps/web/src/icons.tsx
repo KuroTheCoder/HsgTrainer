@@ -109,6 +109,17 @@ export const IconX: FC<IconProps> = (p) => (
   </svg>
 );
 
+export const IconBug: FC<IconProps> = (p) => (
+  <svg {...base(p)}>
+    <rect x="8" y="6" width="8" height="13" rx="4" />
+    <path d="M8 9H4a2 2 0 0 0 0 4h4" />
+    <path d="M16 9h4a2 2 0 0 1 0 4h-4" />
+    <path d="M12 6V3" />
+    <path d="M8 18l-3 3" />
+    <path d="M16 18l3 3" />
+  </svg>
+);
+
 export const IconTrash: FC<IconProps> = (p) => (
   <svg {...base(p)}>
     <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14" />
