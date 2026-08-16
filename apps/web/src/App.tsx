@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, Route, Routes, useLocation, useNavigate } from "react-router-dom";
-import { BACKGROUNDS, PALETTES, useTheme } from "./theme";
+import { useTheme, type Background } from "./theme";
 import { SECTIONS } from "./sections";
+import ThemeControls from "./components/ThemeControls";
 import { IconBolt, IconBook, IconClock, IconGear, IconPen, IconPlus, IconTarget, IconTool, IconTrend, IconUser, IconUsers, SectionIcon } from "./icons";
 import { NOTES_CHANGED_EVENT, noteIdsForSection } from "./reader";
 import { WORD_LIST_CHANGED_EVENT, getWordList } from "./vocab";
@@ -32,7 +33,6 @@ function PaletteIcon() {
 }
 
 function ThemeMenu() {
-  const { theme, palette, background, setTheme, setPalette, setBackground, randomize, reset } = useTheme();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -67,57 +67,29 @@ function ThemeMenu() {
       </button>
       {open && (
         <div className="card theme-pop">
-          <div className="theme-pop-label">Appearance</div>
-          <div className="seg">
-            <button className={theme === "dark" ? "active" : ""} onClick={() => setTheme("dark")}>
-              Dark
-            </button>
-            <button className={theme === "light" ? "active" : ""} onClick={() => setTheme("light")}>
-              Light
-            </button>
-            <button className={theme === "system" ? "active" : ""} onClick={() => setTheme("system")}>
-              System
-            </button>
-          </div>
-          <div className="theme-pop-label">Accent</div>
-          <div className="swatches">
-            {PALETTES.map((p) => (
-              <button
-                key={p.id}
-                className={`swatch ${palette === p.id ? "active" : ""}`}
-                style={{ background: p.swatch }}
-                onClick={() => setPalette(p.id)}
-                aria-label={p.label}
-                title={p.label}
-              />
-            ))}
-          </div>
-          <div className="theme-pop-label">Background</div>
-          <div className="bg-swatches">
-            {BACKGROUNDS.map((b) => (
-              <button
-                key={b.id}
-                className={`bg-swatch ${background === b.id ? "active" : ""}`}
-                style={{ backgroundImage: b.swatch }}
-                onClick={() => setBackground(b.id)}
-                aria-label={b.label}
-              >
-                {b.label}
-              </button>
-            ))}
-          </div>
-          <div className="theme-actions">
-            <button className="btn btn-sm" onClick={randomize}>
-              Random
-            </button>
-            <button className="btn btn-sm" onClick={reset}>
-              Reset
-            </button>
-          </div>
+          <ThemeControls compact />
         </div>
       )}
     </div>
   );
+}
+
+/** Crossfades the previous background pattern out over the new one. */
+function BackgroundCrossfade() {
+  const { background } = useTheme();
+  const prev = useRef(background);
+  const [fading, setFading] = useState<Background | null>(null);
+
+  useEffect(() => {
+    if (prev.current === background) return;
+    setFading(prev.current);
+    prev.current = background;
+    const t = setTimeout(() => setFading(null), 500);
+    return () => clearTimeout(t);
+  }, [background]);
+
+  if (!fading) return null;
+  return <div className="bg-fade" data-bg-pattern={fading} aria-hidden="true" />;
 }
 
 function Brand() {
@@ -400,6 +372,7 @@ export default function App() {
 
   return (
     <div className="app-shell">
+      <BackgroundCrossfade />
       <div className="paper-doodles" aria-hidden="true">
         <svg className="doodle-star" viewBox="0 0 24 24">
           <path d="M12 2l2.9 6.2 6.6.6-5 4.4 1.5 6.5L12 16.2 5.9 19.7l1.5-6.5-5-4.4 6.6-.6z" />

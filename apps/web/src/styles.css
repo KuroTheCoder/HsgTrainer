@@ -93,24 +93,63 @@
 :root[data-theme="light"][data-palette="fuchsia"] { --accent: #c026d3; --accent-ink: #ffffff; }
 :root[data-theme="light"][data-palette="indigo"] { --accent: #4f46e5; --accent-ink: #ffffff; }
 
-/* background styles — override the body pattern + hide the margin line where it doesn't apply */
-:root[data-background="dots"] {
+/* background styles — override the body pattern + hide the margin line where it doesn't apply.
+   The .bg-fade selectors let a fixed overlay replay the previous pattern for a crossfade. */
+:root[data-background="dots"], .bg-fade[data-bg-pattern="dots"] {
   --bg-pattern: radial-gradient(var(--dot) 1.3px, transparent 1.3px) 0 0 / 26px 26px;
   --margin-line: transparent;
 }
-:root[data-background="grid"] {
+:root[data-background="grid"], .bg-fade[data-bg-pattern="grid"] {
   --bg-pattern:
     repeating-linear-gradient(0deg, transparent 0 25px, var(--line-faint) 25px 26px),
     repeating-linear-gradient(90deg, transparent 0 25px, var(--line-faint) 25px 26px);
   --margin-line: transparent;
 }
-:root[data-background="plain"] { --bg-pattern: none; --margin-line: transparent; }
-:root[data-background="waves"] { --bg-pattern: var(--waves); --margin-line: transparent; }
-:root[data-background="stars"] {
+:root[data-background="plain"], .bg-fade[data-bg-pattern="plain"] { --bg-pattern: none; --margin-line: transparent; }
+:root[data-background="waves"], .bg-fade[data-bg-pattern="waves"] { --bg-pattern: var(--waves); --margin-line: transparent; }
+:root[data-background="stars"], .bg-fade[data-bg-pattern="stars"] {
   --bg-pattern:
     radial-gradient(var(--dot) 1.3px, transparent 1.3px) 0 0 / 26px 26px,
     radial-gradient(var(--line-faint) 2px, transparent 2px) 0 0 / 90px 90px;
   --margin-line: transparent;
+}
+
+/* pattern intensity — scales the faint pattern colors per theme */
+:root[data-intensity="subtle"] {
+  --dot: rgba(236, 231, 216, 0.03);
+  --line-faint: rgba(236, 231, 216, 0.1);
+  --rule-line: transparent;
+}
+:root[data-intensity="bold"] {
+  --dot: rgba(236, 231, 216, 0.1);
+  --line-faint: rgba(236, 231, 216, 0.3);
+  --rule-line: rgba(236, 231, 216, 0.08);
+}
+:root[data-theme="light"][data-intensity="subtle"] {
+  --dot: transparent;
+  --line-faint: rgba(59, 53, 39, 0.1);
+  --rule-line: rgba(59, 53, 39, 0.035);
+}
+:root[data-theme="light"][data-intensity="bold"] {
+  --dot: rgba(59, 53, 39, 0.08);
+  --line-faint: rgba(59, 53, 39, 0.32);
+  --rule-line: rgba(59, 53, 39, 0.13);
+}
+
+/* old-pattern overlay: fades out over the freshly switched body background */
+.bg-fade {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--bg-pattern), var(--bg);
+  background-attachment: fixed;
+  animation: bg-fade-out 0.45s ease forwards;
+}
+
+@keyframes bg-fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
 }
 
 :root {
@@ -692,6 +731,7 @@ h1 { font-weight: 700; }
 .swatches { display: flex; flex-wrap: wrap; gap: 8px; }
 
 .swatch {
+  position: relative;
   width: 30px;
   height: 30px;
   border-radius: 999px;
@@ -703,6 +743,42 @@ h1 { font-weight: 700; }
 
 .swatch:hover { transform: scale(1.2) rotate(-12deg); }
 .swatch.active { border-color: var(--bg); box-shadow: 0 0 0 2px var(--accent); }
+
+/* contrast guardrail: "!" when accent ink is unreadable in at least one mode */
+.swatch.low-contrast::after {
+  content: "!";
+  position: absolute;
+  bottom: -5px;
+  right: -5px;
+  width: 15px;
+  height: 15px;
+  border-radius: 999px;
+  background: var(--warn);
+  color: #1a2034;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 15px;
+  text-align: center;
+  box-shadow: 1px 1px 0 var(--shadow-color);
+}
+
+.accent-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.custom-color {
+  width: 40px;
+  height: 32px;
+  padding: 0;
+  border: 2px solid var(--border);
+  border-radius: 9px;
+  background: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.custom-color:hover { border-color: var(--accent); }
 
 .bg-swatches { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
 
@@ -727,6 +803,75 @@ h1 { font-weight: 700; }
 
 .theme-actions { display: flex; gap: 8px; margin-top: 14px; }
 .theme-actions .btn { flex: 1; }
+
+/* full Appearance panel (settings page) */
+.theme-panel .theme-pop-label { margin-top: 16px; }
+.theme-panel .theme-pop-label:first-child { margin-top: 0; }
+
+.theme-share { display: flex; gap: 8px; margin-top: 10px; }
+.theme-share input {
+  flex: 1;
+  min-width: 0;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 7px 10px;
+  font-size: 0.9rem;
+  font-family: var(--font);
+}
+.theme-share input:focus { outline: none; border-color: var(--accent); }
+
+.preset-row { display: flex; gap: 8px; margin-top: 10px; }
+.preset-row input {
+  flex: 1;
+  min-width: 0;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 7px 10px;
+  font-size: 0.9rem;
+  font-family: var(--font);
+}
+.preset-row input:focus { outline: none; border-color: var(--accent); }
+
+.preset-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+
+.preset-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--surface-2);
+  border: 2px solid var(--border);
+  color: var(--text);
+  font-family: var(--font-hand);
+  font-size: 0.92rem;
+  border-radius: 999px;
+  padding: 3px 10px 3px 12px;
+  transition: border-color 0.15s ease, transform 0.12s ease;
+}
+.preset-chip:hover { border-color: var(--accent); transform: translateY(-1px); }
+
+.preset-chip-apply {
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  padding: 0;
+  cursor: pointer;
+}
+
+.preset-chip-del {
+  border: none;
+  background: none;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+}
+.preset-chip-del:hover { color: var(--bad); }
 
 /* ---------- buttons ---------- */
 

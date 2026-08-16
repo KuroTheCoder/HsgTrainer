@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { DICTIONARIES, getDefaultDictId, setDefaultDictId, getOpenMode, setOpenMode, type OpenMode } from "../dictionary";
-import { IconBook, IconExternal } from "../icons";
+import { IconBook, IconExternal, IconGear } from "../icons";
+import ThemeControls from "../components/ThemeControls";
 
 export default function Settings() {
   const [defaultId, setDefaultId] = useState(getDefaultDictId);
@@ -20,6 +21,17 @@ export default function Settings() {
     <div className="page">
       <div className="page-head">
         <h2>Settings</h2>
+      </div>
+      <div className="card panel">
+        <h3>
+          <IconGear size={16} aria-hidden="true" /> Appearance
+        </h3>
+        <p className="muted">
+          Ink color, notebook style, and pattern density. Everything applies instantly and is stored on this
+          device — no account needed. Save your favourite combos as presets, or share a theme link: whoever
+          opens it gets the same look.
+        </p>
+        <ThemeControls />
       </div>
       <div className="card panel">
         <h3>

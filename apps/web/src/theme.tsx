@@ -4,8 +4,9 @@ export type Theme = "dark" | "light" | "system";
 export type Palette =
   | "ocean" | "cyan" | "emerald" | "teal" | "lime"
   | "amber" | "sunset" | "rose" | "red"
-  | "violet" | "fuchsia" | "indigo";
+  | "violet" | "fuchsia" | "indigo" | "custom";
 export type Background = "paper" | "dots" | "grid" | "plain" | "waves" | "stars";
+export type Intensity = "subtle" | "normal" | "bold";
 
 export interface PaletteDef {
   id: Palette;
@@ -25,6 +26,22 @@ export interface BackgroundDef {
   swatch: string;
 }
 
+export interface ThemePreset {
+  id: string;
+  name: string;
+  theme: Theme;
+  palette: Palette;
+  background: Background;
+  intensity: Intensity;
+  custom: string;
+}
+
+export const INTENSITIES: { id: Intensity; label: string }[] = [
+  { id: "subtle", label: "Subtle" },
+  { id: "normal", label: "Normal" },
+  { id: "bold", label: "Bold" },
+];
+
 export const PALETTES: PaletteDef[] = [
   { id: "ocean",   label: "Bút xanh",     swatch: "#5b9bff", dark: "#6ea8ff", light: "#2f54d9" },
   { id: "cyan",    label: "Bút xanh ngọc", swatch: "#22d3ee", dark: "#22d3ee", light: "#0891b2" },
@@ -38,6 +55,7 @@ export const PALETTES: PaletteDef[] = [
   { id: "violet",  label: "Bút tím",      swatch: "#a78bfa", dark: "#b49cff", light: "#7c3aed" },
   { id: "fuchsia", label: "Bút hồng tím", swatch: "#e879f9", dark: "#e879f9", light: "#c026d3" },
   { id: "indigo",  label: "Bút chàm",     swatch: "#818cf8", dark: "#97a3ff", light: "#4f46e5" },
+  { id: "custom",  label: "Custom",       swatch: "#6ea8ff", dark: "#6ea8ff", light: "#6ea8ff" },
 ];
 
 export const BACKGROUNDS: BackgroundDef[] = [
@@ -52,9 +70,18 @@ export const BACKGROUNDS: BackgroundDef[] = [
 const THEME_KEY = "hsg-theme";
 const PALETTE_KEY = "hsg-palette";
 const BG_KEY = "hsg-background";
+const INTENSITY_KEY = "hsg-intensity";
+const CUSTOM_KEY = "hsg-accent-custom";
+const PRESETS_KEY = "hsg-presets";
 
 const DARK = "dark" as const;
 const LIGHT = "light" as const;
+
+const DARK_BG = "#1a2034";
+const LIGHT_BG = "#faf6ea";
+const DARK_INK = "#1a2034";
+const LIGHT_INK = "#ffffff";
+const DEFAULT_CUSTOM = "#6ea8ff";
 
 function read(key: string): string | null {
   try {
@@ -84,6 +111,10 @@ export function isBackground(v: string | null): v is Background {
   return !!v && BACKGROUNDS.some((b) => b.id === v);
 }
 
+export function isIntensity(v: string | null): v is Intensity {
+  return v === "subtle" || v === "normal" || v === "bold";
+}
+
 export function prefersLight(): boolean {
   return typeof matchMedia !== "undefined" && matchMedia("(prefers-color-scheme: light)").matches;
 }
@@ -94,20 +125,124 @@ export function resolveTheme(theme: Theme): "dark" | "light" {
   return theme;
 }
 
+/* ---------- color math ---------- */
+
+const HEX_RE = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i;
+
+export function normalizeHex(v: string): string | null {
+  const m = v.trim().match(HEX_RE);
+  if (!m) return null;
+  const h = m[1]!;
+  return "#" + (h.length === 3 ? h.split("").map((c) => c + c).join("") : h).toLowerCase();
+}
+
+function luminance(hex: string): number {
+  const c = [0, 2, 4].map((i) => parseInt(hex.slice(i + 1, i + 3), 16) / 255);
+  const lin = c.map((v) => (v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4)));
+  return 0.2126 * lin[0]! + 0.7152 * lin[1]! + 0.0722 * lin[2]!;
+}
+
+export function contrastRatio(hexA: string, hexB: string): number {
+  const a = luminance(hexA);
+  const b = luminance(hexB);
+  const [hi, lo] = a > b ? [a, b] : [b, a];
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+/** Ink color that stays readable on an arbitrary accent. */
+export function inkFor(hex: string): string {
+  return luminance(hex) > 0.45 ? DARK_INK : LIGHT_INK;
+}
+
+export function hasGoodContrast(accent: string, ink: string): boolean {
+  return contrastRatio(accent, ink) >= 4.5;
+}
+
+/* ---------- presets ---------- */
+
+export function loadPresets(): ThemePreset[] {
+  const raw = read(PRESETS_KEY);
+  if (!raw) return [];
+  try {
+    const list = JSON.parse(raw);
+    return Array.isArray(list) ? (list.filter((p) => p && typeof p.name === "string") as ThemePreset[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function persistPresets(list: ThemePreset[]) {
+  write(PRESETS_KEY, JSON.stringify(list.slice(0, 8)));
+}
+
+/** Compact share token: dark.lime.stars.bold[.a3e635] */
+export function encodeToken(t: { theme: Theme; palette: Palette; background: Background; intensity: Intensity; custom: string }): string {
+  const parts: string[] = [t.theme, t.palette, t.background, t.intensity];
+  if (t.palette === "custom") parts.push(t.custom.replace("#", ""));
+  return parts.join(".");
+}
+
+export function decodeToken(token: string): { theme: Theme; palette: Palette; background: Background; intensity: Intensity; custom: string } | null {
+  const parts = token.trim().split(".");
+  const [theme, palette, background, intensity, customHex] = parts as [string, string, string, string, string | undefined];
+  if (!isTheme(theme) || !isPalette(palette) || !isBackground(background) || !isIntensity(intensity)) return null;
+  const custom = palette === "custom" ? (customHex ? normalizeHex(customHex) : null) : DEFAULT_CUSTOM;
+  if (palette === "custom" && !custom) return null;
+  return { theme, palette, background, intensity, custom: custom ?? DEFAULT_CUSTOM };
+}
+
+/* ---------- bootstrap ---------- */
+
+function applyCustomAccent(palette: Palette, custom: string) {
+  const el = document.documentElement;
+  if (palette === "custom") {
+    el.style.setProperty("--accent", custom);
+    el.style.setProperty("--accent-ink", inkFor(custom));
+  } else {
+    el.style.removeProperty("--accent");
+    el.style.removeProperty("--accent-ink");
+  }
+}
+
 /** Runs before React mounts so the first paint already has the right look. */
 export function applyInitialTheme() {
+  // Shared theme link (?theme=dark.lime.stars.bold.hex) — apply + persist, then strip from the URL.
+  try {
+    const url = new URL(location.href);
+    const token = url.searchParams.get("theme");
+    if (token) {
+      const t = decodeToken(token);
+      if (t) {
+        write(THEME_KEY, t.theme);
+        write(PALETTE_KEY, t.palette);
+        write(BG_KEY, t.background);
+        write(INTENSITY_KEY, t.intensity);
+        if (t.palette === "custom") write(CUSTOM_KEY, t.custom);
+        url.searchParams.delete("theme");
+        history.replaceState(null, "", url.pathname + url.search + url.hash);
+      }
+    }
+  } catch {
+    /* ignore malformed links */
+  }
+
   const theme = read(THEME_KEY);
   if (isTheme(theme)) document.documentElement.dataset.theme = resolveTheme(theme);
   const palette = read(PALETTE_KEY);
-  if (isPalette(palette)) document.documentElement.dataset.palette = palette;
+  if (isPalette(palette)) {
+    document.documentElement.dataset.palette = palette;
+    applyCustomAccent(palette, read(CUSTOM_KEY) ?? DEFAULT_CUSTOM);
+  }
   const bg = read(BG_KEY);
   if (isBackground(bg)) document.documentElement.dataset.background = bg;
+  const intensity = read(INTENSITY_KEY);
+  if (isIntensity(intensity)) document.documentElement.dataset.intensity = intensity;
 }
 
-function faviconUrl(theme: "dark" | "light", palette: Palette): string {
+function faviconUrl(theme: "dark" | "light", palette: Palette, custom: string): string {
   const def = PALETTES.find((p) => p.id === palette) ?? PALETTES[0]!;
-  const bg = theme === "dark" ? "%231a2034" : "%23fffdf6";
-  const color = theme === "dark" ? def.dark : def.light;
+  const bg = theme === "dark" ? DARK_BG.replace("#", "%23") : LIGHT_BG.replace("#", "%23");
+  const color = (palette === "custom" ? custom : theme === "dark" ? def.dark : def.light).replace("#", "%23");
   const svg =
     `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>` +
     `<rect width='100' height='100' rx='22' fill='${bg}'/>` +
@@ -115,20 +250,28 @@ function faviconUrl(theme: "dark" | "light", palette: Palette): string {
   return `data:image/svg+xml,${encodeURIComponent(svg)}`;
 }
 
-const DEFAULTS = { theme: DARK, palette: "ocean", background: "paper" } as const;
+/* ---------- hook ---------- */
 
 export function useTheme() {
   const [theme, setThemeState] = useState<Theme>(() => {
     const saved = read(THEME_KEY);
-    return isTheme(saved) ? saved : DEFAULTS.theme;
+    return isTheme(saved) ? saved : DARK;
   });
   const [palette, setPaletteState] = useState<Palette>(() => {
     const saved = read(PALETTE_KEY);
-    return isPalette(saved) ? saved : DEFAULTS.palette;
+    return isPalette(saved) ? saved : "ocean";
   });
   const [background, setBackgroundState] = useState<Background>(() => {
     const saved = read(BG_KEY);
-    return isBackground(saved) ? saved : DEFAULTS.background;
+    return isBackground(saved) ? saved : "paper";
+  });
+  const [intensity, setIntensityState] = useState<Intensity>(() => {
+    const saved = read(INTENSITY_KEY);
+    return isIntensity(saved) ? saved : "normal";
+  });
+  const [custom, setCustomState] = useState<string>(() => {
+    const saved = read(CUSTOM_KEY);
+    return saved ? (normalizeHex(saved) ?? DEFAULT_CUSTOM) : DEFAULT_CUSTOM;
   });
 
   const effectiveTheme = resolveTheme(theme);
@@ -141,12 +284,19 @@ export function useTheme() {
   useEffect(() => {
     document.documentElement.dataset.palette = palette;
     write(PALETTE_KEY, palette);
-  }, [palette]);
+    write(CUSTOM_KEY, custom);
+    applyCustomAccent(palette, custom);
+  }, [palette, custom]);
 
   useEffect(() => {
     document.documentElement.dataset.background = background;
     write(BG_KEY, background);
   }, [background]);
+
+  useEffect(() => {
+    document.documentElement.dataset.intensity = intensity;
+    write(INTENSITY_KEY, intensity);
+  }, [intensity]);
 
   // Keep the resolved theme in sync with the OS while in "system" mode.
   useEffect(() => {
@@ -161,23 +311,67 @@ export function useTheme() {
 
   useEffect(() => {
     const link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
-    if (link) link.href = faviconUrl(effectiveTheme, palette);
-  }, [effectiveTheme, palette]);
+    if (link) link.href = faviconUrl(effectiveTheme, palette, custom);
+    const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+    if (meta) meta.content = effectiveTheme === "dark" ? DARK_BG : LIGHT_BG;
+  }, [effectiveTheme, palette, custom]);
+
+  // Cross-tab sync: theme changes in one tab apply in all others.
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => {
+      if (!e.key || !e.newValue) return;
+      switch (e.key) {
+        case THEME_KEY:
+          if (isTheme(e.newValue)) setThemeState(e.newValue);
+          break;
+        case PALETTE_KEY:
+          if (isPalette(e.newValue)) setPaletteState(e.newValue);
+          break;
+        case BG_KEY:
+          if (isBackground(e.newValue)) setBackgroundState(e.newValue);
+          break;
+        case INTENSITY_KEY:
+          if (isIntensity(e.newValue)) setIntensityState(e.newValue);
+          break;
+        case CUSTOM_KEY: {
+          const hex = normalizeHex(e.newValue);
+          if (hex) setCustomState(hex);
+          break;
+        }
+      }
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
 
   const setTheme = useCallback((t: Theme) => setThemeState(t), []);
-  const toggleTheme = useCallback(() => setThemeState((t) => (t === "dark" ? "light" : "dark")), []);
   const setPalette = useCallback((p: Palette) => setPaletteState(p), []);
   const setBackground = useCallback((b: Background) => setBackgroundState(b), []);
+  const setIntensity = useCallback((i: Intensity) => setIntensityState(i), []);
+  const setCustom = useCallback((c: string) => {
+    const hex = normalizeHex(c);
+    if (hex) setCustomState(hex);
+  }, []);
   const randomize = useCallback(() => {
     const pick = <T,>(arr: readonly T[]) => arr[Math.floor(Math.random() * arr.length)]!;
     setPaletteState(pick(PALETTES).id);
     setBackgroundState(pick(BACKGROUNDS).id);
+    setIntensityState(pick(INTENSITIES).id);
   }, []);
   const reset = useCallback(() => {
-    setThemeState(DEFAULTS.theme);
-    setPaletteState(DEFAULTS.palette);
-    setBackgroundState(DEFAULTS.background);
+    setThemeState(DARK);
+    setPaletteState("ocean");
+    setBackgroundState("paper");
+    setIntensityState("normal");
+    setCustomState(DEFAULT_CUSTOM);
+  }, []);
+  const applyPreset = useCallback((p: ThemePreset) => {
+    setThemeState(p.theme);
+    setPaletteState(p.palette);
+    setBackgroundState(p.background);
+    setIntensityState(p.intensity);
+    setCustomState(p.custom);
   }, []);
 
-  return { theme, palette, background, effectiveTheme, setTheme, toggleTheme, setPalette, setBackground, randomize, reset };
+  return { theme, palette, background, intensity, custom, effectiveTheme, setTheme, setPalette, setBackground, setIntensity, setCustom, randomize, reset, applyPreset };
 }
