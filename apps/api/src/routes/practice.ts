@@ -332,6 +332,7 @@ practice.get("/sessions/:id", async (c) => {
       qtype: r.qtype,
       section: r.section,
       prompt: r.prompt,
+      audio: r.audio,
       options: r.options ? JSON.parse(r.options) : null,
       yourAnswer: r.response,
       correct: r.score === 1,

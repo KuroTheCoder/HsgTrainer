@@ -18,6 +18,7 @@ function q(partial: Partial<QuestionRow>): QuestionRow {
     tags: "[]",
     key_words: "[]",
     difficulty: "B2",
+    audio: null,
     verification_status: "verified",
     prompt_hash: "x",
     submitted_by: null,

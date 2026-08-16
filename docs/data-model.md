@@ -35,7 +35,7 @@ Every question points at a **source** (where it came from) and carries a **verif
 | id | INTEGER PK | |
 | source_id | INTEGER FK → sources | |
 | qtype | TEXT | `mcq` \| `fill-blank` \| `word-form` \| `cloze` \| `transformation` \| `writing` |
-| section | TEXT | `phonetics` \| `lexico-grammar` \| `word-formation` \| `cloze` \| `reading` \| `writing` |
+| section | TEXT | `phonetics` \| `lexico-grammar` \| `word-formation` \| `cloze` \| `reading` \| `writing` \| `listening` |
 | prompt | TEXT | question text (may include passage for cloze/reading) |
 | options | TEXT (JSON) | string[] for mcq; null otherwise |
 | answer | TEXT | key: option letter/index for mcq; accepted word(s) otherwise |

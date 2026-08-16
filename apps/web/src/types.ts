@@ -1,6 +1,6 @@
 export type QuestionType = "mcq" | "fill-blank" | "word-form" | "cloze" | "transformation" | "writing";
 
-export type Section = "phonetics" | "lexico-grammar" | "word-formation" | "cloze" | "reading" | "writing";
+export type Section = "phonetics" | "lexico-grammar" | "word-formation" | "cloze" | "reading" | "writing" | "listening";
 
 export interface Question {
   id: number;
@@ -14,6 +14,7 @@ export interface Question {
   keyWords: string[];
   verificationStatus: string;
   explanation: string | null;
+  audio: string | null;
 }
 
 export interface SessionQuestions {

@@ -5,6 +5,7 @@ import { IconBolt, IconCheck, IconSparkle, IconX, SectionIcon } from "../icons";
 import { ScoreRing } from "../components/ScoreRing";
 import SnapSlider from "../components/SnapSlider";
 import { NoteBox, Reader } from "../components/Reader";
+import AudioPlayer from "../components/AudioPlayer";
 import DictPopup, { type DictRequest } from "../components/DictPopup";
 import { play, playScore } from "../sfx";
 import { launchConfetti } from "../confetti";
@@ -320,6 +321,7 @@ export default function Exams() {
                     {!answers[q.id]?.trim() && <span className="tag bad">unanswered</span>}
                   </div>
                   <Reader questionId={q.id} text={q.prompt} className="prompt" onLookup={(w, x, y) => setDict({ word: w, x, y })} />
+                  {q.audio && <AudioPlayer src={q.audio} />}
                   {q.qtype === "mcq" && q.options.length > 0 ? (
                     <div className="options">
                       {q.options.map((opt, oi) => (
@@ -432,6 +434,7 @@ export default function Exams() {
                     <span className={`tag ${r.correct ? "ok" : "bad"}`}>{r.correct ? "Correct" : "Wrong"}</span>
                   </div>
                   <p className="prompt">{q ? renderMarkdown(q.prompt) : ""}</p>
+                  {q?.audio && <AudioPlayer src={q.audio} />}
                   <p className="small">
                     Your answer: <b>{r.yourAnswer || "— (not answered)"}</b>
                     {!r.correct && (

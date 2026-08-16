@@ -57,8 +57,8 @@ contribute.post("/", async (c) => {
   const sourceId = await ensureCommunitySource(c.env.DB);
   const inserted = await c.env.DB.prepare(
     `INSERT INTO questions
-      (source_id, qtype, section, prompt, options, answer, accepted_variants, rubric_ref, tags, key_words, difficulty, verification_status, prompt_hash, submitted_by)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'unverified', ?, ?)`,
+      (source_id, qtype, section, prompt, options, answer, accepted_variants, rubric_ref, tags, key_words, difficulty, verification_status, prompt_hash, submitted_by, audio)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'unverified', ?, ?, ?)`,
   )
     .bind(
       sourceId,
@@ -74,6 +74,7 @@ contribute.post("/", async (c) => {
       draft.difficulty ?? "B1",
       promptHash,
       anon,
+      draft.audio ?? null,
     )
     .run();
 

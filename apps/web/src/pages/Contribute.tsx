@@ -12,7 +12,7 @@ const TYPES: Record<string, string> = {
   transformation: "Transformation",
   writing: "Writing",
 };
-const SECTIONS = ["phonetics", "lexico-grammar", "word-formation", "cloze", "reading", "writing"];
+const SECTIONS = ["phonetics", "lexico-grammar", "word-formation", "cloze", "reading", "writing", "listening"];
 
 function errorsToList(errors: FormErrors): FormError[] {
   return (Object.keys(errors) as (keyof FormErrors)[])
@@ -30,6 +30,7 @@ export default function Contribute() {
     acceptedVariants: "",
     tags: "",
     keyWords: "",
+    audio: "",
     difficulty: "B1",
   });
   const [done, setDone] = useState<string | null>(null);
@@ -75,6 +76,7 @@ export default function Contribute() {
       acceptedVariants: form.acceptedVariants ? form.acceptedVariants.split("|").map((s) => s.trim()).filter(Boolean) : [],
       tags: form.tags ? form.tags.split(",").map((s) => s.trim()).filter(Boolean) : [],
       keyWords: form.keyWords ? form.keyWords.split(",").map((s) => s.trim()).filter(Boolean) : [],
+      audio: form.audio.trim() || null,
       difficulty: form.difficulty,
     };
     if (form.qtype === "mcq") payload.options = form.options.split("|").map((s) => s.trim()).filter(Boolean);
@@ -82,7 +84,7 @@ export default function Contribute() {
       const res = await api.contribute(payload);
       setDone(`Submitted — ${res.message} It will go live after a human review.`);
       setErrors({});
-      setForm((f) => ({ ...f, prompt: "", answer: "", acceptedVariants: "", tags: "", keyWords: "", options: "" }));
+      setForm((f) => ({ ...f, prompt: "", answer: "", acceptedVariants: "", tags: "", keyWords: "", options: "", audio: "" }));
     } catch (e) {
       setError(e instanceof Error ? e.message : "submission failed");
     } finally {
@@ -190,6 +192,10 @@ export default function Contribute() {
           <label className="field">
             Accepted variants (pipe-separated)
             <input value={form.acceptedVariants} onChange={(e) => set("acceptedVariants", e.target.value)} />
+          </label>
+          <label className="field wide">
+            Audio clip path (for Listening questions — e.g. "/audio/paper-2023-part2.mp3")
+            <input value={form.audio} onChange={(e) => set("audio", e.target.value)} placeholder="/audio/…" />
           </label>
           <label className="field wide">
             Key words & phrases (comma-separated) — shown to students for quick dictionary lookup

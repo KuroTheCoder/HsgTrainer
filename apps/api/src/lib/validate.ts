@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const QUESTION_TYPES = ["mcq", "fill-blank", "word-form", "cloze", "transformation", "writing"] as const;
-export const SECTIONS = ["phonetics", "lexico-grammar", "word-formation", "cloze", "reading", "writing"] as const;
+export const SECTIONS = ["phonetics", "lexico-grammar", "word-formation", "cloze", "reading", "writing", "listening"] as const;
 export const SOURCE_TYPES = ["official", "community", "ai"] as const;
 export const VERIFICATION_STATUSES = ["unverified", "verified", "rejected"] as const;
 export const CEFR_LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"] as const;
@@ -26,6 +26,7 @@ export const questionDraftSchema = z.object({
   rubricRef: z.string().max(100).optional().nullable(),
   tags: z.array(z.string().min(1)).max(20).optional(),
   keyWords: z.array(z.string().min(1)).max(50).optional(),
+  audio: z.string().max(300).optional().nullable(),
   difficulty: z.enum(CEFR_LEVELS).optional(),
 });
 

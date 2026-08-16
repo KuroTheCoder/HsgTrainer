@@ -6,6 +6,7 @@ import { IconCheck, IconSparkle, IconX, SectionIcon } from "../icons";
 import { ScoreRing } from "../components/ScoreRing";
 import SnapSlider from "../components/SnapSlider";
 import { NoteBox, Reader } from "../components/Reader";
+import AudioPlayer from "../components/AudioPlayer";
 import DictPopup, { type DictRequest } from "../components/DictPopup";
 import { play, playScore } from "../sfx";
 import { launchConfetti } from "../confetti";
@@ -375,6 +376,7 @@ export default function Practice() {
                   {!answers[q.id]?.trim() && <span className="tag bad">unanswered</span>}
                 </div>
                 <Reader questionId={q.id} text={q.prompt} className="prompt" onLookup={(w, x, y) => setDict({ word: w, x, y })} />
+                {q.audio && <AudioPlayer src={q.audio} />}
                 {q.qtype === "mcq" && q.options.length > 0 ? (
                   <div className="options">
                     {q.options.map((opt, oi) => (
@@ -453,6 +455,7 @@ export default function Practice() {
                   <span className={`tag ${r.correct ? "ok" : "bad"}`}>{r.correct ? "Correct" : "Wrong"}</span>
                 </div>
                 <p className="prompt">{renderMarkdown(questions[i]?.prompt ?? "")}</p>
+                {questions[i]?.audio && <AudioPlayer src={questions[i].audio} />}
                 <KeyWords words={questions[i]?.keyWords ?? []} onLookup={(w, x, y) => setDict({ word: w, x, y })} />
                 <p className="small">
                   Your answer: <b>{r.yourAnswer}</b>

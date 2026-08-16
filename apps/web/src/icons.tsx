@@ -210,6 +210,13 @@ export const IconTrend: FC<IconProps> = (p) => (
   </svg>
 );
 
+export const IconHeadphones: FC<IconProps> = (p) => (
+  <svg {...base(p)}>
+    <path d="M4 14v-3a8 8 0 0 1 16 0v3" />
+    <path d="M4 14a2 2 0 0 1 2-2h1v6H6a2 2 0 0 1-2-2v-2zm16 0a2 2 0 0 0-2-2h-1v6h1a2 2 0 0 0 2-2v-2z" />
+  </svg>
+);
+
 /** Section → icon lookup (kept in sync with SectionMeta.icon). */
 export const SECTION_ICONS: Record<string, FC<IconProps>> = {
   phonetics: IconVolume,
@@ -218,6 +225,7 @@ export const SECTION_ICONS: Record<string, FC<IconProps>> = {
   cloze: IconBrackets,
   reading: IconBook,
   writing: IconPen,
+  listening: IconHeadphones,
 };
 
 export function SectionIcon({ icon, ...rest }: IconProps & { icon: string }) {

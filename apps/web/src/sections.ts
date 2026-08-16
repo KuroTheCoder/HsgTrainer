@@ -60,6 +60,15 @@ export const SECTIONS: SectionMeta[] = [
     color: "#8b5cf6",
   },
   {
+    key: "listening",
+    label: "Listening",
+    short: "Listening",
+    description: "Comprehension of spoken passages (MCQ with audio).",
+    deterministic: true,
+    icon: "listening",
+    color: "#06b6d4",
+  },
+  {
     key: "writing",
     label: "Writing",
     short: "Writing",

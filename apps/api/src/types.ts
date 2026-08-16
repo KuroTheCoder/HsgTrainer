@@ -1,6 +1,6 @@
 export type QuestionType = "mcq" | "fill-blank" | "word-form" | "cloze" | "transformation" | "writing";
 
-export type Section = "phonetics" | "lexico-grammar" | "word-formation" | "cloze" | "reading" | "writing";
+export type Section = "phonetics" | "lexico-grammar" | "word-formation" | "cloze" | "reading" | "writing" | "listening";
 
 export type VerificationStatus = "unverified" | "verified" | "rejected";
 
@@ -22,6 +22,7 @@ export interface QuestionRow {
   tags: string | null;
   key_words: string | null;
   difficulty: CefrLevel;
+  audio: string | null;
   verification_status: VerificationStatus;
   prompt_hash: string;
   submitted_by: string | null;
@@ -75,6 +76,7 @@ export function toQuestionShape(row: QuestionRow) {
     difficulty: row.difficulty,
     tags: parseJsonList(row.tags),
     keyWords: parseJsonList(row.key_words),
+    audio: row.audio,
     verificationStatus: row.verification_status,
     explanation: row.explanation,
   };

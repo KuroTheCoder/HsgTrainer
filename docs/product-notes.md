@@ -41,7 +41,8 @@ Making/importing questions is hard even for developers today (forms, validation,
 
 The product has **no listening support at all**: sections are only `phonetics | lexico-grammar | word-formation | cloze | reading | writing`, no audio question type, no audio field in the content schema. Real HSG tỉnh/thành phố exams (grade 9/11) include a listening part, so this is a genuine gap, not a deliberate omission.
 
-- **Done looks like:** a `listening` section (new question type, e.g. audio-mcq: play a clip → answer), audio assets shipped as static mp3s in the web bundle (Cloudflare Pages serves them free — $0 cost preserved), contributed listening questions with audio upload via the API into R2 (10GB free), and at least one real tỉnh/thành phố paper with listening keyed as `verified`.
+- **Status (2026-08-16): basics shipped.** `listening` section + optional `audio` column (mcq scoring reused), player in practice/exam/review, audio field in admin/contribute/CSV import, demo listening questions in the sample bank, clips as static mp3s in `apps/web/public/audio/` ($0 cost).
+- **Still to do:** real tỉnh/thành phố papers with listening keyed as `verified` (needs the actual audio files), contributed audio upload into R2 (10GB free), replay limits for exam fidelity.
 
 ---
 

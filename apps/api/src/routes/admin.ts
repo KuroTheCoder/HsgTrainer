@@ -107,8 +107,8 @@ admin.post("/questions", async (c) => {
 
   const inserted = await c.env.DB.prepare(
     `INSERT INTO questions
-      (source_id, qtype, section, prompt, options, answer, accepted_variants, rubric_ref, tags, key_words, difficulty, verification_status, prompt_hash, submitted_by)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      (source_id, qtype, section, prompt, options, answer, accepted_variants, rubric_ref, tags, key_words, difficulty, verification_status, prompt_hash, submitted_by, audio)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   )
     .bind(
       sourceId,
@@ -125,6 +125,7 @@ admin.post("/questions", async (c) => {
       status,
       promptHash,
       "admin",
+      draft.audio ?? null,
     )
     .run();
 
@@ -162,8 +163,8 @@ admin.post("/questions/bulk", async (c) => {
       const status = source ? statusForSourceType(source.type) : fallbackStatus;
       const inserted = await c.env.DB.prepare(
         `INSERT INTO questions
-          (source_id, qtype, section, prompt, options, answer, accepted_variants, rubric_ref, tags, key_words, difficulty, verification_status, prompt_hash, submitted_by)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          (source_id, qtype, section, prompt, options, answer, accepted_variants, rubric_ref, tags, key_words, difficulty, verification_status, prompt_hash, submitted_by, audio)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
         .bind(
           sourceId,
@@ -180,6 +181,7 @@ admin.post("/questions/bulk", async (c) => {
           status,
           promptHash,
           "admin",
+          draft.audio ?? null,
         )
         .run();
       report.push({ index: i, status, id: Number(inserted.meta.last_row_id) });
@@ -226,6 +228,7 @@ admin.patch("/questions/:id", async (c) => {
   stringField("answer", "answer");
   stringField("explanation", "explanation");
   stringField("rubric_ref", "rubricRef");
+  stringField("audio", "audio");
   jsonListField("options", "options");
   jsonListField("accepted_variants", "acceptedVariants");
   jsonListField("tags", "tags");

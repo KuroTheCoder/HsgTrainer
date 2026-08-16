@@ -7,6 +7,7 @@ export interface QuestionFormValues {
   acceptedVariants: string;
   tags: string;
   keyWords: string;
+  audio: string;
   difficulty: string;
 }
 

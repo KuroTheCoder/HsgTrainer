@@ -336,7 +336,7 @@ function ReviewQueue({ onChanged }: { onChanged?: () => void }) {
 // ---------------- add single ----------------
 
 const TYPES = ["mcq", "fill-blank", "word-form", "cloze", "transformation", "writing"];
-const SECTIONS = ["phonetics", "lexico-grammar", "word-formation", "cloze", "reading", "writing"];
+const SECTIONS = ["phonetics", "lexico-grammar", "word-formation", "cloze", "reading", "writing", "listening"];
 const CEFR_OPTIONS = ["A1", "A2", "B1", "B2", "C1", "C2"];
 
 function AddQuestion() {
@@ -349,6 +349,7 @@ function AddQuestion() {
     acceptedVariants: "",
     tags: "",
     keyWords: "",
+    audio: "",
     difficulty: "B1",
   });
   const [errors, setErrors] = useState<FormErrors>({});
@@ -402,6 +403,7 @@ function AddQuestion() {
       acceptedVariants: form.acceptedVariants ? form.acceptedVariants.split("|").map((s) => s.trim()).filter(Boolean) : [],
       tags: form.tags ? form.tags.split(",").map((s) => s.trim()).filter(Boolean) : [],
       keyWords: form.keyWords ? form.keyWords.split(",").map((s) => s.trim()).filter(Boolean) : [],
+      audio: form.audio.trim() || null,
       difficulty: form.difficulty,
     };
     if (form.qtype === "mcq") payload.options = form.options.split("|").map((s) => s.trim()).filter(Boolean);
@@ -423,7 +425,7 @@ function AddQuestion() {
       const res = await api.adminCreateQuestion(payload);
       setResult(`Created #${res.id} as ${res.status}.`);
       setErrors({});
-      setForm((f) => ({ ...f, prompt: "", answer: "", acceptedVariants: "", tags: "", keyWords: "" }));
+      setForm((f) => ({ ...f, prompt: "", answer: "", acceptedVariants: "", tags: "", keyWords: "", audio: "" }));
     } catch (e) {
       setError(e instanceof Error ? e.message : "create failed");
     } finally {
@@ -557,6 +559,10 @@ function AddQuestion() {
           <input value={form.tags} onChange={(e) => set("tags", e.target.value)} placeholder="stress, phrasal-verbs" />
         </label>
         <label className="field wide">
+          Audio clip path (for Listening questions — e.g. "/audio/paper-2023-part2.mp3")
+          <input value={form.audio} onChange={(e) => set("audio", e.target.value)} placeholder="/audio/…" />
+        </label>
+        <label className="field wide">
           Key words & phrases (comma-separated) — shown to students for quick dictionary lookup
           <input value={form.keyWords} onChange={(e) => set("keyWords", e.target.value)} placeholder="at variance, abrupt, ratify" />
         </label>
@@ -581,7 +587,7 @@ function AddQuestion() {
 // ---------------- bulk import ----------------
 
 const CSV_COLUMNS = [
-  "qtype", "section", "prompt", "options", "answer", "accepted_variants", "tags", "key_words", "difficulty",
+  "qtype", "section", "prompt", "options", "answer", "accepted_variants", "tags", "key_words", "audio", "difficulty",
   "source_type", "source_name", "source_year", "source_grade", "source_province",
 ];
 
@@ -599,6 +605,7 @@ function downloadCsvTemplate() {
     "",
     "collocations",
     "at variance, ratify",
+    "/audio/lexico-2023-p1.mp3",
     "3",
     "official",
     "Đề HSG Quốc gia 2023",
@@ -669,6 +676,7 @@ function BulkImport() {
           acceptedVariants: get("accepted_variants") ? splitPipe(get("accepted_variants")) : [],
           tags: get("tags") ? get("tags").split(",").map((x) => x.trim()).filter(Boolean) : [],
           keyWords: get("key_words") ? get("key_words").split(",").map((x) => x.trim()).filter(Boolean) : [],
+          audio: get("audio") || null,
           difficulty: get("difficulty") ? String(get("difficulty")) : "B1",
         });
       }

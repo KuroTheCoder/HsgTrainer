@@ -497,6 +497,70 @@
         "awareness",
         "academic freedom"
       ]
+    },
+    {
+      "qtype": "mcq",
+      "section": "listening",
+      "prompt": "You will hear a short announcement. What is the main purpose of the announcement? (Audio: /audio/demo-listening-1.mp3)",
+      "options": [
+        "To announce a change of venue",
+        "To introduce a new staff member",
+        "To request donations for a charity drive",
+        "To advertise a summer course"
+      ],
+      "answer": "A",
+      "tags": [
+        "listening",
+        "announcement"
+      ],
+      "difficulty": "B1",
+      "keyWords": [
+        "venue"
+      ],
+      "audio": "/audio/demo-listening-1.mp3"
+    },
+    {
+      "qtype": "mcq",
+      "section": "listening",
+      "prompt": "You will hear two people discussing a trip. Where are they planning to go? (Audio: /audio/demo-listening-2.mp3)",
+      "options": [
+        "To the mountains",
+        "To the seaside",
+        "To a nearby town",
+        "To a foreign country"
+      ],
+      "answer": "B",
+      "tags": [
+        "listening",
+        "conversation"
+      ],
+      "difficulty": "B1",
+      "keyWords": [
+        "seaside"
+      ],
+      "audio": "/audio/demo-listening-2.mp3"
+    },
+    {
+      "qtype": "mcq",
+      "section": "listening",
+      "prompt": "You will hear a lecture extract. What does the speaker say about coral reefs? (Audio: /audio/demo-listening-3.mp3)",
+      "options": [
+        "They are recovering quickly",
+        "They are threatened by rising temperatures",
+        "They only grow in shallow water",
+        "They are immune to pollution"
+      ],
+      "answer": "B",
+      "tags": [
+        "listening",
+        "lecture"
+      ],
+      "difficulty": "B2",
+      "keyWords": [
+        "coral reefs",
+        "threatened"
+      ],
+      "audio": "/audio/demo-listening-3.mp3"
     }
   ]
 }

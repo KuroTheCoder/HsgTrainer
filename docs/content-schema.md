@@ -17,7 +17,7 @@
   "questions": [
     {
       "qtype": "mcq",              // mcq | fill-blank | word-form | cloze | transformation | writing
-      "section": "lexico-grammar", // phonetics | lexico-grammar | word-formation | cloze | reading | writing
+      "section": "lexico-grammar", // phonetics | lexico-grammar | word-formation | cloze | reading | writing | listening
       "prompt": "The committee's decision was ____ by the board.",   // include the passage inline for cloze/reading
       "options": ["ratified", "rectified", "rebutted", "refuted"],
       "answer": "A",               // for mcq: option index letter ("A".."D")
@@ -25,6 +25,7 @@
       "acceptedVariants": [],      // additional accepted answers (word forms, spellings)
       "tags": ["collocations", "formal-register"],
       "keyWords": ["ratified", "at variance"],  // words/phrases students should look up (optional)
+      "audio": "/audio/quoc-gia-2023-part1.mp3", // listening questions only: path to the clip in apps/web/public/audio/ (optional)
       "difficulty": "C1",           // CEFR: A1 | A2 | B1 | B2 | C1 | C2
       "rubricRef": null            // "writing" tasks only — see docs/rubric.md
     }
@@ -42,6 +43,11 @@
 | cloze | optional (MC-cloze) | word or letter | as above |
 | transformation | omit | the target sentence | required — HSG keys accept several phrasings |
 | writing | omit | rubric key | n/a (AI-scored, see rubric.md) |
+
+**Listening questions:** regular `mcq` with an `audio` field (path to the mp3
+in `apps/web/public/audio/`). Scoring is identical to mcq — no new question
+type. Missing files render "audio unavailable", so content can be keyed before
+audio exists. See `apps/web/public/audio/README.md`.
 
 **Variant rules (enforced by the scoring engine):**
 - Matching is case-insensitive, trims whitespace, collapses inner spaces.
@@ -64,7 +70,7 @@
 
 ### A. Google Sheet → CSV → admin bulk import (recommended for bulk)
 
-Columns: `qtype, section, prompt, options (pipe-separated), answer, accepted_variants (pipe-separated), tags (comma-separated), key_words (comma-separated), difficulty, source_type, source_name, source_year, source_grade, source_province`
+Columns: `qtype, section, prompt, options (pipe-separated), answer, accepted_variants (pipe-separated), tags (comma-separated), key_words (comma-separated), audio, difficulty, source_type, source_name, source_year, source_grade, source_province`
 
 Export as CSV → paste into admin Bulk Import → validation report (per-row errors, dupe warnings) → drafts created.
 
