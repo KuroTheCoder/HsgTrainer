@@ -7,17 +7,17 @@
 
 :root {
   /* dark — "vở đêm" (night sketchbook) */
-  --bg: #191829;
-  --surface: #211f36;
-  --surface-2: #2b2945;
-  --border: #3a3857;
+  --bg: #1a2034;
+  --surface: #212840;
+  --surface-2: #2c3551;
+  --border: #3a4363;
   --text: #efe9dc;
   --muted: #a49cc2;
   --ok: #34d399;
   --bad: #f87171;
   --warn: #fbbf24;
   --accent: #6ea8ff;
-  --accent-ink: #191829;
+  --accent-ink: #1a2034;
   --line: #ece7d8;
   --line-soft: rgba(236, 231, 216, 0.38);
   --line-faint: rgba(236, 231, 216, 0.18);

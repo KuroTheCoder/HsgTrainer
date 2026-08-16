@@ -106,7 +106,7 @@ export function applyInitialTheme() {
 
 function faviconUrl(theme: "dark" | "light", palette: Palette): string {
   const def = PALETTES.find((p) => p.id === palette) ?? PALETTES[0]!;
-  const bg = theme === "dark" ? "%23191829" : "%23fffdf6";
+  const bg = theme === "dark" ? "%231a2034" : "%23fffdf6";
   const color = theme === "dark" ? def.dark : def.light;
   const svg =
     `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>` +
