@@ -7,6 +7,7 @@ Deliberately deferred during the progress/study/exam push (branch `feature/progr
 Parking lot: maintainer ideas that are not yet scoped live in `docs/product-notes.md` (page redesigns, theme polish, storage strategy, guided training path, contribution UX). Surface them at session start.
 
 - **Content depth — key real papers.** The live bank has only the DEMO sample. The single highest-value next step is importing verified past papers (Quốc gia + tỉnh/thành phố) with curated variants. Everything else is exercised by real usage.
+  - **Listening is part of this:** tỉnh/thành phố papers include a listening part, and the product has zero listening support (no section, no audio question type — see `docs/product-notes.md` §6). Import tooling must handle audio questions; static mp3s in the web bundle keep it free.
   - **Speedup candidate: Firecrawl (github.com/firecrawl/firecrawl).** A scraping API that turns education-site pages into clean markdown — a fast way to pull official paper PDFs/pages into `content/` for keying. Needs an API key (paid/free-tier) and stays a *drafting* helper: keys/variants still get human review before `verified` (content-trust rule). Add as a `scripts/` importer only when a real paper backlog exists and the key cost is accepted.
 - **Vocabulary trainer.** The word list (`/words`) is a plain saved list. Add spaced-repetition review sessions over saved words — same deterministic scoring path, no AI cost. Low effort, high retention value.
 

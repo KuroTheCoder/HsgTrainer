@@ -70,7 +70,7 @@ Hand fonts (Kalam display, Patrick Hand UI), wobbly irregular radii, hard offset
 
 ## 7. Roadmap & parking lot (short — see `docs/roadmap.md`, `docs/product-notes.md`)
 
-- **Shortlist:** content depth (import real past papers — the moat), vocabulary trainer (quick win, client-side only).
+- **Shortlist:** content depth (import real past papers — the moat; includes a missing **listening** section, see `docs/product-notes.md` §6), vocabulary trainer (quick win, client-side only).
 - **Exam flow depth:** per-section clocks, review-only mode, draft autosave/resume, paper difficulty calibration.
 - **Parked:** teacher/classroom (needs account layer — conflicts with anonymous-first), AI question authorship, data sync/portability, richer writing diagnostics.
 - **Parking lot (maintainer ideas, unscopped):** page-by-page UX/UI redesign, theme polish (transitions, more palettes/customization), storage strategy to stay costless, guided training path ("a 5-year-old gets it"), contribution UX simplification.

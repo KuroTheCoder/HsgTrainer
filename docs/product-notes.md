@@ -37,6 +37,14 @@ Making/importing questions is hard even for developers today (forms, validation,
 
 ---
 
+## 6. Listening section — missing exam skill
+
+The product has **no listening support at all**: sections are only `phonetics | lexico-grammar | word-formation | cloze | reading | writing`, no audio question type, no audio field in the content schema. Real HSG tỉnh/thành phố exams (grade 9/11) include a listening part, so this is a genuine gap, not a deliberate omission.
+
+- **Done looks like:** a `listening` section (new question type, e.g. audio-mcq: play a clip → answer), audio assets shipped as static mp3s in the web bundle (Cloudflare Pages serves them free — $0 cost preserved), contributed listening questions with audio upload via the API into R2 (10GB free), and at least one real tỉnh/thành phố paper with listening keyed as `verified`.
+
+---
+
 ## Reminders
 
 - Surface these ideas to the maintainer at the start of every session (see AGENTS.md convention).
