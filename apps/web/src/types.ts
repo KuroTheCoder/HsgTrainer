@@ -120,3 +120,40 @@ export interface WritingScoreResponse {
   score: WritingFeedback;
   remaining: number | null;
 }
+
+export interface SectionStat {
+  section: Section;
+  answered: number;
+  correct: number;
+  accuracy: number;
+}
+
+export interface TagStat {
+  tag: string;
+  wrong: number;
+  total: number;
+  accuracy: number;
+}
+
+export interface RecentSession {
+  id: number;
+  section: string | null;
+  difficulty: number | null;
+  count: number;
+  score: number;
+  createdAt: string;
+}
+
+export interface ProgressStats {
+  days: number;
+  totalSessions: number;
+  totalAnswered: number;
+  totalCorrect: number;
+  accuracy: number | null;
+  streak: number;
+  bestDay: { date: string; answered: number; correct: number; accuracy: number } | null;
+  bySection: SectionStat[];
+  topTags: TagStat[];
+  focus: string | null;
+  recent: RecentSession[];
+}

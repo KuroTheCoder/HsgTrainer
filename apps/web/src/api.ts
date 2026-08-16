@@ -78,6 +78,8 @@ export const api = {
 
   getSession: (sessionId: number) => request<SessionResult & { session: unknown }>(`/sessions/${sessionId}`),
 
+  getStats: (days = 30) => request<import("./types").ProgressStats>(`/stats?days=${days}`),
+
   // writing (AI-scored)
   writingQuestions: (count = 1) =>
     request<{ questions: import("./types").WritingQuestion[] }>(`/writing/questions?count=${count}`),

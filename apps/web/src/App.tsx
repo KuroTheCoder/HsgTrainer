@@ -2,7 +2,7 @@
 import { Link, NavLink, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { PALETTES, useTheme } from "./theme";
 import { SECTIONS } from "./sections";
-import { IconBolt, IconBook, IconClock, IconGear, IconPen, IconPlus, IconTarget, IconTool, SectionIcon } from "./icons";
+import { IconBolt, IconBook, IconClock, IconGear, IconPen, IconPlus, IconTarget, IconTool, IconTrend, SectionIcon } from "./icons";
 import { NOTES_CHANGED_EVENT, noteIdsForSection } from "./reader";
 import { WORD_LIST_CHANGED_EVENT, getWordList } from "./vocab";
 import Home from "./pages/Home";
@@ -13,6 +13,7 @@ import Admin from "./pages/Admin";
 import Tools from "./pages/Tools";
 import WordList from "./pages/WordList";
 import Settings from "./pages/Settings";
+import Progress from "./pages/Progress";
 
 function PaletteIcon() {
   return (
@@ -120,6 +121,10 @@ function NavLinks() {
         <IconTarget size={15} />
         My mistakes
       </NavLink>
+      <NavLink to="/progress" className={({ isActive }) => (isActive ? "active" : "")}>
+        <IconTrend size={15} />
+        Progress
+      </NavLink>
       <NavLink to="/words" className={({ isActive }) => (isActive ? "active" : "")}>
         <IconBook size={15} />
         Word list
@@ -145,6 +150,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/": "Home",
   "/practice": "Practice",
   "/mistakes": "My mistakes",
+  "/progress": "Progress",
   "/words": "Word list",
   "/contribute": "Contribute",
   "/tools": "Free tools",
@@ -406,6 +412,7 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/practice" element={<Practice />} />
             <Route path="/mistakes" element={<Mistakes />} />
+            <Route path="/progress" element={<Progress />} />
             <Route path="/words" element={<WordList />} />
             <Route path="/contribute" element={<Contribute />} />
             <Route path="/tools" element={<Tools />} />
