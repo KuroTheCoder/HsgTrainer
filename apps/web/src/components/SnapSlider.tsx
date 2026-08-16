@@ -76,12 +76,10 @@ export default function SnapSlider({ min, max, step, value, onChange, snapPoints
   };
 
   const pct = ((value - min) / (max - min)) * 100;
+  const ticks = snapPoints.filter((p) => p > min && p < max);
 
   return (
     <div className="snap-slider">
-      <span className={`snap-bubble${dragging ? " drag" : ""}`} style={{ left: `${Math.max(4, Math.min(96, pct))}%` }}>
-        {format(value)}
-      </span>
       <div
         ref={trackRef}
         className="snap-track"
@@ -95,8 +93,11 @@ export default function SnapSlider({ min, max, step, value, onChange, snapPoints
         onPointerDown={startDrag}
         onKeyDown={onKeyDown}
       >
+        <span className={`snap-bubble${dragging ? " drag" : ""}`} style={{ left: `${Math.max(4, Math.min(96, pct))}%` }}>
+          {format(value)}
+        </span>
         <div className="snap-fill" style={{ width: `${pct}%` }} />
-        {snapPoints.map((p) => (
+        {ticks.map((p) => (
           <span
             key={p}
             className="snap-tick"
