@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../api";
-import { sectionMeta } from "../sections";
+import { sectionMeta, tagStyle } from "../sections";
 import { ScoreRing } from "../components/ScoreRing";
 import { IconBolt, IconTarget, IconTrend, SectionIcon } from "../icons";
 import type { ProgressStats } from "../types";
@@ -187,15 +187,17 @@ export default function Progress() {
               <div>
                 {stats.recent.map((r) => {
                   const meta = sectionMeta(r.section ?? "");
+                  const pct = r.count > 0 ? Math.round((r.score / r.count) * 100) : 0;
+                  const scoreCls = pct >= 80 ? "ok" : pct >= 60 ? "warn" : "bad";
                   return (
                     <div key={r.id} className="recent-row">
-                      <span className="tag">
+                      <span className="tag" style={tagStyle(r.section || "mixed")}>
                         <SectionIcon icon={meta?.icon ?? ""} size={11} /> {meta?.short ?? (r.section ?? "Mixed")}
                       </span>
                       <span className="grow muted small">
                         {r.count} question{r.count === 1 ? "" : "s"} · {fmtDate(r.createdAt)}
                       </span>
-                      <span className="tag ok">
+                      <span className={`tag ${scoreCls}`}>
                         {r.score}/{r.count}
                       </span>
                     </div>

@@ -1607,6 +1607,7 @@ h1 { font-weight: 700; }
 
 .tag.accent { color: var(--accent); border-color: var(--accent); }
 .tag.ok { color: var(--ok); border-color: var(--ok); }
+.tag.warn { color: var(--warn); border-color: var(--warn); }
 .tag.bad { color: var(--bad); border-color: var(--bad); }
 
 .tag.cefr { font-weight: 700; letter-spacing: 0.02em; }
