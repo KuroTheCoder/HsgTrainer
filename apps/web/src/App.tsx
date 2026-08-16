@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, Route, Routes, useLocation, useNavigate } from "react-router-dom";
-import { PALETTES, useTheme } from "./theme";
+import { BACKGROUNDS, PALETTES, useTheme } from "./theme";
 import { SECTIONS } from "./sections";
 import { IconBolt, IconBook, IconClock, IconGear, IconPen, IconPlus, IconTarget, IconTool, IconTrend, IconUser, IconUsers, SectionIcon } from "./icons";
 import { NOTES_CHANGED_EVENT, noteIdsForSection } from "./reader";
@@ -32,7 +32,7 @@ function PaletteIcon() {
 }
 
 function ThemeMenu() {
-  const { theme, palette, toggleTheme, setPalette } = useTheme();
+  const { theme, palette, background, setTheme, setPalette, setBackground, randomize, reset } = useTheme();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -69,11 +69,14 @@ function ThemeMenu() {
         <div className="card theme-pop">
           <div className="theme-pop-label">Appearance</div>
           <div className="seg">
-            <button className={theme === "dark" ? "active" : ""} onClick={() => theme !== "dark" && toggleTheme()}>
+            <button className={theme === "dark" ? "active" : ""} onClick={() => setTheme("dark")}>
               Dark
             </button>
-            <button className={theme === "light" ? "active" : ""} onClick={() => theme !== "light" && toggleTheme()}>
+            <button className={theme === "light" ? "active" : ""} onClick={() => setTheme("light")}>
               Light
+            </button>
+            <button className={theme === "system" ? "active" : ""} onClick={() => setTheme("system")}>
+              System
             </button>
           </div>
           <div className="theme-pop-label">Accent</div>
@@ -88,6 +91,28 @@ function ThemeMenu() {
                 title={p.label}
               />
             ))}
+          </div>
+          <div className="theme-pop-label">Background</div>
+          <div className="bg-swatches">
+            {BACKGROUNDS.map((b) => (
+              <button
+                key={b.id}
+                className={`bg-swatch ${background === b.id ? "active" : ""}`}
+                style={{ backgroundImage: b.swatch }}
+                onClick={() => setBackground(b.id)}
+                aria-label={b.label}
+              >
+                {b.label}
+              </button>
+            ))}
+          </div>
+          <div className="theme-actions">
+            <button className="btn btn-sm" onClick={randomize}>
+              Random
+            </button>
+            <button className="btn btn-sm" onClick={reset}>
+              Reset
+            </button>
           </div>
         </div>
       )}
