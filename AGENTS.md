@@ -33,7 +33,7 @@ scripts/      Utility scripts (import, seed)
 - Content rules: official papers import as `verified`; community content starts `unverified`; AI-generated questions are blocked from the live bank until human-verified.
 - Deterministic question types (mcq, fill-blank, word-form, cloze) never call the AI. Writing/transformation scoring is capped per user per day (3).
 - Docs ship with the code: if a change touches schema, scoring, or AI behavior, update the matching file under `docs/`.
-- **Parking lot:** at session start, read `docs/product-notes.md` and surface any parked ideas to the maintainer — they want to be reminded.
+- **Parking lot:** at session start, read `docs/MASTER.md` (living status — keep it updated per its maintenance rule) and surface any parked ideas from `docs/product-notes.md` to the maintainer — they want to be reminded.
 - UI copy stays in English in the repo — the maintainer translates to Vietnamese themselves. Do not translate user-facing strings proactively.
 - **Git flow:** after a task is done and verified (typecheck/build green), commit it immediately with a clear one-line message describing the change — commit after every task. Do NOT push: pushing is batched and only happens when the user asks. Big features/components get their own branch (`feature/<name>`) from the start and merge back when done.
 
@@ -44,6 +44,7 @@ scripts/      Utility scripts (import, seed)
 
 ## Docs index
 
+- `docs/MASTER.md` — living context + status (read this first; keep updated)
 - `docs/CONTEXT.md` — product/domain overview
 - `docs/architecture.md` — stack + free-tier quota rules
 - `docs/data-model.md` — D1 schema + provenance design
