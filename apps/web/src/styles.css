@@ -744,24 +744,6 @@ h1 { font-weight: 700; }
 .swatch:hover { transform: scale(1.2) rotate(-12deg); }
 .swatch.active { border-color: var(--bg); box-shadow: 0 0 0 2px var(--accent); }
 
-/* contrast guardrail: "!" when accent ink is unreadable in at least one mode */
-.swatch.low-contrast::after {
-  content: "!";
-  position: absolute;
-  bottom: -5px;
-  right: -5px;
-  width: 15px;
-  height: 15px;
-  border-radius: 999px;
-  background: var(--warn);
-  color: #1a2034;
-  font-size: 10px;
-  font-weight: 800;
-  line-height: 15px;
-  text-align: center;
-  box-shadow: 1px 1px 0 var(--shadow-color);
-}
-
 .accent-row {
   display: flex;
   align-items: center;

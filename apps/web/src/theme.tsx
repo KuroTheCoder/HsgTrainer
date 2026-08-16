@@ -142,20 +142,9 @@ function luminance(hex: string): number {
   return 0.2126 * lin[0]! + 0.7152 * lin[1]! + 0.0722 * lin[2]!;
 }
 
-export function contrastRatio(hexA: string, hexB: string): number {
-  const a = luminance(hexA);
-  const b = luminance(hexB);
-  const [hi, lo] = a > b ? [a, b] : [b, a];
-  return (hi + 0.05) / (lo + 0.05);
-}
-
 /** Ink color that stays readable on an arbitrary accent. */
 export function inkFor(hex: string): string {
   return luminance(hex) > 0.45 ? DARK_INK : LIGHT_INK;
-}
-
-export function hasGoodContrast(accent: string, ink: string): boolean {
-  return contrastRatio(accent, ink) >= 4.5;
 }
 
 /* ---------- presets ---------- */

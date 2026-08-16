@@ -5,12 +5,9 @@ import {
   PALETTES,
   decodeToken,
   encodeToken,
-  hasGoodContrast,
-  inkFor,
   loadPresets,
   persistPresets,
   useTheme,
-  type PaletteDef,
   type ThemePreset,
 } from "../theme";
 
@@ -26,14 +23,6 @@ export default function ThemeControls({ compact = false }: { compact?: boolean }
   }, [presets]);
 
   const shareUrl = `${location.origin}${location.pathname}?theme=${encodeToken({ theme, palette, background, intensity, custom })}`;
-
-  /** Modes in which this palette's ink is unreadable. */
-  const weakModes = (p: PaletteDef): string[] => {
-    const modes: string[] = [];
-    if (!hasGoodContrast(p.dark, inkFor(p.dark))) modes.push("dark");
-    if (!hasGoodContrast(p.light, inkFor(p.light))) modes.push("light");
-    return modes;
-  };
 
   const copy = async () => {
     try {
@@ -87,19 +76,16 @@ export default function ThemeControls({ compact = false }: { compact?: boolean }
       <div className="theme-pop-label">Accent</div>
       <div className="accent-row">
         <div className="swatches">
-          {PALETTES.map((p) => {
-            const weak = weakModes(p);
-            return (
-              <button
-                key={p.id}
-                className={`swatch ${palette === p.id ? "active" : ""} ${weak.length ? "low-contrast" : ""}`}
-                style={{ background: p.id === "custom" ? custom : p.swatch }}
-                onClick={() => setPalette(p.id)}
-                aria-label={p.label}
-                title={p.label + (weak.length ? ` — weak contrast in ${weak.join(", ")} mode` : "")}
-              />
-            );
-          })}
+          {PALETTES.map((p) => (
+            <button
+              key={p.id}
+              className={`swatch ${palette === p.id ? "active" : ""}`}
+              style={{ background: p.id === "custom" ? custom : p.swatch }}
+              onClick={() => setPalette(p.id)}
+              aria-label={p.label}
+              title={p.label}
+            />
+          ))}
         </div>
         {(!compact || palette === "custom") && (
           <input
