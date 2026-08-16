@@ -657,7 +657,7 @@ h1 { font-weight: 700; }
 
 .btn:hover:not(:disabled) { border-color: var(--accent); transform: translateY(-1px) rotate(-0.6deg); }
 .btn:active:not(:disabled) { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--shadow-color); }
-.btn:disabled { opacity: 0.45; cursor: default; }
+.btn:disabled { opacity: 0.6; cursor: default; }
 
 .btn-primary {
   background: var(--accent);

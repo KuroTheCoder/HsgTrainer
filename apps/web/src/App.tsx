@@ -117,10 +117,17 @@ function NavLinks() {
 
   return (
     <>
+      <div className="sidebar-label">Train</div>
       <NavLink to="/practice" className={({ isActive }) => (isActive ? "active" : "")}>
         <IconBolt size={15} />
         Practice
       </NavLink>
+      <NavLink to="/exams" className={({ isActive }) => (isActive ? "active" : "")}>
+        <IconClock size={15} />
+        Mock exam
+      </NavLink>
+
+      <div className="sidebar-label">Review</div>
       <NavLink to="/mistakes" className={({ isActive }) => (isActive ? "active" : "")}>
         <IconTarget size={15} />
         My mistakes
@@ -129,10 +136,8 @@ function NavLinks() {
         <IconTrend size={15} />
         Progress
       </NavLink>
-      <NavLink to="/exams" className={({ isActive }) => (isActive ? "active" : "")}>
-        <IconClock size={15} />
-        Mock exam
-      </NavLink>
+
+      <div className="sidebar-label">Saved</div>
       <NavLink to="/writing" className={({ isActive }) => (isActive ? "active" : "")}>
         <IconPen size={15} />
         Writing bank
@@ -142,6 +147,8 @@ function NavLinks() {
         Word list
         {vocabCount > 0 && <span className="nav-count">{vocabCount}</span>}
       </NavLink>
+
+      <div className="sidebar-label">Community</div>
       <NavLink to="/contribute" className={({ isActive }) => (isActive ? "active" : "")}>
         <IconPlus size={15} />
         Contribute
@@ -154,6 +161,8 @@ function NavLinks() {
         <IconUsers size={15} />
         For teachers
       </NavLink>
+
+      <div className="sidebar-label">Account</div>
       <NavLink to="/account" className={({ isActive }) => (isActive ? "active" : "")}>
         <IconUser size={15} />
         Account

@@ -67,7 +67,7 @@ export default function Admin() {
       <span className="sr-only" role="status">
         {counts ? `${counts.unverified} questions in the review queue` : ""}
       </span>
-      {tab === "overview" && <Overview onChanged={() => void loadCounts()} />}
+      {tab === "overview" && <Overview />}
       {tab === "queue" && <ReviewQueue onChanged={() => void loadCounts()} />}
       {tab === "add" && <AddQuestion />}
       {tab === "bulk" && <BulkImport />}
@@ -86,7 +86,7 @@ const TAB_LABELS: Record<Tab, string> = {
 
 // ---------------- overview dashboard ----------------
 
-function Overview({ onChanged }: { onChanged?: () => void }) {
+function Overview() {
   const [data, setData] = useState<{ verified: number; unverified: number; rejected: number; sources: number; papers: number } | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -107,13 +107,12 @@ function Overview({ onChanged }: { onChanged?: () => void }) {
         sources: src.sources.length,
         papers: p.papers.length,
       });
-      onChanged?.();
     } catch {
       // counts are decorative; never block the page on them
     } finally {
       setBusy(false);
     }
-  }, [onChanged]);
+  }, []);
 
   useEffect(() => {
     void load();
@@ -159,7 +158,7 @@ function Overview({ onChanged }: { onChanged?: () => void }) {
           <div className="row" style={{ marginTop: 14 }}>
             <span className="hint">Start with the review queue — clear what's pending, then bulk-import papers.</span>
             <button className="btn btn-primary btn-sm" onClick={() => void load()} disabled={busy}>
-              Refresh
+              {busy ? "Refreshing…" : "Refresh"}
             </button>
           </div>
         </div>
@@ -273,8 +272,8 @@ function ReviewQueue({ onChanged }: { onChanged?: () => void }) {
           <option value="verified">verified</option>
           <option value="rejected">rejected</option>
         </select>
-        <button className="btn btn-sm" onClick={load} disabled={busy}>
-          Refresh
+        <button className="btn btn-sm" onClick={() => void load()} disabled={busy}>
+          {busy ? "Refreshing…" : "Refresh"}
         </button>
       </div>
       {error && <div className="banner error" role="alert">{error}</div>}
