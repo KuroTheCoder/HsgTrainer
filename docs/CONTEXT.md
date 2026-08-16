@@ -28,8 +28,11 @@ Training platform for **Vietnam HSG English exams** (kỳ thi chọn học sinh 
 | AI writing feedback (HSG rubric, 3 credits/day) | Shipped |
 | Contribute + admin review | Shipped |
 | Free tools archive (dictionaries, external graders with consent gate) | Shipped |
+| Account (/account — local anonymous profile: name, grade, province, CEFR goal) | Shipped |
+| Teacher hub (/teachers — classroom guide + shareable practice links) | Shipped |
+| Admin overview dashboard (/admin — bank health, review queue) | Shipped |
 | Vocabulary trainer (spaced repetition on the word list) | Roadmap |
-| Teacher/classroom dashboards, data sync/portability | Roadmap |
+| Teacher/classroom rosters, data sync/portability | Roadmap |
 | Content depth (key real papers) | Ongoing |
 
 See `docs/roadmap.md` for the deferred directions.
