@@ -1,7 +1,7 @@
 ﻿import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { useSearchParams } from "react-router-dom";
 import { api } from "../api";
-import { DIFFICULTIES, SECTIONS, cefrBand, sectionGradient, sectionMeta } from "../sections";
+import { DIFFICULTIES, SECTIONS, cefrBand, sectionGradient, sectionMeta, tagStyle } from "../sections";
 import { IconCheck, IconSparkle, IconX, SectionIcon } from "../icons";
 import { ScoreRing } from "../components/ScoreRing";
 import SnapSlider from "../components/SnapSlider";
@@ -366,7 +366,11 @@ export default function Practice() {
                       {i + 1}.
                     </span>
                   </span>
-                  {!redundantTypeTag(section, q.qtype) && <span className="tag accent">{q.qtype}</span>}
+                  {!redundantTypeTag(section, q.qtype) && (
+                    <span className="tag" style={tagStyle(q.qtype)}>
+                      {q.qtype}
+                    </span>
+                  )}
                   <span className={`tag cefr ${cefrBand(q.difficulty)}`}>{q.difficulty}</span>
                   {!answers[q.id]?.trim() && <span className="tag bad">unanswered</span>}
                 </div>

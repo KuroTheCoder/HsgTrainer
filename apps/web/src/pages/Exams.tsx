@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { api } from "../api";
-import { cefrBand, sectionMeta, SECTIONS } from "../sections";
+import { cefrBand, sectionMeta, SECTIONS, tagStyle } from "../sections";
 import { IconBolt, IconCheck, IconSparkle, IconX, SectionIcon } from "../icons";
 import { ScoreRing } from "../components/ScoreRing";
 import SnapSlider from "../components/SnapSlider";
@@ -261,7 +261,7 @@ export default function Exams() {
                         .map(([sec, n]) => {
                           const meta = sectionMeta(sec);
                           return (
-                            <span key={sec} className="tag" title={meta?.label}>
+                            <span key={sec} className="tag" style={tagStyle(sec)} title={meta?.label}>
                               <SectionIcon icon={meta?.icon ?? ""} size={11} /> {n} · {meta?.short ?? sec}
                             </span>
                           );
@@ -315,7 +315,7 @@ export default function Exams() {
                       </span>
                     </span>
                     <span className="tag accent">{meta?.short ?? q.section}</span>
-                    <span className="tag">{q.qtype}</span>
+                    <span className="tag" style={tagStyle(q.qtype)}>{q.qtype}</span>
                     <span className={`tag cefr ${cefrBand(q.difficulty)}`}>{q.difficulty}</span>
                     {!answers[q.id]?.trim() && <span className="tag bad">unanswered</span>}
                   </div>

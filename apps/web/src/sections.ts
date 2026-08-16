@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import type { Section } from "./types";
 
 export interface SectionMeta {
@@ -94,4 +95,28 @@ export const CEFR_OPTIONS = ["A1", "A2", "B1", "B2", "C1", "C2"];
 /** Soft gradient from a section color — used for icon tiles and card tops. */
 export function sectionGradient(color: string): string {
   return `linear-gradient(160deg, ${color}2e, ${color}0a 70%, transparent)`;
+}
+
+export const QTYPE_COLORS: Record<string, string> = {
+  mcq: "#3b82f6",
+  "fill-blank": "#10b981",
+  "word-form": "#f59e0b",
+  cloze: "#8b5cf6",
+  transformation: "#ec4899",
+  writing: "#f43f5e",
+};
+
+/** Color-coded tag style — section/qtype colors from the identity maps, else a stable hue from the text. */
+export function tagStyle(key: string): CSSProperties {
+  const c = sectionMeta(key)?.color ?? QTYPE_COLORS[key];
+  if (!c) {
+    let h = 0;
+    for (let i = 0; i < key.length; i++) h = (h * 31 + key.charCodeAt(i)) % 360;
+    return {
+      color: `hsl(${h} 70% 60%)`,
+      borderColor: `hsl(${h} 70% 60%)`,
+      background: `color-mix(in srgb, hsl(${h} 70% 60%) 12%, transparent)`,
+    };
+  }
+  return { color: c, borderColor: c, background: `color-mix(in srgb, ${c} 12%, transparent)` };
 }

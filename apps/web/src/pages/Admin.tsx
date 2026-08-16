@@ -4,6 +4,7 @@ import { parseCsv } from "../csv";
 import { validateField, validateForm, type FormErrors, type QuestionFormValues } from "../formRules";
 import { ErrorSummary, type FormError } from "../components/ErrorSummary";
 import DebugPanel from "../components/DebugPanel";
+import { tagStyle } from "../sections";
 import type { AdminQuestion, BulkReportItem, Source } from "../types";
 
 type Tab = "overview" | "queue" | "add" | "bulk" | "sources" | "debug";
@@ -290,8 +291,8 @@ function ReviewQueue({ onChanged }: { onChanged?: () => void }) {
         <div key={q.id} className="question">
           <div className="question-head">
             <span className="qnum">#{q.id}</span>
-            <span className="tag accent">{q.qtype}</span>
-            <span className="tag">{q.section}</span>
+            <span className="tag" style={tagStyle(q.qtype)}>{q.qtype}</span>
+            <span className="tag" style={tagStyle(q.section)}>{q.section}</span>
             {q.source_name && <span className="tag">{q.source_name}</span>}
           </div>
           <p className="prompt">{q.prompt.slice(0, 240)}{q.prompt.length > 240 ? "…" : ""}</p>

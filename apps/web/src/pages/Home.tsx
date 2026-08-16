@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../api";
-import { sectionGradient, SECTIONS, sectionMeta } from "../sections";
+import { sectionGradient, SECTIONS, sectionMeta, tagStyle } from "../sections";
 import {
   IconArrow,
   IconBolt,
@@ -98,8 +98,8 @@ export default function Home() {
           <div className="hero-visual">
             <div className="mock-card">
               <div className="mock-head">
-                <span className="tag accent">lexico-grammar</span>
-                <span className="tag">mcq</span>
+                <span className="tag" style={tagStyle("lexico-grammar")}>lexico-grammar</span>
+                <span className="tag" style={tagStyle("mcq")}>mcq</span>
               </div>
               <p className="mock-q">
                 The committee's decision was <b>____</b> by the board.

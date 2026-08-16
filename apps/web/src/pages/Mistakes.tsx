@@ -1,7 +1,7 @@
 ﻿import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, getAdminToken } from "../api";
-import { cefrBand, sectionMeta, SECTIONS } from "../sections";
+import { cefrBand, sectionMeta, SECTIONS, tagStyle } from "../sections";
 import { IconBolt, IconTarget, IconTrash, SectionIcon } from "../icons";
 import { renderMarkdown } from "../md";
 import { play } from "../sfx";
@@ -160,7 +160,7 @@ export default function Mistakes() {
             {[...countBySection.entries()].map(([sec, n]) => {
               const meta = sectionMeta(sec);
               return (
-                <span key={sec} className="tag" title={meta?.label}>
+                <span key={sec} className="tag" style={tagStyle(sec)} title={meta?.label}>
                   <SectionIcon icon={meta?.icon ?? ""} size={12} />
                   {n} · {meta?.short ?? sec}
                 </span>
@@ -230,7 +230,7 @@ export default function Mistakes() {
                 </span>
                 <span className={`tag cefr ${cefrBand(m.difficulty)}`}>{m.difficulty}</span>
                 {m.tags.map((t) => (
-                  <span key={t} className="tag">
+                  <span key={t} className="tag" style={tagStyle(t)}>
                     {t}
                   </span>
                 ))}
