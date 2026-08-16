@@ -9,16 +9,21 @@ function anonId(c: { req: { header: (n: string) => string | undefined } }): stri
   return c.req.header("X-Anon-Id") ?? null;
 }
 
-// Draw writing prompts (verified writing questions only).
+// Draw writing prompts (verified writing questions only). Optional ?paperId=
+// scopes the draw to one paper's writing task (mock exam stage).
 writing.get("/questions", async (c) => {
   const count = Math.min(parseInt(c.req.query("count") ?? "1", 10) || 1, 5);
-  const { results } = await c.env.DB.prepare(
-    `SELECT * FROM questions
-     WHERE verification_status = 'verified' AND qtype = 'writing'
-     ORDER BY RANDOM() LIMIT ?`,
-  )
-    .bind(count)
-    .all<QuestionRow>();
+  const paperId = c.req.query("paperId") ? Number(c.req.query("paperId")) : null;
+  let sql = `SELECT * FROM questions
+     WHERE verification_status = 'verified' AND qtype = 'writing'`;
+  const params: unknown[] = [];
+  if (paperId && Number.isInteger(paperId) && paperId > 0) {
+    sql += ` AND source_id = ?`;
+    params.push(paperId);
+  }
+  sql += ` ORDER BY RANDOM() LIMIT ?`;
+  params.push(count);
+  const { results } = await c.env.DB.prepare(sql).bind(...params).all<QuestionRow>();
   return c.json({
     questions: results.map((q) => ({
       id: q.id,

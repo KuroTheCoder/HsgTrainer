@@ -1777,6 +1777,20 @@ mark {
 .recent-row:last-child { border-bottom: 0; }
 .recent-row .grow { flex: 1; }
 
+/* ---------- mock exam ---------- */
+
+.paper-card { padding: 16px 20px; margin-bottom: 12px; }
+.timer-chip {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line-soft);
+  background: var(--surface);
+}
+.timer-chip.bad { color: var(--bad); border-color: var(--bad); }
+
 /* ---------- result stamp ---------- */
 
 .stamp {

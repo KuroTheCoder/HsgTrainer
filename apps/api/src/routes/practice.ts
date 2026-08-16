@@ -35,19 +35,30 @@ practice.get("/questions", async (c) => {
   return c.json({ questions: results.map(toQuestionShape) });
 });
 
-// Create a session (server-side draw, or explicit questionIds) and return its questions.
+// Create a session (server-side draw, explicit questionIds, or a full paper)
+// and return its questions.
 practice.post("/sessions", async (c) => {
   const body = (await c.req.json().catch(() => ({}))) as {
     section?: string;
     difficulty?: string;
     count?: number;
     questionIds?: number[];
+    paperId?: number;
   };
   const anon = anonId(c) ?? crypto.randomUUID();
 
   let sql: string;
   const params: string[] = [];
-  if (Array.isArray(body.questionIds) && body.questionIds.length > 0) {
+  let skill: string | null = null;
+  if (body.paperId) {
+    // Full-paper draw (mock exam): every verified deterministic question.
+    sql = `SELECT * FROM questions
+      WHERE source_id = ? AND verification_status = 'verified'
+        AND qtype IN (${DETERMINISTIC_TYPES.map(() => "?").join(",")})
+      ORDER BY section, id`;
+    params.push(String(body.paperId), ...DETERMINISTIC_TYPES);
+    skill = "exam";
+  } else if (Array.isArray(body.questionIds) && body.questionIds.length > 0) {
     const ids = [...new Set(body.questionIds.map(Number).filter((n) => Number.isInteger(n) && n > 0))].slice(0, 25);
     if (ids.length === 0) return c.json({ error: "invalid questionIds" }, 400);
     sql = `SELECT * FROM questions
@@ -79,7 +90,7 @@ practice.post("/sessions", async (c) => {
     `INSERT INTO sessions (anon_id, section, skill, difficulty, question_count, score)
      VALUES (?, ?, ?, ?, ?, 0)`,
   )
-    .bind(anon, body.section ?? null, null, body.difficulty ?? null, questions.length)
+    .bind(anon, body.section ?? null, skill, body.difficulty ?? null, questions.length)
     .run();
   const sessionId = Number(inserted.meta.last_row_id);
 
@@ -318,6 +329,8 @@ practice.get("/sessions/:id", async (c) => {
     session,
     results: results.map((r) => ({
       questionId: r.id,
+      qtype: r.qtype,
+      section: r.section,
       prompt: r.prompt,
       options: r.options ? JSON.parse(r.options) : null,
       yourAnswer: r.response,

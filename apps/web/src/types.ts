@@ -144,6 +144,23 @@ export interface RecentSession {
   createdAt: string;
 }
 
+export interface Paper {
+  id: number;
+  name: string;
+  grade: string | null;
+  year: number | null;
+  province: string | null;
+  total: number;
+  writing: number;
+  sections: Partial<Record<Section, number>>;
+}
+
+export interface ExamSectionResult {
+  section: Section;
+  correct: number;
+  answered: number;
+}
+
 export interface ProgressStats {
   days: number;
   totalSessions: number;

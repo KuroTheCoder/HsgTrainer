@@ -54,7 +54,7 @@ export const api = {
     return request<{ questions: Question[] }>(`/questions?${qs}`);
   },
 
-  startSession: (opts: { section?: string; difficulty?: string; count?: number; questionIds?: number[] }) =>
+  startSession: (opts: { section?: string; difficulty?: string; count?: number; questionIds?: number[]; paperId?: number }) =>
     request<SessionQuestions>("/sessions", {
       method: "POST",
       body: JSON.stringify(opts),
@@ -79,6 +79,9 @@ export const api = {
   getSession: (sessionId: number) => request<SessionResult & { session: unknown }>(`/sessions/${sessionId}`),
 
   getStats: (days = 30) => request<import("./types").ProgressStats>(`/stats?days=${days}`),
+
+  getPapers: () => request<{ papers: import("./types").Paper[] }>("/exams/papers"),
+  paperWriting: (paperId: number) => request<{ questions: import("./types").WritingQuestion[] }>(`/writing/questions?paperId=${paperId}`),
 
   // writing (AI-scored)
   writingQuestions: (count = 1) =>
