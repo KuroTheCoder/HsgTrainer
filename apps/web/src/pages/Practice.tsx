@@ -4,15 +4,17 @@ import { api } from "../api";
 import { DIFFICULTIES, SECTIONS, cefrBand, sectionGradient, sectionMeta } from "../sections";
 import { IconCheck, IconSparkle, IconX, SectionIcon } from "../icons";
 import { ScoreRing } from "../components/ScoreRing";
+import SnapSlider from "../components/SnapSlider";
 import { NoteBox, Reader } from "../components/Reader";
 import DictPopup, { type DictRequest } from "../components/DictPopup";
+import { play, playScore } from "../sfx";
+import { launchConfetti } from "../confetti";
 import { renderMarkdown } from "../md";
 import type { AnswerResult, CriterionScores, Question, WritingFeedback, WritingQuestion } from "../types";
 
 type Phase = "config" | "running" | "results" | "writing" | "writing-result";
 
 const OPTION_LETTERS = ["A", "B", "C", "D", "E", "F", "G", "H"];
-const LENGTHS = [5, 10, 15, 20];
 
 const CRITERIA: { key: keyof CriterionScores; label: string }[] = [
   { key: "content", label: "Content" },
@@ -202,7 +204,10 @@ export default function Practice() {
         sessionId,
         questions.map((q) => ({ questionId: q.id, response: answers[q.id] ?? "" })),
       );
+      const pct = Math.round((res.results.filter((r) => r.correct).length / res.results.length) * 100);
       setResults(res.results);
+      playScore(pct);
+      if (pct >= 80) launchConfetti({ count: pct === 100 ? 220 : 140 });
       setPhase("results");
     } catch (e) {
       setError(e instanceof Error ? e.message : "failed to submit");
@@ -219,6 +224,7 @@ export default function Practice() {
       const res = await api.scoreWriting(writingQ.id, writingResponse);
       setWritingFeedback(res.score);
       setRemaining(res.remaining);
+      play("complete");
       setPhase("writing-result");
     } catch (e) {
       setError(e instanceof Error ? e.message : "scoring failed");
@@ -295,13 +301,14 @@ export default function Practice() {
               </div>
               <div className="field">
                 Number of questions
-                <div className="chip-row">
-                  {LENGTHS.map((n) => (
-                    <button key={n} className={`chip-btn ${count === n ? "active" : ""}`} onClick={() => setCount(n)}>
-                      {n}
-                    </button>
-                  ))}
-                </div>
+                <SnapSlider
+                  min={5}
+                  max={25}
+                  step={1}
+                  value={count}
+                  onChange={setCount}
+                  snapPoints={[5, 10, 15, 20, 25]}
+                />
               </div>
             </div>
           )}

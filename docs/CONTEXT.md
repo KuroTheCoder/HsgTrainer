@@ -31,6 +31,9 @@ Training platform for **Vietnam HSG English exams** (kỳ thi chọn học sinh 
 | Account (/account — local anonymous profile: name, grade, province, CEFR goal) | Shipped |
 | Teacher hub (/teachers — classroom guide + shareable practice links) | Shipped |
 | Admin overview dashboard (/admin — bank health, review queue) | Shipped |
+| Settings hub (/settings — tabbed pause-menu nav: Appearance / Sounds / Dictionary) | Shipped |
+| Theming (12 palettes, custom color, 6 backgrounds, pattern intensity, presets, share links) | Shipped |
+| Sound effects (clicks/hovers/chimes/warnings) with per-sound volume + confetti on strong runs | Shipped |
 | Vocabulary trainer (spaced repetition on the word list) | Roadmap |
 | Teacher/classroom rosters, data sync/portability | Roadmap |
 | Content depth (key real papers) | Ongoing |

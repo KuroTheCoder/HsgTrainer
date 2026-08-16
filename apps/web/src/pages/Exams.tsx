@@ -3,15 +3,17 @@ import { api } from "../api";
 import { cefrBand, sectionMeta, SECTIONS } from "../sections";
 import { IconBolt, IconCheck, IconSparkle, IconX, SectionIcon } from "../icons";
 import { ScoreRing } from "../components/ScoreRing";
+import SnapSlider from "../components/SnapSlider";
 import { NoteBox, Reader } from "../components/Reader";
 import DictPopup, { type DictRequest } from "../components/DictPopup";
+import { play, playScore } from "../sfx";
+import { launchConfetti } from "../confetti";
 import { renderMarkdown } from "../md";
 import type { AnswerResult, CriterionScores, ExamSectionResult, Paper, Question, WritingFeedback, WritingQuestion } from "../types";
 
 type Phase = "config" | "running" | "results" | "writing" | "writing-result";
 
 const OPTION_LETTERS = ["A", "B", "C", "D", "E", "F", "G", "H"];
-const TIME_LIMITS = [15, 30, 45, 60];
 
 const CRITERIA: { key: keyof CriterionScores; label: string }[] = [
   { key: "content", label: "Content" },
@@ -109,7 +111,10 @@ export default function Exams() {
           }
         );
       });
+      const pct = Math.round((full.filter((r) => r.correct).length / full.length) * 100);
       setResults(full);
+      playScore(pct);
+      if (pct >= 80) launchConfetti({ count: pct === 100 ? 220 : 140 });
       setPhase("results");
     } catch (e) {
       setError(e instanceof Error ? e.message : "failed to submit");
@@ -128,6 +133,7 @@ export default function Exams() {
     const id = window.setInterval(() => {
       const rem = Math.max(0, Math.round((deadlineRef.current - Date.now()) / 1000));
       setLeft(rem);
+      if (rem === 300 || rem === 60) play("warn");
       if (rem === 0) {
         window.clearInterval(id);
         void finishRef.current(true);
@@ -166,6 +172,7 @@ export default function Exams() {
       const res = await api.scoreWriting(writingQ.id, writingResponse);
       setWritingFeedback(res.score);
       setRemaining(res.remaining);
+      play("complete");
       setPhase("writing-result");
     } catch (e) {
       setError(e instanceof Error ? e.message : "scoring failed");
@@ -223,13 +230,15 @@ export default function Exams() {
       {phase === "config" && (
         <div className="card panel">
           <h3>Time limit</h3>
-          <div className="chip-row">
-            {TIME_LIMITS.map((m) => (
-              <button key={m} className={`chip-btn ${timeLimit === m ? "active" : ""}`} onClick={() => setTimeLimit(m)}>
-                {m} min
-              </button>
-            ))}
-          </div>
+          <SnapSlider
+            min={5}
+            max={60}
+            step={5}
+            value={timeLimit}
+            onChange={setTimeLimit}
+            snapPoints={[15, 30, 45, 60]}
+            format={(v) => `${v} min`}
+          />
 
           <h3 style={{ marginTop: 18 }}>Pick a paper</h3>
           {!busy && papers.length === 0 && (
