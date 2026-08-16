@@ -233,7 +233,7 @@ export default function Exams() {
           <SnapSlider
             min={5}
             max={60}
-            step={5}
+            step={1}
             value={timeLimit}
             onChange={setTimeLimit}
             snapPoints={[15, 30, 45, 60]}

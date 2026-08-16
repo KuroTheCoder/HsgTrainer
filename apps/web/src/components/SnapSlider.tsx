@@ -6,21 +6,22 @@ interface Props {
   step: number;
   value: number;
   onChange: (v: number) => void;
-  /** Common values — rendered as tick marks and snapped to when nearby. */
+  /** Common values — rendered as tick marks, gently pulled to on release. */
   snapPoints?: number[];
   snapDistance?: number;
   format?: (v: number) => string;
 }
 
 export default function SnapSlider({ min, max, step, value, onChange, snapPoints = [], snapDistance = 1, format = (v) => String(v) }: Props) {
-  const handle = (raw: number) => {
+  const settle = (e: { currentTarget: { value: string } }) => {
+    const v = Number(e.currentTarget.value);
+    let target: number | null = null;
     for (const p of snapPoints) {
-      if (Math.abs(raw - p) <= snapDistance) {
-        onChange(p);
-        return;
+      if (Math.abs(v - p) <= snapDistance && (target === null || Math.abs(v - p) < Math.abs(v - target))) {
+        target = p;
       }
     }
-    onChange(raw);
+    if (target !== null && target !== v) onChange(target);
   };
 
   const pct = ((value - min) / (max - min)) * 100;
@@ -38,7 +39,10 @@ export default function SnapSlider({ min, max, step, value, onChange, snapPoints
         step={step}
         value={value}
         aria-label={format(value)}
-        onChange={(e) => handle(Number(e.target.value))}
+        onChange={(e) => onChange(Number(e.target.value))}
+        onPointerUp={settle}
+        onKeyUp={settle}
+        onBlur={settle}
         style={{ "--fill": `${pct}%` } as CSSProperties}
       />
       <div className="snap-ticks" aria-hidden="true">
