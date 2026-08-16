@@ -5,7 +5,7 @@ import { validateField, validateForm, type FormErrors, type QuestionFormValues }
 import { ErrorSummary, type FormError } from "../components/ErrorSummary";
 import type { AdminQuestion, BulkReportItem, Source } from "../types";
 
-type Tab = "queue" | "add" | "bulk" | "sources";
+type Tab = "overview" | "queue" | "add" | "bulk" | "sources";
 
 function errorsToList(errors: FormErrors): FormError[] {
   return (Object.keys(errors) as (keyof FormErrors)[])
@@ -15,7 +15,7 @@ function errorsToList(errors: FormErrors): FormError[] {
 
 export default function Admin() {
   const [token, setToken] = useState<string | null>(getAdminToken());
-  const [tab, setTab] = useState<Tab>("queue");
+  const [tab, setTab] = useState<Tab>("overview");
   const [counts, setCounts] = useState<{ unverified: number; verified: number; rejected: number } | null>(null);
 
   const loadCounts = useCallback(async () => {
@@ -52,7 +52,7 @@ export default function Admin() {
         </button>
       </div>
       <div className="seg">
-        {(["queue", "add", "bulk", "sources"] as Tab[]).map((t) => (
+        {(["overview", "queue", "add", "bulk", "sources"] as Tab[]).map((t) => (
           <button
             key={t}
             className={tab === t ? "active" : ""}
@@ -67,6 +67,7 @@ export default function Admin() {
       <span className="sr-only" role="status">
         {counts ? `${counts.unverified} questions in the review queue` : ""}
       </span>
+      {tab === "overview" && <Overview onChanged={() => void loadCounts()} />}
       {tab === "queue" && <ReviewQueue onChanged={() => void loadCounts()} />}
       {tab === "add" && <AddQuestion />}
       {tab === "bulk" && <BulkImport />}
@@ -76,11 +77,96 @@ export default function Admin() {
 }
 
 const TAB_LABELS: Record<Tab, string> = {
+  overview: "Overview",
   queue: "Review queue",
   add: "Add question",
   bulk: "Bulk import",
   sources: "Sources",
 };
+
+// ---------------- overview dashboard ----------------
+
+function Overview({ onChanged }: { onChanged?: () => void }) {
+  const [data, setData] = useState<{ verified: number; unverified: number; rejected: number; sources: number; papers: number } | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  const load = useCallback(async () => {
+    setBusy(true);
+    try {
+      const [u, v, r, src, p] = await Promise.all([
+        api.adminQueue("unverified"),
+        api.adminQueue("verified"),
+        api.adminQueue("rejected"),
+        api.adminSources(),
+        api.getPapers(),
+      ]);
+      setData({
+        unverified: u.questions.length,
+        verified: v.questions.length,
+        rejected: r.questions.length,
+        sources: src.sources.length,
+        papers: p.papers.length,
+      });
+      onChanged?.();
+    } catch {
+      // counts are decorative; never block the page on them
+    } finally {
+      setBusy(false);
+    }
+  }, [onChanged]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const total = data ? data.verified + data.unverified + data.rejected : 0;
+  const verifiedPct = total > 0 ? Math.round((data!.verified / total) * 100) : 0;
+
+  return (
+    <div>
+      <div className="stat-grid">
+        <div className="card panel stat-card">
+          <div className="stat-num">{data?.verified ?? "…"}</div>
+          <div className="stat-label">Verified (live)</div>
+        </div>
+        <div className="card panel stat-card">
+          <div className="stat-num">{data?.unverified ?? "…"}</div>
+          <div className="stat-label">Awaiting review</div>
+        </div>
+        <div className="card panel stat-card">
+          <div className="stat-num">{data?.rejected ?? "…"}</div>
+          <div className="stat-label">Rejected</div>
+        </div>
+        <div className="card panel stat-card">
+          <div className="stat-num">{data?.sources ?? "…"}</div>
+          <div className="stat-label">Sources</div>
+        </div>
+        <div className="card panel stat-card">
+          <div className="stat-num">{data?.papers ?? "…"}</div>
+          <div className="stat-label">Papers</div>
+        </div>
+      </div>
+
+      {data && (
+        <div className="card panel">
+          <h3>Bank health</h3>
+          <p className="muted" style={{ marginTop: 0 }}>
+            {total} total questions — {verifiedPct}% verified and live. Content only reaches students once verified.
+          </p>
+          <div className="bar" style={{ height: 14 }}>
+            <div className="bar-fill" style={{ width: `${verifiedPct}%`, background: "var(--ok)" }} />
+          </div>
+          <div className="row" style={{ marginTop: 14 }}>
+            <span className="hint">Start with the review queue — clear what's pending, then bulk-import papers.</span>
+            <button className="btn btn-primary btn-sm" onClick={() => void load()} disabled={busy}>
+              Refresh
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function Login({ onLogin }: { onLogin: (token: string) => void }) {
   const [password, setPassword] = useState("");

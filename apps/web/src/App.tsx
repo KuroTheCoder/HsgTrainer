@@ -2,7 +2,7 @@
 import { Link, NavLink, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { PALETTES, useTheme } from "./theme";
 import { SECTIONS } from "./sections";
-import { IconBolt, IconBook, IconClock, IconGear, IconPen, IconPlus, IconTarget, IconTool, IconTrend, SectionIcon } from "./icons";
+import { IconBolt, IconBook, IconClock, IconGear, IconPen, IconPlus, IconTarget, IconTool, IconTrend, IconUser, IconUsers, SectionIcon } from "./icons";
 import { NOTES_CHANGED_EVENT, noteIdsForSection } from "./reader";
 import { WORD_LIST_CHANGED_EVENT, getWordList } from "./vocab";
 import Home from "./pages/Home";
@@ -13,6 +13,8 @@ import Admin from "./pages/Admin";
 import Tools from "./pages/Tools";
 import WordList from "./pages/WordList";
 import Settings from "./pages/Settings";
+import Account from "./pages/Account";
+import Teachers from "./pages/Teachers";
 import Progress from "./pages/Progress";
 import Exams from "./pages/Exams";
 import Writing from "./pages/Writing";
@@ -148,6 +150,14 @@ function NavLinks() {
         <IconTool size={15} />
         Free tools
       </NavLink>
+      <NavLink to="/teachers" className={({ isActive }) => (isActive ? "active" : "")}>
+        <IconUsers size={15} />
+        For teachers
+      </NavLink>
+      <NavLink to="/account" className={({ isActive }) => (isActive ? "active" : "")}>
+        <IconUser size={15} />
+        Account
+      </NavLink>
       <NavLink to="/settings" className={({ isActive }) => (isActive ? "active" : "")}>
         <IconGear size={15} />
         Settings
@@ -166,6 +176,8 @@ const PAGE_TITLES: Record<string, string> = {
   "/words": "Word list",
   "/contribute": "Contribute",
   "/tools": "Free tools",
+  "/teachers": "For teachers",
+  "/account": "Account",
   "/settings": "Settings",
   "/admin": "Admin",
 };
@@ -430,6 +442,8 @@ export default function App() {
             <Route path="/words" element={<WordList />} />
             <Route path="/contribute" element={<Contribute />} />
             <Route path="/tools" element={<Tools />} />
+            <Route path="/teachers" element={<Teachers />} />
+            <Route path="/account" element={<Account />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/admin" element={<Admin />} />
           </Routes>
