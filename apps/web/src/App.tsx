@@ -19,6 +19,7 @@ import Teachers from "./pages/Teachers";
 import Progress from "./pages/Progress";
 import Exams from "./pages/Exams";
 import Writing from "./pages/Writing";
+import SnapSlider from "./components/SnapSlider";
 
 function PaletteIcon() {
   return (
