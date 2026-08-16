@@ -49,11 +49,14 @@ export const DICTIONARIES: DictionaryDef[] = [
   },
 ];
 
-/** First alphabetic token of a selection (ignores quotes, punctuation). */
+/** First alphabetic token of a selection (ignores quotes, punctuation).
+ *  A trailing possessive (`'s`/`’s`) is stripped: Cambridge has no entry for
+ *  "student's" and its own fuzzy match surfaces wrong pages (e.g. "test-s" →
+ *  "test-patience"), but the base form always resolves. */
 export function firstWord(word: string): string | null {
   const match = word.trim().toLowerCase().match(/[a-z]+(?:'[a-z]+)*/);
   if (!match || match[0].length < 2) return null;
-  return match[0];
+  return match[0].replace(/[’']s$/, "");
 }
 
 /** Deep links to the configured dictionaries — legal, keyless, no scraping.
