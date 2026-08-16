@@ -8,6 +8,7 @@ const SOUND_LABELS: { name: SfxName; label: string; hint: string }[] = [
   { name: "click", label: "Clicks", hint: "Buttons, links, options" },
   { name: "pop", label: "Chips & swatches", hint: "Small chips, theme swatches, presets" },
   { name: "hover", label: "Hover", hint: "Moving over interactive elements" },
+  { name: "tick", label: "Sliders", hint: "Each step on the snap sliders (practice count, exam time)" },
   { name: "correct", label: "Strong score", hint: "≥ 80% on practice / exam results" },
   { name: "complete", label: "Good score", hint: "60–79% runs, AI writing feedback" },
   { name: "wrong", label: "Low score", hint: "< 60% on practice / exam results" },

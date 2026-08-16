@@ -2418,6 +2418,8 @@ textarea { resize: vertical; }
   z-index: 3;
 }
 
+.snap-bubble.drag { transition: none; }
+
 .snap-bubble::after {
   content: "";
   position: absolute;
@@ -2482,16 +2484,16 @@ textarea { resize: vertical; }
 
 .snap-slider input[type="range"]:focus-visible::-webkit-slider-thumb { outline: 2px solid var(--text); outline-offset: 2px; }
 
-.snap-ticks { position: absolute; bottom: 4px; left: 0; right: 0; height: 8px; pointer-events: none; z-index: 1; }
+.snap-ticks { position: absolute; top: 21px; left: 0; right: 0; height: 11px; pointer-events: none; z-index: 3; }
 
 .snap-ticks span {
   position: absolute;
   top: 0;
   width: 2px;
-  height: 7px;
+  height: 11px;
   border-radius: 999px;
   background: var(--muted);
-  opacity: 0.55;
+  opacity: 0.5;
 }
 
 /* ---------- tables / admin ---------- */

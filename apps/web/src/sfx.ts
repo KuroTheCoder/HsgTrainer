@@ -1,12 +1,13 @@
 const SFX_KEY = "hsg-sfx-muted";
 const VOL_KEY = "hsg-sfx-volumes";
 
-export type SfxName = "click" | "hover" | "pop" | "correct" | "wrong" | "complete" | "save" | "clear" | "warn";
+export type SfxName = "click" | "hover" | "pop" | "tick" | "correct" | "wrong" | "complete" | "save" | "clear" | "warn";
 
 const DEFAULT_VOLUMES: Record<SfxName, number> = {
   click: 0.8,
   hover: 0.5,
   pop: 0.8,
+  tick: 0.3,
   correct: 0.9,
   wrong: 0.8,
   complete: 0.9,
@@ -19,6 +20,7 @@ const COOLDOWN_MS: Partial<Record<SfxName, number>> = {
   hover: 120,
   click: 70,
   pop: 70,
+  tick: 80,
 };
 
 let muted = false;

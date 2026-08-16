@@ -1,4 +1,5 @@
-import { type CSSProperties } from "react";
+import { type CSSProperties, useState } from "react";
+import { play } from "../sfx";
 
 interface Props {
   min: number;
@@ -6,13 +7,15 @@ interface Props {
   step: number;
   value: number;
   onChange: (v: number) => void;
-  /** Common values — rendered as tick marks, gently pulled to on release. */
+  /** Common values — rendered as tick marks on the track, gently pulled to on release. */
   snapPoints?: number[];
   snapDistance?: number;
   format?: (v: number) => string;
 }
 
 export default function SnapSlider({ min, max, step, value, onChange, snapPoints = [], snapDistance = 1, format = (v) => String(v) }: Props) {
+  const [dragging, setDragging] = useState(false);
+
   const settle = (e: { currentTarget: { value: string } }) => {
     const v = Number(e.currentTarget.value);
     let target: number | null = null;
@@ -29,7 +32,7 @@ export default function SnapSlider({ min, max, step, value, onChange, snapPoints
 
   return (
     <div className="snap-slider">
-      <span className="snap-bubble" style={{ left: `${bubbleLeft}%` }}>
+      <span className={`snap-bubble${dragging ? " drag" : ""}`} style={{ left: `${bubbleLeft}%` }}>
         {format(value)}
       </span>
       <input
@@ -39,15 +42,28 @@ export default function SnapSlider({ min, max, step, value, onChange, snapPoints
         step={step}
         value={value}
         aria-label={format(value)}
-        onChange={(e) => onChange(Number(e.target.value))}
-        onPointerUp={settle}
+        onPointerDown={() => setDragging(true)}
+        onPointerUp={(e) => {
+          setDragging(false);
+          settle(e);
+        }}
+        onBlur={(e) => {
+          setDragging(false);
+          settle(e);
+        }}
         onKeyUp={settle}
-        onBlur={settle}
+        onChange={(e) => {
+          const v = Number(e.target.value);
+          if (v !== value) {
+            onChange(v);
+            play("tick");
+          }
+        }}
         style={{ "--fill": `${pct}%` } as CSSProperties}
       />
       <div className="snap-ticks" aria-hidden="true">
         {snapPoints.map((p) => (
-          <span key={p} style={{ left: `${((p - min) / (max - min)) * 100}%` }} />
+          <span key={p} style={{ left: `${((p - min) / (max - min)) * 100}%`, opacity: p === value ? 0 : undefined }} />
         ))}
       </div>
     </div>

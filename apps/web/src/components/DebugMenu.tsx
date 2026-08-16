@@ -8,6 +8,7 @@ const SOUNDS: { name: SfxName; label: string }[] = [
   { name: "click", label: "Click" },
   { name: "pop", label: "Pop" },
   { name: "hover", label: "Hover" },
+  { name: "tick", label: "Slider tick" },
   { name: "correct", label: "Score ≥ 80%" },
   { name: "complete", label: "Score 60–79%" },
   { name: "wrong", label: "Score < 60%" },
