@@ -1,3 +1,5 @@
+import { play } from "./sfx";
+
 interface Piece {
   x: number;
   y: number;
@@ -22,6 +24,8 @@ export function launchConfetti(opts?: { count?: number; power?: number }) {
   const count = opts?.count ?? 140;
   const power = opts?.power ?? 1;
   const dpr = window.devicePixelRatio || 1;
+
+  play("confetti");
 
   if (!canvas) {
     canvas = document.createElement("canvas");

@@ -9,6 +9,7 @@ filenames (any format `new Audio()` supports works, mp3 is the convention):
 | `pop.mp3`       | Small chips & swatches (theme swatches, section chips, preset chips) |
 | `hover.mp3`     | Hovering interactive elements (rate-limited ~8/sec)               |
 | `tick.mp3`      | Each step on the snap sliders (practice count, exam time)         |
+| `confetti.mp3`  | Celebration burst when confetti launches (80%+ runs)              |
 | `correct.mp3`   | Score run ≥ 80% (practice / exam results)                         |
 | `complete.mp3`  | Score run 60–79% + AI writing feedback arriving                   |
 | `wrong.mp3`     | Score run < 60%                                                   |
