@@ -247,6 +247,53 @@ admin.post("/questions/status", async (c) => {
   return c.json({ updated: res.meta.changes });
 });
 
+// -------- whole-source status flip (verify/reject a book at once) --------
+
+admin.post("/sources/:id/questions/status", async (c) => {
+  const sourceId = Number(c.req.param("id"));
+  if (!Number.isInteger(sourceId) || sourceId <= 0) return c.json({ error: "bad source id" }, 400);
+  const body = (await c.req.json().catch(() => null)) as { status?: unknown; fromStatus?: unknown } | null;
+  const status = body?.status;
+  if (typeof status !== "string" || !(VERIFICATION_STATUSES as readonly string[]).includes(status)) {
+    return c.json({ error: "status must be one of: " + VERIFICATION_STATUSES.join(", ") }, 400);
+  }
+  const from = body?.fromStatus;
+  if (typeof from !== "string" || !(VERIFICATION_STATUSES as readonly string[]).includes(from)) {
+    return c.json({ error: "fromStatus must be one of: " + VERIFICATION_STATUSES.join(", ") }, 400);
+  }
+  const res = await c.env.DB.prepare(
+    `UPDATE questions SET verification_status = ?, reviewed_by = ?, reviewed_at = datetime('now')
+     WHERE source_id = ? AND verification_status = ?`,
+  )
+    .bind(status, "admin", sourceId, from)
+    .run();
+  return c.json({ updated: res.meta.changes });
+});
+
+// -------- reports queue --------
+
+admin.get("/reports", async (c) => {
+  const status = c.req.query("status") ?? "open";
+  const limit = Math.min(parseInt(c.req.query("limit") ?? "50", 10) || 50, 200);
+  const { results } = await c.env.DB.prepare(
+    `SELECT r.*, q.prompt AS question_prompt
+     FROM reports r LEFT JOIN questions q ON q.id = r.question_id
+     WHERE r.status = ? ORDER BY r.id DESC LIMIT ?`,
+  )
+    .bind(status, limit)
+    .all();
+  return c.json({ reports: results });
+});
+
+admin.post("/reports/:id/status", async (c) => {
+  const id = Number(c.req.param("id"));
+  const body = (await c.req.json().catch(() => null)) as { status?: unknown } | null;
+  const status = body?.status === "resolved" ? "resolved" : "open";
+  const res = await c.env.DB.prepare("UPDATE reports SET status = ? WHERE id = ?").bind(status, id).run();
+  if (res.meta.changes === 0) return c.json({ error: "report not found" }, 404);
+  return c.json({ id, status });
+});
+
 // -------- edit / verify / reject --------
 
 admin.patch("/questions/:id", async (c) => {

@@ -5,6 +5,7 @@ import { IconBolt, IconCheck, IconSparkle, IconX, SectionIcon } from "../icons";
 import { ScoreRing } from "../components/ScoreRing";
 import SnapSlider from "../components/SnapSlider";
 import { NoteBox, Reader } from "../components/Reader";
+import ReportBox from "../components/ReportBox";
 import AudioPlayer from "../components/AudioPlayer";
 import DictPopup, { type DictRequest } from "../components/DictPopup";
 import { play, playScore } from "../sfx";
@@ -469,6 +470,7 @@ export default function Exams() {
                   )}
                   <div className="question-actions">
                     <NoteBox questionId={q.id} section={q.section} label="Note" />
+                    <ReportBox questionId={q.id} />
                     {reviewing && results && (
                       <button
                         className="btn btn-sm btn-ghost"

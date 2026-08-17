@@ -7,7 +7,7 @@ import DebugPanel from "../components/DebugPanel";
 import { tagStyle } from "../sections";
 import type { AdminQuestion, BulkReportItem, Source } from "../types";
 
-type Tab = "overview" | "queue" | "add" | "bulk" | "sources" | "debug";
+type Tab = "overview" | "queue" | "add" | "bulk" | "sources" | "reports" | "debug";
 
 interface EditFormValues {
   prompt: string;
@@ -86,6 +86,7 @@ export default function Admin() {
       {tab === "add" && <AddQuestion />}
       {tab === "bulk" && <BulkImport />}
       {tab === "sources" && <Sources />}
+      {tab === "reports" && <Reports onOpenQueue={() => setTab("queue")} />}
       {tab === "debug" && import.meta.env.DEV && <DebugPanel />}
     </div>
   );
@@ -97,6 +98,7 @@ const TAB_LABELS: Record<Tab, string> = {
   add: "Add question",
   bulk: "Bulk import",
   sources: "Sources",
+  reports: "Reports",
   debug: "Debug",
 };
 
@@ -347,6 +349,16 @@ function ReviewQueue({ onChanged }: { onChanged?: () => void }) {
 
   const pages = Math.max(1, Math.ceil(total / 50));
 
+  const verifySource = async (target = "verified") => {
+    try {
+      const res = await api.adminSourceStatus(Number(source), target, status);
+      setError(`${res.updated} question(s) ${target}.`);
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "source update failed");
+    }
+  };
+
   const toggle = (id: number) =>
     setSelected((s) => {
       const next = new Set(s);
@@ -429,11 +441,43 @@ function ReviewQueue({ onChanged }: { onChanged?: () => void }) {
         </button>
       </div>
 
+      {source && (
+        <div className="bulk-bar">
+          <span className="small">
+            <b>{total}</b> {status} question(s) in this source
+          </span>
+          <div className="row">
+            <button
+              className="btn btn-sm btn-success"
+              disabled={busy || total === 0}
+              onClick={() => {
+                if (window.confirm(`Verify all ${total} ${status} questions in this source?`)) {
+                  void verifySource();
+                }
+              }}
+            >
+              Verify whole source
+            </button>
+            <button
+              className="btn btn-sm btn-danger"
+              disabled={busy || total === 0}
+              onClick={() => {
+                if (window.confirm(`Reject all ${total} ${status} questions in this source?`)) {
+                  void verifySource("rejected");
+                }
+              }}
+            >
+              Reject whole source
+            </button>
+          </div>
+        </div>
+      )}
+
       {selected.size > 0 && (
         <div className="bulk-bar" role="status">
           <b>{selected.size} selected</b>
           <div className="row">
-            <button className="btn btn-sm btn-primary" onClick={() => void decide([...selected], "verified")} disabled={busy}>
+            <button className="btn btn-sm btn-success" onClick={() => void decide([...selected], "verified")} disabled={busy}>
               Verify selected
             </button>
             <button className="btn btn-sm btn-danger" onClick={() => void decide([...selected], "rejected")} disabled={busy}>
@@ -496,12 +540,12 @@ function ReviewQueue({ onChanged }: { onChanged?: () => void }) {
             )}
             <div className="row">
               {editing !== q.id && (
-                <button className="btn btn-sm btn-ghost" onClick={() => openEdit(q)}>
+                <button className="btn btn-sm btn-edit" onClick={() => openEdit(q)}>
                   Edit
                 </button>
               )}
               {status !== "verified" && (
-                <button className="btn btn-sm btn-primary" onClick={() => void decide([q.id], "verified")}>
+                <button className="btn btn-sm btn-success" onClick={() => void decide([q.id], "verified")}>
                   Verify
                 </button>
               )}
@@ -1042,12 +1086,24 @@ function Sources() {
   const [sources, setSources] = useState<Source[]>([]);
   const [form, setForm] = useState({ type: "official", name: "", year: "", province: "", url: "" });
   const [error, setError] = useState<string | null>(null);
+  const [note, setNote] = useState<string | null>(null);
 
   const load = useCallback(() => {
     api.adminSources().then((r) => setSources(r.sources)).catch(() => undefined);
   }, []);
 
   useEffect(load, [load]);
+
+  const verifyAll = async (s: Source) => {
+    if (!window.confirm(`Mark every unverified question from "${s.name}" as verified? (You've spot-checked them first.)`)) return;
+    try {
+      const res = await api.adminSourceStatus(s.id, "verified", "unverified");
+      setNote(`${res.updated} question(s) from "${s.name}" verified.`);
+      setError(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "update failed");
+    }
+  };
 
   const create = async () => {
     setError(null);
@@ -1099,6 +1155,7 @@ function Sources() {
         Add source
       </button>
       {error && <div className="banner error" role="alert">{error}</div>}
+      {note && <div className="banner info" role="status">{note}</div>}
       <table>
         <thead>
           <tr>
@@ -1107,6 +1164,7 @@ function Sources() {
             <th>name</th>
             <th>year</th>
             <th>province</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
@@ -1117,10 +1175,98 @@ function Sources() {
               <td>{s.name}</td>
               <td>{s.year ?? "—"}</td>
               <td>{s.province ?? "—"}</td>
+              <td>
+                <button className="btn btn-sm btn-success" onClick={() => void verifyAll(s)} title="Mark all unverified questions of this source as verified">
+                  Verify all
+                </button>
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+// ---------------- reports ----------------
+
+function Reports({ onOpenQueue }: { onOpenQueue: () => void }) {
+  const [status, setStatus] = useState("open");
+  const [items, setItems] = useState<import("../types").ReportRow[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    setBusy(true);
+    try {
+      const res = await api.adminReports(status);
+      setItems(res.reports);
+      setError(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "load failed");
+    } finally {
+      setBusy(false);
+    }
+  }, [status]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const resolve = async (id: number, target: string) => {
+    try {
+      await api.adminReportStatus(id, target);
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "update failed");
+    }
+  };
+
+  return (
+    <div className="card panel">
+      <div className="row" style={{ marginBottom: 12 }}>
+        <select value={status} onChange={(e) => setStatus(e.target.value)} aria-label="Report status">
+          <option value="open">open</option>
+          <option value="resolved">resolved</option>
+        </select>
+      </div>
+      {error && <div className="banner error" role="alert">{error}</div>}
+      {!busy && items.length === 0 && (
+        <div className="empty">
+          <b>Nothing here</b>
+          <p>No {status} reports.</p>
+        </div>
+      )}
+      {items.map((r) => (
+        <div key={r.id} className="question">
+          <div className="question-head">
+            <span className="qnum">#{r.id}</span>
+            <span className={`tag ${r.report_type === "bug" ? "warn" : ""}`}>{r.report_type}</span>
+            <span className="tag">{r.reason}</span>
+            {r.question_id && <span className="tag">question #{r.question_id}</span>}
+            <span className="muted small">{r.created_at}</span>
+          </div>
+          {r.question_prompt && <p className="prompt">{r.question_prompt.slice(0, 200)}</p>}
+          {r.message && <p className="small">{r.message}</p>}
+          <div className="row">
+            {status !== "resolved" && (
+              <button className="btn btn-sm btn-success" onClick={() => void resolve(r.id, "resolved")}>
+                Mark resolved
+              </button>
+            )}
+            {status !== "open" && (
+              <button className="btn btn-sm btn-ghost" onClick={() => void resolve(r.id, "open")}>
+                Reopen
+              </button>
+            )}
+            {r.question_id && status === "open" && (
+              <button className="btn btn-sm btn-edit" onClick={onOpenQueue}>
+                Open in queue
+              </button>
+            )}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

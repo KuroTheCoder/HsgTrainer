@@ -1,11 +1,13 @@
 -- Listening support: questions may carry an audio clip path (e.g. "/audio/...")
 -- and the section enum gains "listening" (MCQ questions played back from audio).
 -- SQLite cannot alter CHECK constraints, so the questions table is rebuilt.
--- (No ALTER TABLE here: D1's ALTER emulation misbehaves inside migration batches.)
--- defer_foreign_keys: DROP TABLE questions implicitly deletes rows that the
--- answers table references; ids survive the rebuild, so defer the check to commit.
+-- foreign_keys OFF for the batch: miniflare's D1 emulation does not honor
+-- defer_foreign_keys across statements, and the rename-swap variant rewrites
+-- child FK clauses (answers would end up pointing at the dropped table). With
+-- FK enforcement off, DROP + rename leaves child schemas untouched — the swap
+-- is invisible to them (same table name, same ids).
 
-PRAGMA defer_foreign_keys = ON;
+PRAGMA foreign_keys = OFF;
 
 CREATE TABLE questions_new (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -48,3 +50,5 @@ ALTER TABLE questions_new RENAME TO questions;
 CREATE INDEX idx_questions_section ON questions(section);
 CREATE INDEX idx_questions_status ON questions(verification_status);
 CREATE INDEX idx_questions_source ON questions(source_id);
+
+PRAGMA foreign_keys = ON;

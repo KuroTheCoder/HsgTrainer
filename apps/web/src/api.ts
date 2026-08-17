@@ -127,6 +127,18 @@ export const api = {
     request<{ report: BulkReportItem[] }>("/admin/questions/bulk", { method: "POST", body: JSON.stringify(payload) }),
   adminUpdateQuestion: (id: number, patch: Record<string, unknown>) =>
     request<{ question: unknown }>(`/admin/questions/${id}`, { method: "PATCH", body: JSON.stringify(patch) }),
+  adminSourceStatus: (sourceId: number, status: string, fromStatus: string) =>
+    request<{ updated: number }>(`/admin/sources/${sourceId}/questions/status`, {
+      method: "POST",
+      body: JSON.stringify({ status, fromStatus }),
+    }),
+  adminReports: (status = "open") => request<{ reports: import("./types").ReportRow[] }>(`/admin/reports?status=${status}`),
+  adminReportStatus: (id: number, status: string) =>
+    request<{ id: number; status: string }>(`/admin/reports/${id}/status`, { method: "POST", body: JSON.stringify({ status }) }),
+
+  // reports (public)
+  report: (payload: { type: "question" | "bug"; questionId?: number; reason: string; message?: string }) =>
+    request<{ id: number }>("/reports", { method: "POST", body: JSON.stringify({ ...payload, anonId: getAnonId() }) }),
 };
 
 export type { AnswerResult };

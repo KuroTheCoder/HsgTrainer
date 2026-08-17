@@ -73,6 +73,18 @@ export interface BulkReportItem {
   error?: string;
 }
 
+export interface ReportRow {
+  id: number;
+  report_type: "question" | "bug";
+  question_id: number | null;
+  reason: string;
+  message: string | null;
+  anon_id: string | null;
+  status: "open" | "resolved";
+  created_at: string;
+  question_prompt: string | null;
+}
+
 export interface Mistake {
   answerId: number;
   sessionId: number;

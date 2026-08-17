@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { DICTIONARIES, getDefaultDictId, setDefaultDictId, getOpenMode, setOpenMode, type OpenMode } from "../dictionary";
-import { IconBook, IconExternal, IconPalette, IconPlay, IconVolume } from "../icons";
+import { IconBook, IconBug, IconExternal, IconPalette, IconPlay, IconVolume } from "../icons";
 import ThemeControls from "../components/ThemeControls";
+import ReportBox from "../components/ReportBox";
 import { play, setSfxMuted, setSfxVolumeFor, sfxMuted, sfxVolumes, type SfxName } from "../sfx";
 
 const SOUND_LABELS: { name: SfxName; label: string; hint: string }[] = [
@@ -21,6 +22,7 @@ const TABS = [
   { id: "appearance", label: "Appearance", icon: IconPalette },
   { id: "sounds", label: "Sounds", icon: IconVolume },
   { id: "dictionary", label: "Dictionary", icon: IconBook },
+  { id: "report", label: "Report", icon: IconBug },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
@@ -206,6 +208,20 @@ export default function Settings() {
             </p>
           </div>
         </>
+      )}
+
+      {tab === "report" && (
+        <div className="card panel settings-panel">
+          <h3>
+            <IconBug size={16} aria-hidden="true" /> Report a problem
+          </h3>
+          <p className="muted">
+            Something broken, missing, or off about the site? Tell us what happened — bug reports go straight to
+            the maintainer's review queue. Found a wrong key on a question? Use the Report button next to that
+            question.
+          </p>
+          <ReportBox bug />
+        </div>
       )}
     </div>
   );

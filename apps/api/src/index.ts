@@ -7,6 +7,7 @@ import contribute from "./routes/contribute";
 import admin from "./routes/admin";
 import stats from "./routes/stats";
 import exams from "./routes/exams";
+import reports from "./routes/reports";
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -35,6 +36,7 @@ app.route("/api/contribute", contribute);
 app.route("/api/admin", admin);
 app.route("/api/stats", stats);
 app.route("/api/exams", exams);
+app.route("/api/reports", reports);
 
 app.onError((err, c) => {
   console.error(err);

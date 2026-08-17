@@ -86,6 +86,21 @@ The **writing bank** (`GET /api/writing/history`) reads the rows where `criterio
 | feedback | TEXT (JSON) | AI feedback snapshot for writing |
 | created_at | TEXT | ISO |
 
+### reports
+
+User-submitted flags: a wrong key / bad prompt on a specific question (`report_type = 'question'`, `question_id` set) or a general bug report (`report_type = 'bug'`). Created via public `POST /api/reports`; triaged in the admin **Reports** tab (`GET /api/admin/reports`, `POST /api/admin/reports/:id/status`). Reports never auto-change question state — the maintainer decides in the queue.
+
+| Column | Type | Notes |
+|---|---|---|
+| id | INTEGER PK | |
+| report_type | TEXT | `question` or `bug` |
+| question_id | INTEGER FK → questions (nullable) | set for question reports |
+| reason | TEXT | picked from a short list |
+| message | TEXT | optional detail |
+| anon_id | TEXT | reporter's anonymous id |
+| status | TEXT | `open` / `resolved` |
+| created_at | TEXT | ISO |
+
 ## Indexes
 
 - `questions(section)`, `questions(verification_status)` — practice drawing
