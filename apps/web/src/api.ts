@@ -2,6 +2,7 @@ import type { AnswerResult, BulkReportItem, Question, SessionQuestions, SessionR
 
 const ADMIN_TOKEN_KEY = "hsg_admin_token";
 const ANON_KEY = "hsg_anon_id";
+const PAGE = 50;
 
 export function getAnonId(): string {
   let id = localStorage.getItem(ANON_KEY);
@@ -108,7 +109,18 @@ export const api = {
   adminSources: () => request<{ sources: Source[] }>("/admin/sources"),
   adminCreateSource: (source: Record<string, unknown>) =>
     request<{ id: number }>("/admin/sources", { method: "POST", body: JSON.stringify(source) }),
-  adminQueue: (status: string) => request<{ questions: import("./types").AdminQuestion[] }>(`/admin/questions?status=${status}`),
+  adminBulkStatus: (ids: number[], status: string) =>
+    request<{ updated: number }>("/admin/questions/status", { method: "POST", body: JSON.stringify({ ids, status }) }),
+  adminQueue: (opts: { status: string; section?: string; qtype?: string; source?: string; tag?: string; q?: string; page?: number }) => {
+    const qs = new URLSearchParams({ status: opts.status });
+    if (opts.section) qs.set("section", opts.section);
+    if (opts.qtype) qs.set("qtype", opts.qtype);
+    if (opts.source) qs.set("source", opts.source);
+    if (opts.tag) qs.set("tag", opts.tag);
+    if (opts.q) qs.set("q", opts.q);
+    if (opts.page) qs.set("offset", String((opts.page - 1) * PAGE));
+    return request<{ questions: import("./types").AdminQuestion[]; total: number }>(`/admin/questions?${qs}`);
+  },
   adminCreateQuestion: (draft: Record<string, unknown>) =>
     request<{ id: number; status: string }>("/admin/questions", { method: "POST", body: JSON.stringify(draft) }),
   adminBulkImport: (payload: unknown) =>

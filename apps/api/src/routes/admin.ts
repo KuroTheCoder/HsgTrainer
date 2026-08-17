@@ -71,15 +71,50 @@ admin.post("/sources", async (c) => {
 
 admin.get("/questions", async (c) => {
   const status = c.req.query("status") ?? "unverified";
+  const section = c.req.query("section") ?? null;
+  const qtype = c.req.query("qtype") ?? null;
+  const sourceId = c.req.query("source") ? Number(c.req.query("source")) : null;
+  const tag = c.req.query("tag") ?? null;
+  const q = c.req.query("q") ?? null;
   const limit = Math.min(parseInt(c.req.query("limit") ?? "50", 10) || 50, 200);
+  const offset = Math.max(parseInt(c.req.query("offset") ?? "0", 10) || 0, 0);
+
+  let where = "WHERE q.verification_status = ?";
+  const params: string[] = [status];
+  if (section) {
+    where += " AND q.section = ?";
+    params.push(section);
+  }
+  if (qtype) {
+    where += " AND q.qtype = ?";
+    params.push(qtype);
+  }
+  if (sourceId) {
+    where += " AND q.source_id = ?";
+    params.push(String(sourceId));
+  }
+  if (tag) {
+    where += " AND q.tags LIKE ?";
+    params.push(`%"${tag}"%`);
+  }
+  if (q) {
+    where += " AND (q.prompt LIKE ? OR q.answer LIKE ?)";
+    params.push(`%${q}%`, `%${q}%`);
+  }
+
   const { results } = await c.env.DB.prepare(
     `SELECT q.*, s.name AS source_name, s.type AS source_type
      FROM questions q LEFT JOIN sources s ON s.id = q.source_id
-     WHERE q.verification_status = ? ORDER BY q.id DESC LIMIT ?`,
+     ${where} ORDER BY q.id DESC LIMIT ? OFFSET ?`,
   )
-    .bind(status, limit)
+    .bind(...params, limit, offset)
     .all();
-  return c.json({ questions: results });
+  const totalRow = await c.env.DB.prepare(
+    `SELECT COUNT(*) AS n FROM questions q ${where}`,
+  )
+    .bind(...params)
+    .first<{ n: number }>();
+  return c.json({ questions: results, total: totalRow?.n ?? 0 });
 });
 
 // -------- create (single draft) --------

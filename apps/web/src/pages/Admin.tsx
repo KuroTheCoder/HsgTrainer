@@ -23,11 +23,11 @@ export default function Admin() {
   const loadCounts = useCallback(async () => {
     try {
       const [u, v, r] = await Promise.all([
-        api.adminQueue("unverified"),
-        api.adminQueue("verified"),
-        api.adminQueue("rejected"),
+        api.adminQueue({ status: "unverified" }),
+        api.adminQueue({ status: "verified" }),
+        api.adminQueue({ status: "rejected" }),
       ]);
-      setCounts({ unverified: u.questions.length, verified: v.questions.length, rejected: r.questions.length });
+      setCounts({ unverified: u.total, verified: v.total, rejected: r.total });
     } catch {
       // counts are decorative; never block the page on them
     }
@@ -98,16 +98,16 @@ function Overview() {
     setBusy(true);
     try {
       const [u, v, r, src, p] = await Promise.all([
-        api.adminQueue("unverified"),
-        api.adminQueue("verified"),
-        api.adminQueue("rejected"),
+        api.adminQueue({ status: "unverified" }),
+        api.adminQueue({ status: "verified" }),
+        api.adminQueue({ status: "rejected" }),
         api.adminSources(),
         api.getPapers(),
       ]);
       setData({
-        unverified: u.questions.length,
-        verified: v.questions.length,
-        rejected: r.questions.length,
+        unverified: u.total,
+        verified: v.total,
+        rejected: r.total,
         sources: src.sources.length,
         papers: p.papers.length,
       });
@@ -218,7 +218,15 @@ function Login({ onLogin }: { onLogin: (token: string) => void }) {
 
 function ReviewQueue({ onChanged }: { onChanged?: () => void }) {
   const [status, setStatus] = useState("unverified");
+  const [section, setSection] = useState("");
+  const [qtype, setQtype] = useState("");
+  const [source, setSource] = useState("");
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
   const [items, setItems] = useState<AdminQuestion[]>([]);
+  const [total, setTotal] = useState(0);
+  const [sources, setSources] = useState<Source[]>([]);
+  const [selected, setSelected] = useState<Set<number>>(new Set());
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<number | null>(null);
@@ -241,28 +249,51 @@ function ReviewQueue({ onChanged }: { onChanged?: () => void }) {
     }
   };
 
+  useEffect(() => {
+    api.adminSources().then((r) => setSources(r.sources)).catch(() => undefined);
+  }, []);
+
+  const filters = { status, section, qtype, source, q: search.trim() };
+
   const load = useCallback(async () => {
     setBusy(true);
     setError(null);
     try {
-      const res = await api.adminQueue(status);
+      const res = await api.adminQueue({ ...filters, page });
       setItems(res.questions);
+      setTotal(res.total);
+      setSelected(new Set());
     } catch (e) {
       setError(e instanceof Error ? e.message : "load failed");
     } finally {
       setBusy(false);
     }
-  }, [status]);
+  }, [filters.status, filters.section, filters.qtype, filters.source, filters.q, page]);
 
   useEffect(() => {
     void load();
   }, [load]);
 
-  const decide = async (id: number, verificationStatus: string) => {
+  const pages = Math.max(1, Math.ceil(total / 50));
+
+  const toggle = (id: number) =>
+    setSelected((s) => {
+      const next = new Set(s);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+
+  const allSelected = items.length > 0 && items.every((q) => selected.has(q.id));
+
+  const decide = async (ids: number[], verificationStatus: string) => {
     try {
-      await api.adminUpdateQuestion(id, { verificationStatus });
+      const res = await api.adminBulkStatus(ids, verificationStatus);
+      setError(null);
       await load();
       onChanged?.();
+      if (ids.length === 1) return;
+      setError(`${res.updated} question(s) ${verificationStatus === "verified" ? "verified" : "rejected"}.`);
     } catch (e) {
       setError(e instanceof Error ? e.message : "update failed");
     }
@@ -270,26 +301,108 @@ function ReviewQueue({ onChanged }: { onChanged?: () => void }) {
 
   return (
     <div className="card panel">
-      <div className="row" style={{ marginBottom: 12 }}>
-        <select value={status} onChange={(e) => setStatus(e.target.value)}>
-          <option value="unverified">unverified</option>
-          <option value="verified">verified</option>
-          <option value="rejected">rejected</option>
-        </select>
+      <div className="queue-filters">
+        <label className="field">
+          Status
+          <select value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }}>
+            <option value="unverified">unverified</option>
+            <option value="verified">verified</option>
+            <option value="rejected">rejected</option>
+          </select>
+        </label>
+        <label className="field">
+          Source
+          <select value={source} onChange={(e) => { setSource(e.target.value); setPage(1); }}>
+            <option value="">all sources</option>
+            {sources.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="field">
+          Section
+          <select value={section} onChange={(e) => { setSection(e.target.value); setPage(1); }}>
+            <option value="">all sections</option>
+            {SECTIONS.map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+        </label>
+        <label className="field">
+          Type
+          <select value={qtype} onChange={(e) => { setQtype(e.target.value); setPage(1); }}>
+            <option value="">all types</option>
+            {TYPES.map((t) => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
+        </label>
+        <input
+          type="text"
+          className="answer-input"
+          placeholder="Search prompt or key…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              setPage(1);
+              void load();
+            }
+          }}
+          aria-label="Search prompt or key"
+        />
         <button className="btn btn-sm" onClick={() => void load()} disabled={busy}>
-          {busy ? "Refreshing…" : "Refresh"}
+          {busy ? "Loading…" : "Apply"}
         </button>
       </div>
+
+      {selected.size > 0 && (
+        <div className="bulk-bar" role="status">
+          <b>{selected.size} selected</b>
+          <div className="row">
+            <button className="btn btn-sm btn-primary" onClick={() => void decide([...selected], "verified")} disabled={busy}>
+              Verify selected
+            </button>
+            <button className="btn btn-sm btn-danger" onClick={() => void decide([...selected], "rejected")} disabled={busy}>
+              Reject selected
+            </button>
+            <button className="btn btn-sm btn-ghost" onClick={() => setSelected(new Set())} disabled={busy}>
+              Clear
+            </button>
+          </div>
+        </div>
+      )}
+
       {error && <div className="banner error" role="alert">{error}</div>}
       {!busy && items.length === 0 && (
         <div className="empty">
           <b>Nothing here</b>
-          <p>No questions in this status.</p>
+          <p>No questions match these filters.</p>
         </div>
       )}
+
+      {items.length > 0 && (
+        <label className="queue-select-all">
+          <input
+            type="checkbox"
+            checked={allSelected}
+            onChange={() => setSelected(allSelected ? new Set() : new Set(items.map((x) => x.id)))}
+          />
+          Select all {items.length} on this page
+        </label>
+      )}
+
       {items.map((q) => (
         <div key={q.id} className="question">
           <div className="question-head">
+            <input
+              type="checkbox"
+              checked={selected.has(q.id)}
+              onChange={() => toggle(q.id)}
+              aria-label={`Select question ${q.id}`}
+            />
             <span className="qnum">#{q.id}</span>
             <span className="tag" style={tagStyle(q.qtype)}>{q.qtype}</span>
             <span className="tag" style={tagStyle(q.section)}>{q.section}</span>
@@ -311,12 +424,12 @@ function ReviewQueue({ onChanged }: { onChanged?: () => void }) {
           )}
           <div className="row">
             {status !== "verified" && (
-              <button className="btn btn-sm btn-primary" onClick={() => decide(q.id, "verified")}>
+              <button className="btn btn-sm btn-primary" onClick={() => void decide([q.id], "verified")}>
                 Verify
               </button>
             )}
             {status !== "rejected" && (
-              <button className="btn btn-sm btn-danger" onClick={() => decide(q.id, "rejected")}>
+              <button className="btn btn-sm btn-danger" onClick={() => void decide([q.id], "rejected")}>
                 Reject
               </button>
             )}
@@ -329,6 +442,18 @@ function ReviewQueue({ onChanged }: { onChanged?: () => void }) {
           )}
         </div>
       ))}
+
+      <div className="queue-pager">
+        <button className="btn btn-sm btn-ghost" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={busy || page <= 1}>
+          ← Prev
+        </button>
+        <span className="muted small">
+          Page {page} / {pages} · {total} question{total === 1 ? "" : "s"}
+        </span>
+        <button className="btn btn-sm btn-ghost" onClick={() => setPage((p) => Math.min(pages, p + 1))} disabled={busy || page >= pages}>
+          Next →
+        </button>
+      </div>
     </div>
   );
 }
