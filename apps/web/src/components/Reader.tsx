@@ -10,6 +10,20 @@ interface ToolbarState {
   text: string;
 }
 
+/** Shrink a selection range so leading/trailing whitespace is not part of it. */
+function trimRangeWhitespace(range: Range): void {
+  const raw = range.toString();
+  const leading = raw.length - raw.trimStart().length;
+  const trailing = raw.length - raw.trimEnd().length;
+  if (leading === 0 && trailing === 0) return;
+  if (range.startContainer instanceof Text) {
+    range.setStart(range.startContainer, Math.min(range.startOffset + leading, range.startContainer.data.length));
+  }
+  if (range.endContainer instanceof Text) {
+    range.setEnd(range.endContainer, Math.max(range.endOffset - trailing, range.startOffset));
+  }
+}
+
 export function Reader({
   questionId,
   text,
@@ -35,12 +49,14 @@ export function Reader({
     const sel = window.getSelection();
     if (!wrap) return;
     if (sel && wrap.contains(sel.anchorNode) && !sel.isCollapsed && sel.rangeCount > 0) {
-      const text = sel.toString().trim();
+      const range = sel.getRangeAt(0);
+      trimRangeWhitespace(range);
+      const text = range.toString().trim();
       if (text.length < 2 || text.length > 300) {
         setToolbar(null);
         return;
       }
-      const rect = sel.getRangeAt(0).getBoundingClientRect();
+      const rect = range.getBoundingClientRect();
       setToolbar({ x: rect.left + rect.width / 2, y: rect.top, text });
     } else {
       setToolbar(null);
