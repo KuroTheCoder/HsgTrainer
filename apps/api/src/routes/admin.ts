@@ -3,7 +3,7 @@ import type { Env } from "../env";
 import { adminAuth } from "../middleware/adminAuth";
 import { issueAdminToken } from "../lib/auth";
 import { sha256Hex } from "../lib/hash";
-import { questionDraftSchema, sourceSchema, bulkImportSchema, VERIFICATION_STATUSES, CEFR_LEVELS } from "../lib/validate";
+import { questionDraftSchema, sourceSchema, bulkImportSchema, VERIFICATION_STATUSES, CEFR_LEVELS, QUESTION_TYPES, SECTIONS } from "../lib/validate";
 import type { QuestionRow, SourceType, VerificationStatus } from "../types";
 
 const admin = new Hono<{ Bindings: Env }>();
@@ -288,6 +288,14 @@ admin.patch("/questions/:id", async (c) => {
   jsonListField("tags", "tags");
   jsonListField("key_words", "keyWords");
   cefrField("difficulty", "difficulty");
+  if (typeof body.qtype === "string" && (QUESTION_TYPES as readonly string[]).includes(body.qtype)) {
+    updates.push("qtype = ?");
+    params.push(body.qtype);
+  }
+  if (typeof body.section === "string" && (SECTIONS as readonly string[]).includes(body.section)) {
+    updates.push("section = ?");
+    params.push(body.section);
+  }
 
   if (typeof body.verificationStatus === "string" && (VERIFICATION_STATUSES as readonly string[]).includes(body.verificationStatus)) {
     updates.push("verification_status = ?", "reviewed_by = ?", "reviewed_at = datetime('now')");

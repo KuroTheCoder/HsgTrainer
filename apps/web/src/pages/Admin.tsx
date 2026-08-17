@@ -9,6 +9,18 @@ import type { AdminQuestion, BulkReportItem, Source } from "../types";
 
 type Tab = "overview" | "queue" | "add" | "bulk" | "sources" | "debug";
 
+interface EditFormValues {
+  prompt: string;
+  answer: string;
+  variants: string;
+  keyWords: string;
+  tags: string;
+  explanation: string;
+  qtype: string;
+  section: string;
+  difficulty: string;
+}
+
 function errorsToList(errors: FormErrors): FormError[] {
   return (Object.keys(errors) as (keyof FormErrors)[])
     .map((k) => ({ field: `a-${k}`, message: errors[k]! }))
@@ -230,6 +242,12 @@ function ReviewQueue({ onChanged }: { onChanged?: () => void }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<number | null>(null);
+  const [editing, setEditing] = useState<number | null>(null);
+  const [form, setForm] = useState<EditFormValues>({
+    prompt: "", answer: "", variants: "", keyWords: "", tags: "", explanation: "",
+    qtype: "mcq", section: "lexico-grammar", difficulty: "B1",
+  });
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const variantsOf = (q: AdminQuestion): string[] => {
     try {
@@ -248,6 +266,59 @@ function ReviewQueue({ onChanged }: { onChanged?: () => void }) {
       return [];
     }
   };
+
+  const tagsOf = (q: AdminQuestion): string[] => {
+    try {
+      const v = JSON.parse(q.tags) as unknown;
+      return Array.isArray(v) ? v.filter((x): x is string => typeof x === "string") : [];
+    } catch {
+      return [];
+    }
+  };
+
+  const splitList = (s: string): string[] => s.split(",").map((x) => x.trim()).filter(Boolean);
+
+  const openEdit = (q: AdminQuestion) => {
+    setForm({
+      prompt: q.prompt,
+      answer: q.answer,
+      variants: variantsOf(q).join(", "),
+      keyWords: keyWordsOf(q).join(", "),
+      tags: tagsOf(q).join(", "),
+      explanation: q.explanation ?? "",
+      qtype: q.qtype,
+      section: q.section,
+      difficulty: q.difficulty,
+    });
+    setSaveError(null);
+    setEditing(q.id);
+  };
+
+  const saveEdit = async (q: AdminQuestion) => {
+    if (!form.prompt.trim() || !form.answer.trim()) {
+      setSaveError("Prompt and key are required.");
+      return;
+    }
+    try {
+      await api.adminUpdateQuestion(q.id, {
+        prompt: form.prompt.trim(),
+        answer: form.answer.trim(),
+        acceptedVariants: splitList(form.variants),
+        keyWords: splitList(form.keyWords),
+        tags: splitList(form.tags),
+        explanation: form.explanation.trim() || undefined,
+        qtype: form.qtype,
+        section: form.section,
+        difficulty: form.difficulty,
+      });
+      setEditing(null);
+      await load();
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : "save failed");
+    }
+  };
+
+  const set = (k: keyof EditFormValues) => (e: { target: { value: string } }) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
   useEffect(() => {
     api.adminSources().then((r) => setSources(r.sources)).catch(() => undefined);
@@ -394,54 +465,155 @@ function ReviewQueue({ onChanged }: { onChanged?: () => void }) {
         </label>
       )}
 
-      {items.map((q) => (
-        <div key={q.id} className="question">
-          <div className="question-head">
-            <input
-              type="checkbox"
-              checked={selected.has(q.id)}
-              onChange={() => toggle(q.id)}
-              aria-label={`Select question ${q.id}`}
-            />
-            <span className="qnum">#{q.id}</span>
-            <span className="tag" style={tagStyle(q.qtype)}>{q.qtype}</span>
-            <span className="tag" style={tagStyle(q.section)}>{q.section}</span>
-            {q.source_name && <span className="tag">{q.source_name}</span>}
-          </div>
-          <p className="prompt">{q.prompt.slice(0, 240)}{q.prompt.length > 240 ? "…" : ""}</p>
-          <p className="small">
-            Key: <b>{q.answer}</b>
-            {variantsOf(q).length > 0 && ` · variants: ${variantsOf(q).join(", ")}`}
-          </p>
-          {keyWordsOf(q).length > 0 && (
-            <div className="row-chips">
-              {keyWordsOf(q).map((kw) => (
-                <span key={kw} className="tag">
-                  {kw}
-                </span>
-              ))}
+      <div className="queue-scroll">
+        {items.map((q) => (
+          <div key={q.id} className="question">
+            <div className="question-head">
+              <input
+                type="checkbox"
+                checked={selected.has(q.id)}
+                onChange={() => toggle(q.id)}
+                aria-label={`Select question ${q.id}`}
+              />
+              <span className="qnum">#{q.id}</span>
+              <span className="tag" style={tagStyle(q.qtype)}>{q.qtype}</span>
+              <span className="tag" style={tagStyle(q.section)}>{q.section}</span>
+              {q.source_name && <span className="tag">{q.source_name}</span>}
             </div>
-          )}
-          <div className="row">
-            {status !== "verified" && (
-              <button className="btn btn-sm btn-primary" onClick={() => void decide([q.id], "verified")}>
-                Verify
-              </button>
+            <p className="prompt">{q.prompt.slice(0, 240)}{q.prompt.length > 240 ? "…" : ""}</p>
+            <p className="small">
+              Key: <b>{q.answer}</b>
+              {variantsOf(q).length > 0 && ` · variants: ${variantsOf(q).join(", ")}`}
+            </p>
+            {keyWordsOf(q).length > 0 && (
+              <div className="row-chips">
+                {keyWordsOf(q).map((kw) => (
+                  <span key={kw} className="tag">
+                    {kw}
+                  </span>
+                ))}
+              </div>
             )}
-            {status !== "rejected" && (
-              <button className="btn btn-sm btn-danger" onClick={() => void decide([q.id], "rejected")}>
-                Reject
+            <div className="row">
+              {editing !== q.id && (
+                <button className="btn btn-sm btn-ghost" onClick={() => openEdit(q)}>
+                  Edit
+                </button>
+              )}
+              {status !== "verified" && (
+                <button className="btn btn-sm btn-primary" onClick={() => void decide([q.id], "verified")}>
+                  Verify
+                </button>
+              )}
+              {status !== "rejected" && (
+                <button className="btn btn-sm btn-danger" onClick={() => void decide([q.id], "rejected")}>
+                  Reject
+                </button>
+              )}
+              <button className="btn btn-sm btn-ghost" onClick={() => setExpanded(expanded === q.id ? null : q.id)}>
+                {expanded === q.id ? "collapse" : "details"}
               </button>
+            </div>
+            {expanded === q.id && editing !== q.id && (
+              <div className="verbal-details">
+                <p className="prompt">
+                  {q.prompt.split("____").map((part, i) => (
+                    <span key={i}>
+                      {part}
+                      {i < q.prompt.split("____").length - 1 && <mark className="blank">____</mark>}
+                    </span>
+                  ))}
+                </p>
+                <p className="small">
+                  Key: <b className="key-chip">{q.answer}</b>
+                </p>
+                {variantsOf(q).length > 0 && (
+                  <div className="row-chips">
+                    <span className="muted small">accepted variants:</span>
+                    {variantsOf(q).map((v) => (
+                      <span key={v} className="tag">{v}</span>
+                    ))}
+                  </div>
+                )}
+                {keyWordsOf(q).length > 0 && (
+                  <div className="row-chips">
+                    <span className="muted small">key words:</span>
+                    {keyWordsOf(q).map((kw) => (
+                      <span key={kw} className="tag">{kw}</span>
+                    ))}
+                  </div>
+                )}
+                {tagsOf(q).length > 0 && (
+                  <div className="row-chips">
+                    <span className="muted small">tags:</span>
+                    {tagsOf(q).map((t) => (
+                      <span key={t} className="tag">{t}</span>
+                    ))}
+                  </div>
+                )}
+                <p className="small muted">
+                  difficulty <b>{q.difficulty}</b>
+                  {q.source_name && ` · source: ${q.source_name} (${q.source_type ?? "?"})`}
+                </p>
+                {q.explanation && <p className="small">{q.explanation}</p>}
+              </div>
             )}
-            <button className="btn btn-sm btn-ghost" onClick={() => setExpanded(expanded === q.id ? null : q.id)}>
-              {expanded === q.id ? "collapse" : "details"}
-            </button>
+            {editing === q.id && (
+              <div className="edit-form">
+                {saveError && <div className="banner error" role="alert">{saveError}</div>}
+                <label className="field">
+                  Prompt (use ____ for the blank)
+                  <textarea rows={3} value={form.prompt} onChange={set("prompt")} />
+                </label>
+                <label className="field">
+                  Key
+                  <input type="text" value={form.answer} onChange={set("answer")} />
+                </label>
+                <div className="edit-grid">
+                  <label className="field">
+                    Accepted variants (comma-separated)
+                    <input type="text" value={form.variants} onChange={set("variants")} />
+                  </label>
+                  <label className="field">
+                    Key words (comma-separated)
+                    <input type="text" value={form.keyWords} onChange={set("keyWords")} />
+                  </label>
+                  <label className="field">
+                    Tags (comma-separated)
+                    <input type="text" value={form.tags} onChange={set("tags")} />
+                  </label>
+                  <label className="field">
+                    Type
+                    <select value={form.qtype} onChange={set("qtype")}>
+                      {TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
+                    </select>
+                  </label>
+                  <label className="field">
+                    Section
+                    <select value={form.section} onChange={set("section")}>
+                      {SECTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </label>
+                  <label className="field">
+                    Difficulty
+                    <select value={form.difficulty} onChange={set("difficulty")}>
+                      {CEFR_OPTIONS.map((d) => <option key={d} value={d}>{d}</option>)}
+                    </select>
+                  </label>
+                </div>
+                <label className="field">
+                  Explanation (optional)
+                  <textarea rows={2} value={form.explanation} onChange={set("explanation")} />
+                </label>
+                <div className="row">
+                  <button className="btn btn-sm btn-primary" onClick={() => void saveEdit(q)}>Save</button>
+                  <button className="btn btn-sm btn-ghost" onClick={() => setEditing(null)}>Cancel</button>
+                </div>
+              </div>
+            )}
           </div>
-          {expanded === q.id && (
-            <pre className="json">{JSON.stringify(q, null, 2)}</pre>
-          )}
-        </div>
-      ))}
+        ))}
+      </div>
 
       <div className="queue-pager">
         <button className="btn btn-sm btn-ghost" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={busy || page <= 1}>
