@@ -4,7 +4,9 @@ const KEY = "hsg-word-list";
 
 export const WORD_LIST_CHANGED_EVENT = "hsg-vocab-changed";
 
-export type VocabEntry = { addedAt: string };
+import { nextSchedule, isDue, type VocabRating } from "./vocabSchedule";
+
+export type VocabEntry = { addedAt: string; lvl?: number; due?: string };
 
 export function getWordList(): Record<string, VocabEntry> {
   try {
@@ -51,5 +53,23 @@ export function addWord(word: string): void {
 export function removeWord(word: string): void {
   const list = getWordList();
   delete list[normalizeWord(word)];
+  write(list);
+}
+
+/** Words due for review right now (never-scheduled words count as due). */
+export function dueWords(now = Date.now()): string[] {
+  const list = getWordList();
+  return Object.entries(list)
+    .filter(([, e]) => isDue(e, now))
+    .map(([w]) => w);
+}
+
+/** Apply a review rating to a word's spaced-repetition schedule. */
+export function rateWord(word: string, rating: VocabRating, now = Date.now()): void {
+  const list = getWordList();
+  const key = normalizeWord(word);
+  const entry = list[key];
+  if (!entry) return;
+  list[key] = { ...entry, ...nextSchedule(entry.lvl ?? 0, rating, now) };
   write(list);
 }

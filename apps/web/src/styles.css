@@ -1929,6 +1929,44 @@ mark {
 .word-card-word .muted { font-family: var(--font); font-size: 0.72rem; font-weight: 500; margin-left: 6px; }
 .word-card-word:hover { color: var(--accent); }
 
+.level-dots {
+  display: inline-flex;
+  gap: 3px;
+  margin-left: 4px;
+}
+.level-dots i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: 1.5px solid var(--accent);
+  background: transparent;
+}
+.level-dots i.on { background: var(--accent); box-shadow: 0 1px 0 rgba(0, 0, 0, 0.25); }
+
+.vocab-review { margin-bottom: 14px; }
+.vocab-review .spread > div { flex: 1; min-width: 0; }
+
+.review-card {
+  max-width: 560px;
+  margin: 0 auto;
+  text-align: center;
+  padding: 26px 22px;
+}
+.review-word {
+  font-family: var(--font-display);
+  font-size: 1.9rem;
+  margin: 6px 0 10px;
+  word-break: break-word;
+}
+.review-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 18px 0 12px;
+}
+.review-actions .btn { min-width: 110px; }
+
 .word-card-body {
   margin-top: 10px;
   border-top: 1px dashed var(--line-soft);
