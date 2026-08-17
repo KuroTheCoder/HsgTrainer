@@ -1,10 +1,11 @@
-﻿import { useCallback, useEffect, useState } from "react";
+﻿import { useCallback, useEffect, useRef, useState } from "react";
 import { api, clearAdminToken, getAdminToken, setAdminToken } from "../api";
 import { parseCsv } from "../csv";
 import { validateField, validateForm, type FormErrors, type QuestionFormValues } from "../formRules";
 import { ErrorSummary, type FormError } from "../components/ErrorSummary";
 import DebugPanel from "../components/DebugPanel";
 import { tagStyle } from "../sections";
+import { t } from "../i18n";
 import type { AdminQuestion, BulkReportItem, Source } from "../types";
 
 type Tab = "overview" | "queue" | "add" | "bulk" | "sources" | "reports" | "debug";
@@ -54,7 +55,7 @@ export default function Admin() {
   return (
     <div className="page">
       <div className="page-head">
-        <h2>Admin</h2>
+        <h2>{t("Admin")}</h2>
         <button
           className="btn btn-ghost btn-sm"
           onClick={() => {
@@ -62,24 +63,24 @@ export default function Admin() {
             setToken(null);
           }}
         >
-          Log out
+          {t("Log out")}
         </button>
       </div>
       <div className="seg">
-        {(["overview", "queue", "add", "bulk", "sources", ...(import.meta.env.DEV ? (["debug"] as Tab[]) : [])] as Tab[]).map((t) => (
+        {(["overview", "queue", "add", "bulk", "sources", ...(import.meta.env.DEV ? (["debug"] as Tab[]) : [])] as Tab[]).map((id) => (
           <button
-            key={t}
-            className={tab === t ? "active" : ""}
-            onClick={() => setTab(t)}
-            aria-label={t === "queue" && counts ? `${TAB_LABELS[t]}, ${counts.unverified} pending` : TAB_LABELS[t]}
+            key={id}
+            className={tab === id ? "active" : ""}
+            onClick={() => setTab(id)}
+            aria-label={id === "queue" && counts ? t("{label}, {n} pending", { label: TAB_LABELS[id], n: counts.unverified }) : t(TAB_LABELS[id])}
           >
-            {TAB_LABELS[t]}
-            {t === "queue" && (counts?.unverified ?? 0) > 0 && <span className="tab-badge">{counts!.unverified}</span>}
+            {t(TAB_LABELS[id])}
+            {id === "queue" && (counts?.unverified ?? 0) > 0 && <span className="tab-badge">{counts!.unverified}</span>}
           </button>
         ))}
       </div>
       <span className="sr-only" role="status">
-        {counts ? `${counts.unverified} questions in the review queue` : ""}
+        {counts ? t("{n} questions in the review queue", { n: counts.unverified }) : ""}
       </span>
       {tab === "overview" && <Overview />}
       {tab === "queue" && <ReviewQueue onChanged={() => void loadCounts()} />}
@@ -144,39 +145,39 @@ function Overview() {
       <div className="stat-grid">
         <div className="card panel stat-card">
           <div className="stat-num">{data?.verified ?? "…"}</div>
-          <div className="stat-label">Verified (live)</div>
+          <div className="stat-label">{t("Verified (live)")}</div>
         </div>
         <div className="card panel stat-card">
           <div className="stat-num">{data?.unverified ?? "…"}</div>
-          <div className="stat-label">Awaiting review</div>
+          <div className="stat-label">{t("Awaiting review")}</div>
         </div>
         <div className="card panel stat-card">
           <div className="stat-num">{data?.rejected ?? "…"}</div>
-          <div className="stat-label">Rejected</div>
+          <div className="stat-label">{t("Rejected")}</div>
         </div>
         <div className="card panel stat-card">
           <div className="stat-num">{data?.sources ?? "…"}</div>
-          <div className="stat-label">Sources</div>
+          <div className="stat-label">{t("Sources")}</div>
         </div>
         <div className="card panel stat-card">
           <div className="stat-num">{data?.papers ?? "…"}</div>
-          <div className="stat-label">Papers</div>
+          <div className="stat-label">{t("Papers")}</div>
         </div>
       </div>
 
       {data && (
         <div className="card panel">
-          <h3>Bank health</h3>
+          <h3>{t("Bank health")}</h3>
           <p className="muted" style={{ marginTop: 0 }}>
-            {total} total questions — {verifiedPct}% verified and live. Content only reaches students once verified.
+            {t("{total} total questions — {pct}% verified and live. Content only reaches students once verified.", { total, pct: verifiedPct })}
           </p>
           <div className="bar" style={{ height: 14 }}>
             <div className="bar-fill" style={{ width: `${verifiedPct}%`, background: "var(--ok)" }} />
           </div>
           <div className="row" style={{ marginTop: 14 }}>
-            <span className="hint">Start with the review queue — clear what's pending, then bulk-import papers.</span>
+            <span className="hint">{t("Start with the review queue — clear what's pending, then bulk-import papers.")}</span>
             <button className="btn btn-primary btn-sm" onClick={() => void load()} disabled={busy}>
-              {busy ? "Refreshing…" : "Refresh"}
+              {busy ? t("Refreshing…") : t("Refresh")}
             </button>
           </div>
         </div>
@@ -198,7 +199,7 @@ function Login({ onLogin }: { onLogin: (token: string) => void }) {
       setAdminToken(res.token);
       onLogin(res.token);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "login failed");
+      setError(e instanceof Error ? e.message : t("login failed"));
     } finally {
       setBusy(false);
     }
@@ -206,12 +207,12 @@ function Login({ onLogin }: { onLogin: (token: string) => void }) {
 
   return (
     <div className="card auth-card">
-      <h3 style={{ marginBottom: 4 }}>Staff login</h3>
+      <h3 style={{ marginBottom: 4 }}>{t("Staff login")}</h3>
       <p className="hint" style={{ marginTop: 0 }}>
-        Content curation is behind a token. Keep it private.
+        {t("Content curation is behind a token. Keep it private.")}
       </p>
       <label className="field">
-        Password
+        {t("Password")}
         <input
           type="password"
           placeholder="ADMIN_TOKEN"
@@ -221,7 +222,7 @@ function Login({ onLogin }: { onLogin: (token: string) => void }) {
         />
       </label>
       <button className="btn btn-primary" onClick={submit} disabled={busy}>
-        {busy ? "Logging in…" : "Login"}
+        {busy ? t("Logging in…") : t("Login")}
       </button>
       {error && <div className="banner error" role="alert">{error}</div>}
     </div>
@@ -298,7 +299,7 @@ function ReviewQueue({ onChanged }: { onChanged?: () => void }) {
 
   const saveEdit = async (q: AdminQuestion) => {
     if (!form.prompt.trim() || !form.answer.trim()) {
-      setSaveError("Prompt and key are required.");
+      setSaveError(t("Prompt and key are required."));
       return;
     }
     try {
@@ -352,10 +353,10 @@ function ReviewQueue({ onChanged }: { onChanged?: () => void }) {
   const verifySource = async (target = "verified") => {
     try {
       const res = await api.adminSourceStatus(Number(source), target, status);
-      setError(`${res.updated} question(s) ${target}.`);
+      setError(t("{n} question(s) {status}.", { n: res.updated, status: target }));
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "source update failed");
+      setError(e instanceof Error ? e.message : t("source update failed"));
     }
   };
 
@@ -376,17 +377,53 @@ function ReviewQueue({ onChanged }: { onChanged?: () => void }) {
       await load();
       onChanged?.();
       if (ids.length === 1) return;
-      setError(`${res.updated} question(s) ${verificationStatus === "verified" ? "verified" : "rejected"}.`);
+      setError(t("{n} question(s) {status}.", { n: res.updated, status: verificationStatus === "verified" ? "verified" : "rejected" }));
     } catch (e) {
-      setError(e instanceof Error ? e.message : "update failed");
+      setError(e instanceof Error ? e.message : t("update failed"));
     }
   };
+
+  // Keyboard-first review: acts on the first question on the page.
+  // v=verify r=reject x=details e=edit s=select. Ignored while typing or editing.
+  const queueKeyRef = useRef<(e: KeyboardEvent) => void>(() => {});
+  queueKeyRef.current = (e: KeyboardEvent) => {
+    const first = items[0];
+    if (!first || editing !== null) return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    const el = e.target as HTMLElement | null;
+    if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT" || el.isContentEditable)) return;
+    switch (e.key) {
+      case "v":
+        if (status !== "verified") { e.preventDefault(); void decide([first.id], "verified"); }
+        break;
+      case "r":
+        if (status !== "rejected") { e.preventDefault(); void decide([first.id], "rejected"); }
+        break;
+      case "x":
+        e.preventDefault();
+        setExpanded(expanded === first.id ? null : first.id);
+        break;
+      case "e":
+        e.preventDefault();
+        openEdit(first);
+        break;
+      case "s":
+        e.preventDefault();
+        toggle(first.id);
+        break;
+    }
+  };
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => queueKeyRef.current(e);
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
 
   return (
     <div className="card panel">
       <div className="queue-filters">
         <label className="field">
-          Status
+          {t("Status")}
           <select value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }}>
             <option value="unverified">unverified</option>
             <option value="verified">verified</option>
@@ -394,9 +431,9 @@ function ReviewQueue({ onChanged }: { onChanged?: () => void }) {
           </select>
         </label>
         <label className="field">
-          Source
+          {t("Source")}
           <select value={source} onChange={(e) => { setSource(e.target.value); setPage(1); }}>
-            <option value="">all sources</option>
+            <option value="">{t("all sources")}</option>
             {sources.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.name}
@@ -405,18 +442,18 @@ function ReviewQueue({ onChanged }: { onChanged?: () => void }) {
           </select>
         </label>
         <label className="field">
-          Section
+          {t("Section")}
           <select value={section} onChange={(e) => { setSection(e.target.value); setPage(1); }}>
-            <option value="">all sections</option>
+            <option value="">{t("all sections")}</option>
             {SECTIONS.map((s) => (
               <option key={s} value={s}>{s}</option>
             ))}
           </select>
         </label>
         <label className="field">
-          Type
+          {t("Type")}
           <select value={qtype} onChange={(e) => { setQtype(e.target.value); setPage(1); }}>
-            <option value="">all types</option>
+            <option value="">{t("all types")}</option>
             {TYPES.map((t) => (
               <option key={t} value={t}>{t}</option>
             ))}
@@ -425,7 +462,7 @@ function ReviewQueue({ onChanged }: { onChanged?: () => void }) {
         <input
           type="text"
           className="answer-input"
-          placeholder="Search prompt or key…"
+          placeholder={t("Search prompt or key…")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           onKeyDown={(e) => {
@@ -434,40 +471,40 @@ function ReviewQueue({ onChanged }: { onChanged?: () => void }) {
               void load();
             }
           }}
-          aria-label="Search prompt or key"
+          aria-label={t("Search prompt or key")}
         />
         <button className="btn btn-sm" onClick={() => void load()} disabled={busy}>
-          {busy ? "Loading…" : "Apply"}
+          {busy ? t("Loading…") : t("Apply")}
         </button>
       </div>
 
       {source && (
         <div className="bulk-bar">
           <span className="small">
-            <b>{total}</b> {status} question(s) in this source
+            <b>{total}</b> {t("{status} question(s) in this source", { status })}
           </span>
           <div className="row">
             <button
               className="btn btn-sm btn-success"
               disabled={busy || total === 0}
               onClick={() => {
-                if (window.confirm(`Verify all ${total} ${status} questions in this source?`)) {
+                if (window.confirm(t("Verify all {total} {status} questions in this source?", { total, status }))) {
                   void verifySource();
                 }
               }}
             >
-              Verify whole source
+              {t("Verify whole source")}
             </button>
             <button
               className="btn btn-sm btn-danger"
               disabled={busy || total === 0}
               onClick={() => {
-                if (window.confirm(`Reject all ${total} ${status} questions in this source?`)) {
+                if (window.confirm(t("Reject all {total} {status} questions in this source?", { total, status }))) {
                   void verifySource("rejected");
                 }
               }}
             >
-              Reject whole source
+              {t("Reject whole source")}
             </button>
           </div>
         </div>
@@ -475,16 +512,16 @@ function ReviewQueue({ onChanged }: { onChanged?: () => void }) {
 
       {selected.size > 0 && (
         <div className="bulk-bar" role="status">
-          <b>{selected.size} selected</b>
+          <b>{t("{n} selected", { n: selected.size })}</b>
           <div className="row">
             <button className="btn btn-sm btn-success" onClick={() => void decide([...selected], "verified")} disabled={busy}>
-              Verify selected
+              {t("Verify selected")}
             </button>
             <button className="btn btn-sm btn-danger" onClick={() => void decide([...selected], "rejected")} disabled={busy}>
-              Reject selected
+              {t("Reject selected")}
             </button>
             <button className="btn btn-sm btn-ghost" onClick={() => setSelected(new Set())} disabled={busy}>
-              Clear
+              {t("Clear")}
             </button>
           </div>
         </div>
@@ -493,8 +530,8 @@ function ReviewQueue({ onChanged }: { onChanged?: () => void }) {
       {error && <div className="banner error" role="alert">{error}</div>}
       {!busy && items.length === 0 && (
         <div className="empty">
-          <b>Nothing here</b>
-          <p>No questions match these filters.</p>
+          <b>{t("Nothing here")}</b>
+          <p>{t("No questions match these filters.")}</p>
         </div>
       )}
 
@@ -505,7 +542,7 @@ function ReviewQueue({ onChanged }: { onChanged?: () => void }) {
             checked={allSelected}
             onChange={() => setSelected(allSelected ? new Set() : new Set(items.map((x) => x.id)))}
           />
-          Select all {items.length} on this page
+          {t("Select all {n} on this page", { n: items.length })}
         </label>
       )}
 
@@ -517,7 +554,7 @@ function ReviewQueue({ onChanged }: { onChanged?: () => void }) {
                 type="checkbox"
                 checked={selected.has(q.id)}
                 onChange={() => toggle(q.id)}
-                aria-label={`Select question ${q.id}`}
+                aria-label={t("Select question {id}", { id: q.id })}
               />
               <span className="qnum">#{q.id}</span>
               <span className="tag" style={tagStyle(q.qtype)}>{q.qtype}</span>
@@ -526,8 +563,8 @@ function ReviewQueue({ onChanged }: { onChanged?: () => void }) {
             </div>
             <p className="prompt">{q.prompt.slice(0, 240)}{q.prompt.length > 240 ? "…" : ""}</p>
             <p className="small">
-              Key: <b>{q.answer}</b>
-              {variantsOf(q).length > 0 && ` · variants: ${variantsOf(q).join(", ")}`}
+              {t("Key")}: <b>{q.answer}</b>
+              {variantsOf(q).length > 0 && ` · ${t("variants")}: ${variantsOf(q).join(", ")}`}
             </p>
             {keyWordsOf(q).length > 0 && (
               <div className="row-chips">
@@ -541,21 +578,21 @@ function ReviewQueue({ onChanged }: { onChanged?: () => void }) {
             <div className="row">
               {editing !== q.id && (
                 <button className="btn btn-sm btn-edit" onClick={() => openEdit(q)}>
-                  Edit
+                  {t("Edit")}
                 </button>
               )}
               {status !== "verified" && (
                 <button className="btn btn-sm btn-success" onClick={() => void decide([q.id], "verified")}>
-                  Verify
+                  {t("Verify")}
                 </button>
               )}
               {status !== "rejected" && (
                 <button className="btn btn-sm btn-danger" onClick={() => void decide([q.id], "rejected")}>
-                  Reject
+                  {t("Reject")}
                 </button>
               )}
               <button className="btn btn-sm btn-ghost" onClick={() => setExpanded(expanded === q.id ? null : q.id)}>
-                {expanded === q.id ? "collapse" : "details"}
+                {expanded === q.id ? t("collapse") : t("details")}
               </button>
             </div>
             {expanded === q.id && editing !== q.id && (
@@ -569,11 +606,11 @@ function ReviewQueue({ onChanged }: { onChanged?: () => void }) {
                   ))}
                 </p>
                 <p className="small">
-                  Key: <b className="key-chip">{q.answer}</b>
+                  {t("Key")}: <b className="key-chip">{q.answer}</b>
                 </p>
                 {variantsOf(q).length > 0 && (
                   <div className="row-chips">
-                    <span className="muted small">accepted variants:</span>
+                    <span className="muted small">{t("accepted variants")}:</span>
                     {variantsOf(q).map((v) => (
                       <span key={v} className="tag">{v}</span>
                     ))}
@@ -581,7 +618,7 @@ function ReviewQueue({ onChanged }: { onChanged?: () => void }) {
                 )}
                 {keyWordsOf(q).length > 0 && (
                   <div className="row-chips">
-                    <span className="muted small">key words:</span>
+                    <span className="muted small">{t("key words")}:</span>
                     {keyWordsOf(q).map((kw) => (
                       <span key={kw} className="tag">{kw}</span>
                     ))}
@@ -589,15 +626,15 @@ function ReviewQueue({ onChanged }: { onChanged?: () => void }) {
                 )}
                 {tagsOf(q).length > 0 && (
                   <div className="row-chips">
-                    <span className="muted small">tags:</span>
+                    <span className="muted small">{t("tags")}:</span>
                     {tagsOf(q).map((t) => (
                       <span key={t} className="tag">{t}</span>
                     ))}
                   </div>
                 )}
                 <p className="small muted">
-                  difficulty <b>{q.difficulty}</b>
-                  {q.source_name && ` · source: ${q.source_name} (${q.source_type ?? "?"})`}
+                  {t("difficulty")} <b>{q.difficulty}</b>
+                  {q.source_name && ` · ${t("source")}: ${q.source_name} (${q.source_type ?? "?"})`}
                 </p>
                 {q.explanation && <p className="small">{q.explanation}</p>}
               </div>
@@ -606,52 +643,52 @@ function ReviewQueue({ onChanged }: { onChanged?: () => void }) {
               <div className="edit-form">
                 {saveError && <div className="banner error" role="alert">{saveError}</div>}
                 <label className="field">
-                  Prompt (use ____ for the blank)
+                  {t("Prompt (use ____ for the blank)")}
                   <textarea rows={3} value={form.prompt} onChange={set("prompt")} />
                 </label>
                 <label className="field">
-                  Key
+                  {t("Key")}
                   <input type="text" value={form.answer} onChange={set("answer")} />
                 </label>
                 <div className="edit-grid">
                   <label className="field">
-                    Accepted variants (comma-separated)
+                    {t("Accepted variants (comma-separated)")}
                     <input type="text" value={form.variants} onChange={set("variants")} />
                   </label>
                   <label className="field">
-                    Key words (comma-separated)
+                    {t("Key words (comma-separated)")}
                     <input type="text" value={form.keyWords} onChange={set("keyWords")} />
                   </label>
                   <label className="field">
-                    Tags (comma-separated)
+                    {t("Tags (comma-separated)")}
                     <input type="text" value={form.tags} onChange={set("tags")} />
                   </label>
                   <label className="field">
-                    Type
+                    {t("Type")}
                     <select value={form.qtype} onChange={set("qtype")}>
                       {TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
                     </select>
                   </label>
                   <label className="field">
-                    Section
+                    {t("Section")}
                     <select value={form.section} onChange={set("section")}>
                       {SECTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
                     </select>
                   </label>
                   <label className="field">
-                    Difficulty
+                    {t("Difficulty")}
                     <select value={form.difficulty} onChange={set("difficulty")}>
                       {CEFR_OPTIONS.map((d) => <option key={d} value={d}>{d}</option>)}
                     </select>
                   </label>
                 </div>
                 <label className="field">
-                  Explanation (optional)
+                  {t("Explanation (optional)")}
                   <textarea rows={2} value={form.explanation} onChange={set("explanation")} />
                 </label>
                 <div className="row">
-                  <button className="btn btn-sm btn-primary" onClick={() => void saveEdit(q)}>Save</button>
-                  <button className="btn btn-sm btn-ghost" onClick={() => setEditing(null)}>Cancel</button>
+                  <button className="btn btn-sm btn-primary" onClick={() => void saveEdit(q)}>{t("Save")}</button>
+                  <button className="btn btn-sm btn-ghost" onClick={() => setEditing(null)}>{t("Cancel")}</button>
                 </div>
               </div>
             )}
@@ -661,13 +698,13 @@ function ReviewQueue({ onChanged }: { onChanged?: () => void }) {
 
       <div className="queue-pager">
         <button className="btn btn-sm btn-ghost" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={busy || page <= 1}>
-          ← Prev
+          ← {t("Prev")}
         </button>
         <span className="muted small">
-          Page {page} / {pages} · {total} question{total === 1 ? "" : "s"}
+          {t("Page")} {page} / {pages} · {total} {t("question")}
         </span>
         <button className="btn btn-sm btn-ghost" onClick={() => setPage((p) => Math.min(pages, p + 1))} disabled={busy || page >= pages}>
-          Next →
+          {t("Next")} →
         </button>
       </div>
     </div>
@@ -764,11 +801,11 @@ function AddQuestion() {
       }
       if (sid) payload.sourceId = sid;
       const res = await api.adminCreateQuestion(payload);
-      setResult(`Created #${res.id} as ${res.status}.`);
+      setResult(t("Created #{id} as {status}.", { id: res.id, status: res.status }));
       setErrors({});
       setForm((f) => ({ ...f, prompt: "", answer: "", acceptedVariants: "", tags: "", keyWords: "", audio: "" }));
     } catch (e) {
-      setError(e instanceof Error ? e.message : "create failed");
+      setError(e instanceof Error ? e.message : t("create failed"));
     } finally {
       setBusy(false);
     }
@@ -776,11 +813,11 @@ function AddQuestion() {
 
   return (
     <div className="card panel">
-      <h3>Add a question</h3>
+      <h3>{t("Add a question")}</h3>
       <ErrorSummary errors={errorsToList(errors)} />
       <div className="field-grid">
         <label className="field">
-          Type
+          {t("Type")}
           <select value={form.qtype} onChange={(e) => set("qtype", e.target.value)}>
             {TYPES.map((t) => (
               <option key={t}>{t}</option>
@@ -788,7 +825,7 @@ function AddQuestion() {
           </select>
         </label>
         <label className="field">
-          Section
+          {t("Section")}
           <select value={form.section} onChange={(e) => set("section", e.target.value)}>
             {SECTIONS.map((s) => (
               <option key={s}>{s}</option>
@@ -796,7 +833,7 @@ function AddQuestion() {
           </select>
         </label>
         <label className="field">
-          Difficulty (CEFR)
+          {t("Difficulty (CEFR)")}
           <select value={form.difficulty} onChange={(e) => set("difficulty", e.target.value)}>
             {CEFR_OPTIONS.map((d) => (
               <option key={d} value={d}>
@@ -806,9 +843,9 @@ function AddQuestion() {
           </select>
         </label>
         <label className="field">
-          Source (optional)
+          {t("Source (optional)")}
           <select value={sourceId} onChange={(e) => setSourceId(e.target.value)}>
-            <option value="">— none —</option>
+            <option value="">— {t("none")} —</option>
             {sources.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.name} ({s.type})
@@ -818,12 +855,12 @@ function AddQuestion() {
         </label>
         <label className="field checkbox-line">
           <input type="checkbox" checked={newSource} onChange={(e) => setNewSource(e.target.checked)} />
-          Create a new source
+          {t("Create a new source")}
         </label>
         {newSource && (
           <>
             <label className="field">
-              Source type
+              {t("Source type")}
               <select value={newSourceForm.type} onChange={(e) => setNewSourceForm((f) => ({ ...f, type: e.target.value }))}>
                 <option value="official">official</option>
                 <option value="community">community</option>
@@ -831,17 +868,17 @@ function AddQuestion() {
               </select>
             </label>
             <label className="field">
-              Source name
+              {t("Source name")}
               <input value={newSourceForm.name} onChange={(e) => setNewSourceForm((f) => ({ ...f, name: e.target.value }))} placeholder="Đề HSG Quốc gia 2023" />
             </label>
             <label className="field">
-              Year
+              {t("Year")}
               <input value={newSourceForm.year} onChange={(e) => setNewSourceForm((f) => ({ ...f, year: e.target.value }))} />
             </label>
           </>
         )}
         <label className="field wide">
-          Prompt (include the passage inline for cloze/reading)
+          {t("Prompt (include the passage inline for cloze/reading)")}
           <textarea
             id="a-prompt"
             value={form.prompt}
@@ -859,7 +896,7 @@ function AddQuestion() {
         </label>
         {form.qtype === "mcq" && (
           <label className="field wide">
-            Options (pipe-separated, e.g. "ratified|rectified|rebutted|refuted")
+            {t("Options (pipe-separated, e.g. \"ratified|rectified|rebutted|refuted\")")}
             <input
               id="a-options"
               value={form.options}
@@ -876,7 +913,7 @@ function AddQuestion() {
           </label>
         )}
         <label className="field">
-          Answer {form.qtype === "mcq" ? "(letter A–D)" : ""}
+          {t("Answer")} {form.qtype === "mcq" ? t("(letter A–D)") : ""}
           <input
             id="a-answer"
             value={form.answer}
@@ -892,24 +929,24 @@ function AddQuestion() {
           )}
         </label>
         <label className="field">
-          Accepted variants (pipe-separated)
+          {t("Accepted variants (pipe-separated)")}
           <input value={form.acceptedVariants} onChange={(e) => set("acceptedVariants", e.target.value)} />
         </label>
         <label className="field">
-          Tags (comma-separated)
+          {t("Tags (comma-separated)")}
           <input value={form.tags} onChange={(e) => set("tags", e.target.value)} placeholder="stress, phrasal-verbs" />
         </label>
         <label className="field wide">
-          Audio clip path (for Listening questions — e.g. "/audio/paper-2023-part2.mp3")
+          {t("Audio clip path (for Listening questions — e.g. \"/audio/paper-2023-part2.mp3\")")}
           <input value={form.audio} onChange={(e) => set("audio", e.target.value)} placeholder="/audio/…" />
         </label>
         <label className="field wide">
-          Key words & phrases (comma-separated) — shown to students for quick dictionary lookup
+          {t("Key words & phrases (comma-separated) — shown to students for quick dictionary lookup")}
           <input value={form.keyWords} onChange={(e) => set("keyWords", e.target.value)} placeholder="at variance, abrupt, ratify" />
         </label>
       </div>
       <button className="btn btn-primary" onClick={() => void submit()} disabled={busy}>
-        {busy ? "Creating…" : "Create draft"}
+        {busy ? t("Creating…") : t("Create draft")}
       </button>
       {result && (
         <div className="banner ok" role="status">
@@ -989,7 +1026,7 @@ function BulkImport() {
     setError(null);
     try {
       const rows = parseCsv(text);
-      if (rows.length < 2) throw new Error("CSV needs a header row + at least one question");
+      if (rows.length < 2) throw new Error(t("CSV needs a header row + at least one question"));
       const headers = rows[0]!.map((h) => h.trim());
       const col = (name: string) => headers.indexOf(name);
       const questions: Record<string, unknown>[] = [];
@@ -1025,7 +1062,7 @@ function BulkImport() {
       const res = await api.adminBulkImport(source ? { source, questions } : { questions });
       setReport(res.report);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "CSV import failed");
+      setError(e instanceof Error ? e.message : t("CSV import failed"));
     } finally {
       setBusy(false);
     }
@@ -1033,34 +1070,34 @@ function BulkImport() {
 
   return (
     <div className="card panel">
-      <h3>Bulk import</h3>
+      <h3>{t("Bulk import")}</h3>
       <p className="hint">
-        Paste canonical JSON (docs/content-schema.md) or Google-Sheet CSV with header:{" "}
-        <code>{CSV_COLUMNS.join(",")}</code>  (options/variants pipe-separated).
+        {t("Paste canonical JSON (docs/content-schema.md) or Google-Sheet CSV with header:")}{" "}
+        <code>{CSV_COLUMNS.join(",")}</code>  {t("(options/variants pipe-separated).")}
       </p>
       <textarea rows={14} className="answer-input" value={text} onChange={(e) => setText(e.target.value)} placeholder='{ "source": { "type": "official", "name": "…" }, "questions": [ … ] }' />
       <div className="row" style={{ marginTop: 12 }}>
         <button className="btn btn-ghost" onClick={downloadCsvTemplate}>
-          Download CSV template
+          {t("Download CSV template")}
         </button>
         <button className="btn" onClick={importJson} disabled={busy || !text.trim()}>
-          {busy ? "Importing…" : "Import JSON"}
+          {busy ? t("Importing…") : t("Import JSON")}
         </button>
         <button className="btn btn-primary" onClick={importCsv} disabled={busy || !text.trim()}>
-          Import CSV
+          {t("Import CSV")}
         </button>
       </div>
       {error && <div className="banner error" role="alert">{error}</div>}
       {report && (
         <div>
-          <h4>Report ({report.length} rows)</h4>
+          <h4>{t("Report ({n} rows)", { n: report.length })}</h4>
           <table>
             <thead>
               <tr>
                 <th>#</th>
-                <th>status</th>
+                <th>{t("status")}</th>
                 <th>id</th>
-                <th>error</th>
+                <th>{t("error")}</th>
               </tr>
             </thead>
             <tbody>
@@ -1095,13 +1132,13 @@ function Sources() {
   useEffect(load, [load]);
 
   const verifyAll = async (s: Source) => {
-    if (!window.confirm(`Mark every unverified question from "${s.name}" as verified? (You've spot-checked them first.)`)) return;
+    if (!window.confirm(t("Mark every unverified question from \"{name}\" as verified? (You've spot-checked them first.)", { name: s.name }))) return;
     try {
       const res = await api.adminSourceStatus(s.id, "verified", "unverified");
-      setNote(`${res.updated} question(s) from "${s.name}" verified.`);
+      setNote(t("{n} question(s) from \"{name}\" verified.", { n: res.updated, name: s.name }));
       setError(null);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "update failed");
+      setError(e instanceof Error ? e.message : t("update failed"));
     }
   };
 
@@ -1118,7 +1155,7 @@ function Sources() {
       setForm({ type: "official", name: "", year: "", province: "", url: "" });
       load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "create failed");
+      setError(e instanceof Error ? e.message : t("create failed"));
     }
   };
 
@@ -1127,7 +1164,7 @@ function Sources() {
       <h3>Sources</h3>
       <div className="field-grid">
         <label className="field">
-          Source type
+          {t("Source type")}
           <select value={form.type} onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}>
             <option value="official">official</option>
             <option value="community">community</option>
@@ -1135,24 +1172,24 @@ function Sources() {
           </select>
         </label>
         <label className="field">
-          Source name
+          {t("Source name")}
           <input value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} placeholder="Đề HSG Quốc gia 2023" />
         </label>
         <label className="field">
-          Year
+          {t("Year")}
           <input value={form.year} onChange={(e) => setForm((f) => ({ ...f, year: e.target.value }))} />
         </label>
         <label className="field">
-          Province
+          {t("Province")}
           <input value={form.province} onChange={(e) => setForm((f) => ({ ...f, province: e.target.value }))} />
         </label>
         <label className="field">
-          URL
+          {t("URL")}
           <input value={form.url} onChange={(e) => setForm((f) => ({ ...f, url: e.target.value }))} />
         </label>
       </div>
       <button className="btn btn-primary" onClick={create} disabled={!form.name}>
-        Add source
+        {t("Add source")}
       </button>
       {error && <div className="banner error" role="alert">{error}</div>}
       {note && <div className="banner info" role="status">{note}</div>}
@@ -1160,10 +1197,10 @@ function Sources() {
         <thead>
           <tr>
             <th>id</th>
-            <th>type</th>
-            <th>name</th>
-            <th>year</th>
-            <th>province</th>
+            <th>{t("type")}</th>
+            <th>{t("name")}</th>
+            <th>{t("year")}</th>
+            <th>{t("province")}</th>
             <th></th>
           </tr>
         </thead>
@@ -1176,8 +1213,8 @@ function Sources() {
               <td>{s.year ?? "—"}</td>
               <td>{s.province ?? "—"}</td>
               <td>
-                <button className="btn btn-sm btn-success" onClick={() => void verifyAll(s)} title="Mark all unverified questions of this source as verified">
-                  Verify all
+                <button className="btn btn-sm btn-success" onClick={() => void verifyAll(s)} title={t("Mark all unverified questions of this source as verified")}>
+                  {t("Verify all")}
                 </button>
               </td>
             </tr>
@@ -1225,16 +1262,16 @@ function Reports({ onOpenQueue }: { onOpenQueue: () => void }) {
   return (
     <div className="card panel">
       <div className="row" style={{ marginBottom: 12 }}>
-        <select value={status} onChange={(e) => setStatus(e.target.value)} aria-label="Report status">
-          <option value="open">open</option>
-          <option value="resolved">resolved</option>
+        <select value={status} onChange={(e) => setStatus(e.target.value)} aria-label={t("Report status")}>
+          <option value="open">{t("open")}</option>
+          <option value="resolved">{t("resolved")}</option>
         </select>
       </div>
       {error && <div className="banner error" role="alert">{error}</div>}
       {!busy && items.length === 0 && (
         <div className="empty">
-          <b>Nothing here</b>
-          <p>No {status} reports.</p>
+          <b>{t("Nothing here")}</b>
+          <p>{t("No {status} reports.", { status })}</p>
         </div>
       )}
       {items.map((r) => (
@@ -1243,7 +1280,7 @@ function Reports({ onOpenQueue }: { onOpenQueue: () => void }) {
             <span className="qnum">#{r.id}</span>
             <span className={`tag ${r.report_type === "bug" ? "warn" : ""}`}>{r.report_type}</span>
             <span className="tag">{r.reason}</span>
-            {r.question_id && <span className="tag">question #{r.question_id}</span>}
+            {r.question_id && <span className="tag">{t("question")} #{r.question_id}</span>}
             <span className="muted small">{r.created_at}</span>
           </div>
           {r.question_prompt && <p className="prompt">{r.question_prompt.slice(0, 200)}</p>}
@@ -1251,17 +1288,17 @@ function Reports({ onOpenQueue }: { onOpenQueue: () => void }) {
           <div className="row">
             {status !== "resolved" && (
               <button className="btn btn-sm btn-success" onClick={() => void resolve(r.id, "resolved")}>
-                Mark resolved
+                {t("Mark resolved")}
               </button>
             )}
             {status !== "open" && (
               <button className="btn btn-sm btn-ghost" onClick={() => void resolve(r.id, "open")}>
-                Reopen
+                {t("Reopen")}
               </button>
             )}
             {r.question_id && status === "open" && (
               <button className="btn btn-sm btn-edit" onClick={onOpenQueue}>
-                Open in queue
+                {t("Open in queue")}
               </button>
             )}
           </div>

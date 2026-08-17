@@ -4,6 +4,7 @@ import { api } from "../api";
 import { analyzeEssay } from "../analyzeEssay";
 import { IconPen, IconSparkle, IconX } from "../icons";
 import { renderMarkdown } from "../md";
+import { t } from "../i18n";
 import type { WritingHistoryEntry } from "../types";
 
 const NOTE_KEY = "hsg-writing-note-dismissed";
@@ -28,34 +29,33 @@ function Diagnostics({ text }: { text: string }) {
   return (
     <div className="card diagnostics">
       <div className="spread">
-        <b>Diagnostics</b>
-        <span className="tag accent">Not an AI grade</span>
+        <b>{t("Diagnostics")}</b>
+        <span className="tag accent">{t("Not an AI grade")}</span>
       </div>
       <div className="stat-grid">
         <div className="stat-card">
           <div className="stat-num">{d.words}</div>
-          <div className="stat-label">Words</div>
+          <div className="stat-label">{t("Words")}</div>
         </div>
         <div className="stat-card">
           <div className="stat-num">{d.sentences}</div>
-          <div className="stat-label">Sentences</div>
+          <div className="stat-label">{t("Sentences")}</div>
         </div>
         <div className="stat-card">
           <div className="stat-num">{Math.round(d.avgSentenceWords * 10) / 10}</div>
-          <div className="stat-label">Avg sentence length</div>
+          <div className="stat-label">{t("Avg sentence length")}</div>
         </div>
         <div className="stat-card">
           <div className="stat-num">{Math.round(d.uniqueRatio * 100)}%</div>
-          <div className="stat-label">Vocabulary variety</div>
+          <div className="stat-label">{t("Vocabulary variety")}</div>
         </div>
         <div className="stat-card">
           <div className="stat-num">{d.readability.fleschKincaidGrade}</div>
-          <div className="stat-label">Grade level ({d.readability.label})</div>
+          <div className="stat-label">{t("Grade level ({label})", { label: d.readability.label })}</div>
         </div>
       </div>
       <p className="muted small" style={{ margin: "4px 0 10px" }}>
-        Flesch Reading Ease {d.readability.fleschReadingEase} · Gunning Fog {d.readability.gunningFog} ·{" "}
-        {Math.round(d.longRatio * 100)}% words over 6 letters. Rule-of-thumb readability only.
+        {t("Flesch Reading Ease {fre} · Gunning Fog {fog} · {pct}% words over 6 letters. Rule-of-thumb readability only.", { fre: d.readability.fleschReadingEase, fog: d.readability.gunningFog, pct: Math.round(d.longRatio * 100) })}
       </p>
       {d.flags.length > 0 && (
         <ul className="flag-list">
@@ -66,7 +66,7 @@ function Diagnostics({ text }: { text: string }) {
           ))}
         </ul>
       )}
-      {d.flags.length === 0 && <p className="hint">No obvious issues — looks clean.</p>}
+      {d.flags.length === 0 && <p className="hint">{t("No obvious issues — looks clean.")}</p>}
     </div>
   );
 }
@@ -76,10 +76,10 @@ function Entry({ entry }: { entry: WritingHistoryEntry }) {
     <details className="card panel writing-entry">
       <summary>
         <span className="tag ok">
-          {entry.band ? `Band ${entry.band}` : `${entry.score}/20`}
+          {entry.band ? t("Band {band}", { band: entry.band }) : t("{score}/20", { score: entry.score })}
         </span>
         <span className="muted small">{fmtDate(entry.createdAt)}</span>
-        <span className="muted small">{entry.response.trim().split(/\s+/).filter(Boolean).length} words</span>
+        <span className="muted small">{t("{n} words", { n: entry.response.trim().split(/\s+/).filter(Boolean).length })}</span>
       </summary>
       <div style={{ marginTop: 12 }}>
         <p className="prompt">{renderMarkdown(entry.prompt)}</p>
@@ -105,12 +105,12 @@ function Entry({ entry }: { entry: WritingHistoryEntry }) {
         )}
         {entry.justification && (
           <p className="small" style={{ marginTop: 10 }}>
-            <b>Why this score:</b> {entry.justification}
+            <b>{t("Why this score")}: </b> {entry.justification}
           </p>
         )}
         {entry.fixes && entry.fixes.length > 0 && (
           <div style={{ marginTop: 8 }}>
-            <b className="small">How to improve</b>
+            <b className="small">{t("How to improve")}</b>
             <ul style={{ marginTop: 4 }}>
               {entry.fixes.map((f, i) => (
                 <li key={i}>{f}</li>
@@ -137,7 +137,7 @@ export default function Writing() {
       const res = await api.getWritingHistory();
       setEntries(res.entries);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "load failed");
+      setError(e instanceof Error ? e.message : t("load failed"));
     } finally {
       setBusy(false);
     }
@@ -156,11 +156,11 @@ export default function Writing() {
     <div className="page">
       <div className="page-head">
         <h2>
-          <IconPen size={18} /> Writing bank
+          <IconPen size={18} /> {t("Writing bank")}
         </h2>
         <Link to="/practice?section=writing" className="btn btn-primary btn-sm">
           <IconSparkle size={14} />
-          New essay
+          {t("New essay")}
         </Link>
       </div>
 
@@ -173,26 +173,24 @@ export default function Writing() {
       {noteOpen && (
         <div className="banner info writing-note" role="status">
           <div>
-            <b>How your writing is handled</b>
+            <b>{t("How your writing is handled")}</b>
             <span className="small">
               {" "}
-              Essays are stored anonymously and used only to give you feedback. AI scoring sends your essay to a
-              scoring service — we never publish or share it. You get 3 AI feedback credits a day; the diagnostics
-              below are free and run entirely on your device.
+              {t("Essays are stored anonymously and used only to give you feedback. AI scoring sends your essay to a scoring service — we never publish or share it. You get 3 AI feedback credits a day; the diagnostics below are free and run entirely on your device.")}
             </span>
           </div>
-          <button className="btn btn-ghost btn-sm" onClick={dismissNote} aria-label="Dismiss note">
-            <IconX size={14} /> Got it
+          <button className="btn btn-ghost btn-sm" onClick={dismissNote} aria-label={t("Dismiss note")}>
+            <IconX size={14} /> {t("Got it")}
           </button>
         </div>
       )}
 
       {!busy && entries.length === 0 && (
         <div className="card empty">
-          <b>No essays yet</b>
-          <p>Write your first essay and get AI feedback — every scored essay is saved here with diagnostics.</p>
+          <b>{t("No essays yet")}</b>
+          <p>{t("Write your first essay and get AI feedback — every scored essay is saved here with diagnostics.")}</p>
           <Link to="/practice?section=writing" className="btn btn-primary btn-sm">
-            <IconSparkle size={14} /> Write an essay
+            <IconSparkle size={14} /> {t("Write an essay")}
           </Link>
         </div>
       )}

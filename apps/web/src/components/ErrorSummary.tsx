@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { t } from "../i18n";
 
 export interface FormError {
   field: string;
@@ -18,7 +19,7 @@ export function ErrorSummary({ errors, id = "form-error-summary" }: { errors: Fo
 
   return (
     <div className="error-summary" role="alert" tabIndex={-1} ref={ref} id={id} aria-labelledby={`${id}-title`}>
-      <b id={`${id}-title`}>There is a problem</b>
+      <b id={`${id}-title`}>{t("There is a problem")}</b>
       <ul>
         {errors.map((e) => (
           <li key={e.field + e.message}>
@@ -29,7 +30,7 @@ export function ErrorSummary({ errors, id = "form-error-summary" }: { errors: Fo
                 document.getElementById(e.field)?.focus();
               }}
             >
-              {e.message}
+              {t(e.message)}
             </a>
           </li>
         ))}

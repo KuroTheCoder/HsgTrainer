@@ -11,6 +11,7 @@ import {
   type ThemePreset,
 } from "../theme";
 import { play } from "../sfx";
+import { t } from "../i18n";
 
 export default function ThemeControls({ compact = false }: { compact?: boolean }) {
   const { theme, palette, background, intensity, custom, setTheme, setPalette, setBackground, setIntensity, setCustom, randomize, reset, applyPreset } = useTheme();
@@ -29,7 +30,7 @@ export default function ThemeControls({ compact = false }: { compact?: boolean }
     try {
       await navigator.clipboard.writeText(shareUrl);
     } catch {
-      window.prompt("Copy this link:", shareUrl);
+      window.prompt(t("Copy this link:"), shareUrl);
     }
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
@@ -49,33 +50,33 @@ export default function ThemeControls({ compact = false }: { compact?: boolean }
   const tryImport = (raw: string) => {
     const token = raw.includes("?") ? new URLSearchParams(raw.split("?")[1] ?? "").get("theme") : raw.trim();
     if (!token) return;
-    const t = decodeToken(token);
-    if (t) {
-      setTheme(t.theme);
-      setPalette(t.palette);
-      setBackground(t.background);
-      setIntensity(t.intensity);
-      if (t.palette === "custom") setCustom(t.custom);
+    const decoded = decodeToken(token);
+    if (decoded) {
+      setTheme(decoded.theme);
+      setPalette(decoded.palette);
+      setBackground(decoded.background);
+      setIntensity(decoded.intensity);
+      if (decoded.palette === "custom") setCustom(decoded.custom);
       setImportVal("");
     }
   };
 
   return (
     <div className={compact ? "" : "theme-panel"}>
-      <div className="theme-pop-label">Appearance</div>
+      <div className="theme-pop-label">{t("Appearance")}</div>
       <div className="seg">
         <button className={theme === "dark" ? "active" : ""} onClick={() => setTheme("dark")}>
-          Dark
+          {t("Dark")}
         </button>
         <button className={theme === "light" ? "active" : ""} onClick={() => setTheme("light")}>
-          Light
+          {t("Light")}
         </button>
         <button className={theme === "system" ? "active" : ""} onClick={() => setTheme("system")}>
-          System
+          {t("System")}
         </button>
       </div>
 
-      <div className="theme-pop-label">Accent</div>
+      <div className="theme-pop-label">{t("Accent")}</div>
       <div className="accent-row">
         <div className="swatches">
           {PALETTES.map((p) => (
@@ -84,8 +85,8 @@ export default function ThemeControls({ compact = false }: { compact?: boolean }
               className={`swatch ${palette === p.id ? "active" : ""}`}
               style={{ background: p.id === "custom" ? custom : p.swatch }}
               onClick={() => setPalette(p.id)}
-              aria-label={p.label}
-              title={p.label}
+              aria-label={t(p.label)}
+              title={t(p.label)}
             />
           ))}
         </div>
@@ -94,8 +95,8 @@ export default function ThemeControls({ compact = false }: { compact?: boolean }
             type="color"
             className="custom-color"
             value={custom}
-            aria-label="Custom accent color"
-            title="Pick any accent color"
+            aria-label={t("Custom accent color")}
+            title={t("Pick any accent color")}
             onChange={(e) => setCustom(e.target.value)}
           />
         )}
@@ -103,18 +104,18 @@ export default function ThemeControls({ compact = false }: { compact?: boolean }
 
       {!compact && (
         <>
-          <div className="theme-pop-label">Pattern</div>
+          <div className="theme-pop-label">{t("Pattern")}</div>
           <div className="seg">
             {INTENSITIES.map((i) => (
               <button key={i.id} className={intensity === i.id ? "active" : ""} onClick={() => setIntensity(i.id)}>
-                {i.label}
+                {t(i.label)}
               </button>
             ))}
           </div>
         </>
       )}
 
-      <div className="theme-pop-label">Background</div>
+      <div className="theme-pop-label">{t("Background")}</div>
       <div className="bg-swatches">
         {BACKGROUNDS.map((b) => (
           <button
@@ -122,25 +123,25 @@ export default function ThemeControls({ compact = false }: { compact?: boolean }
             className={`bg-swatch ${background === b.id ? "active" : ""}`}
             style={{ backgroundImage: b.swatch }}
             onClick={() => setBackground(b.id)}
-            aria-label={b.label}
+            aria-label={t(b.label)}
           >
-            {b.label}
+            {t(b.label)}
           </button>
         ))}
       </div>
 
       {!compact && (
         <>
-          <div className="theme-pop-label">Presets</div>
+          <div className="theme-pop-label">{t("Presets")}</div>
           <div className="preset-row">
             <input
               value={presetName}
-              placeholder="Name this theme…"
+              placeholder={t("Name this theme…")}
               onChange={(e) => setPresetName(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && savePreset()}
             />
             <button className="btn btn-sm" onClick={savePreset} disabled={!presetName.trim()}>
-              Save
+              {t("Save")}
             </button>
           </div>
           {presets.length > 0 && (
@@ -150,7 +151,7 @@ export default function ThemeControls({ compact = false }: { compact?: boolean }
                   <button className="preset-chip-apply" onClick={() => applyPreset(p)}>
                     {p.name}
                   </button>
-                  <button className="preset-chip-del" aria-label={`Delete preset ${p.name}`} onClick={() => deletePreset(p.id)}>
+                  <button className="preset-chip-del" aria-label={t("Delete preset {name}", { name: p.name })} onClick={() => deletePreset(p.id)}>
                     ×
                   </button>
                 </span>
@@ -158,16 +159,16 @@ export default function ThemeControls({ compact = false }: { compact?: boolean }
             </div>
           )}
 
-          <div className="theme-pop-label">Share</div>
+          <div className="theme-pop-label">{t("Share")}</div>
           <div className="theme-share">
             <input
               value={importVal}
-              placeholder="Paste a theme link to apply it…"
-              aria-label="Import a theme link"
+              placeholder={t("Paste a theme link to apply it…")}
+              aria-label={t("Import a theme link")}
               onChange={(e) => tryImport(e.target.value)}
             />
             <button className="btn btn-sm" onClick={() => void copy()}>
-              {copied ? "Copied!" : "Copy link"}
+              {copied ? t("Copied!") : t("Copy link")}
             </button>
           </div>
         </>
@@ -175,10 +176,10 @@ export default function ThemeControls({ compact = false }: { compact?: boolean }
 
       <div className="theme-actions">
         <button className="btn btn-sm" onClick={randomize}>
-          Random
+          {t("Random")}
         </button>
         <button className="btn btn-sm" onClick={reset}>
-          Reset
+          {t("Reset")}
         </button>
       </div>
     </div>

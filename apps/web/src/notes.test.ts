@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseNote, tagsInBody } from "./notes";
-import { tokenize } from "./notes-md";
+import { tokenize, youtubeId } from "./notes-md";
 
 describe("parseNote", () => {
   it("extracts title and tags from frontmatter, strips the block", () => {
@@ -48,5 +48,24 @@ describe("tokenize", () => {
   it("keeps paragraphs with internal line breaks merged", () => {
     const blocks = tokenize("line one\nline two");
     expect(blocks).toEqual([{ kind: "p", text: "line one\nline two" }]);
+  });
+
+  it("treats unknown callout types as note-style callouts", () => {
+    const blocks = tokenize("> [!question] Custom\n> body");
+    expect(blocks[0]).toEqual({ kind: "callout", calloutType: "note", text: "body", lang: "Custom" });
+  });
+});
+
+describe("youtubeId", () => {
+  it("extracts ids from watch, youtu.be, embed, and shorts URLs", () => {
+    expect(youtubeId("https://www.youtube.com/watch?v=dQw4w9WgXcQ")).toBe("dQw4w9WgXcQ");
+    expect(youtubeId("https://youtu.be/dQw4w9WgXcQ")).toBe("dQw4w9WgXcQ");
+    expect(youtubeId("https://www.youtube.com/embed/dQw4w9WgXcQ")).toBe("dQw4w9WgXcQ");
+    expect(youtubeId("https://www.youtube.com/shorts/dQw4w9WgXcQ")).toBe("dQw4w9WgXcQ");
+  });
+
+  it("rejects non-youtube urls and trailing punctuation", () => {
+    expect(youtubeId("https://example.com/watch?v=dQw4w9WgXcQ")).toBeNull();
+    expect(youtubeId("https://youtu.be/dQw4w9WgXcQ.")).toBe("dQw4w9WgXcQ");
   });
 });

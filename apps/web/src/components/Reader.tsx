@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { renderMarkdown } from "../md";
 import { addHighlight, getHighlights, getNote, removeHighlight, saveNote, type Note } from "../reader";
 import { IconPen } from "../icons";
+import { t } from "../i18n";
 
 interface ToolbarState {
   x: number;
@@ -101,20 +102,20 @@ export function Reader({
         className="reader-toolbar"
         style={{ left: toolbar.x + window.scrollX, top: toolbar.y + window.scrollY }}
         role="toolbar"
-        aria-label="Text tools"
+        aria-label={t("Text tools")}
       >
         {onLookup && (
-          <button onClick={() => onLookup(toolbar.text, toolbar.x, toolbar.y)} title="Look up in dictionary">
-            Dictionary
+          <button onClick={() => onLookup(toolbar.text, toolbar.x, toolbar.y)} title={t("Look up in dictionary")}>
+            {t("Dictionary")}
           </button>
         )}
         {highlights.includes(toolbar.text) ? (
-          <button onClick={unhighlight} title="Remove this highlight">
-            Unhighlight
+          <button onClick={unhighlight} title={t("Remove this highlight")}>
+            {t("Unhighlight")}
           </button>
         ) : (
-          <button onClick={highlight} title="Save as highlight">
-            Highlight
+          <button onClick={highlight} title={t("Save as highlight")}>
+            {t("Highlight")}
           </button>
         )}
       </span>,
@@ -153,24 +154,24 @@ export function NoteBox({
         className={`btn btn-sm btn-ghost ${note ? "has-note" : ""}`}
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        title={note ? "Edit note" : "Add a note"}
+        title={note ? t("Edit note") : t("Add a note")}
       >
         <IconPen size={13} />
-        {label}
+        {t(label)}
         {note && <span className="note-dot" aria-hidden="true" />}
       </button>
       {open && (
         <div className="note-editor">
           <textarea
             rows={3}
-            placeholder="Jot a note for this question…"
+            placeholder={t("Jot a note for this question…")}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            aria-label={`Note for question ${questionId}`}
+            aria-label={t("Note for question {id}", { id: questionId })}
           />
           <div className="row">
             <button className="btn btn-sm btn-primary" onClick={commit} disabled={!draft.trim()}>
-              Save note
+              {t("Save note")}
             </button>
             {note && (
               <button
@@ -181,7 +182,7 @@ export function NoteBox({
                   setNote(undefined);
                 }}
               >
-                Delete
+                {t("Delete")}
               </button>
             )}
           </div>

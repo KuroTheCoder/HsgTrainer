@@ -3,6 +3,7 @@ import { api } from "../api";
 import { CEFR_OPTIONS, sectionMeta } from "../sections";
 import { validateField, validateForm, type FormErrors, type QuestionFormValues } from "../formRules";
 import { ErrorSummary, type FormError } from "../components/ErrorSummary";
+import { t } from "../i18n";
 
 const TYPES: Record<string, string> = {
   mcq: "MCQ",
@@ -82,11 +83,11 @@ export default function Contribute() {
     if (form.qtype === "mcq") payload.options = form.options.split("|").map((s) => s.trim()).filter(Boolean);
     try {
       const res = await api.contribute(payload);
-      setDone(`Submitted — ${res.message} It will go live after a human review.`);
+      setDone(t("Submitted — {msg} It will go live after a human review.", { msg: res.message }));
       setErrors({});
       setForm((f) => ({ ...f, prompt: "", answer: "", acceptedVariants: "", tags: "", keyWords: "", options: "", audio: "" }));
     } catch (e) {
-      setError(e instanceof Error ? e.message : "submission failed");
+      setError(e instanceof Error ? e.message : t("submission failed"));
     } finally {
       setBusy(false);
     }
@@ -95,27 +96,26 @@ export default function Contribute() {
   return (
     <div className="page">
       <div className="page-head">
-        <h2>Contribute a question</h2>
+        <h2>{t("Contribute a question")}</h2>
       </div>
       <div className="card panel">
         <p className="hint" style={{ marginTop: 0 }}>
-          Share a good HSG-style question with the community. Submissions start <b>unverified</b> and go live only
-          after a human review — provenance is what keeps the bank trustworthy.
+          {t("Share a good HSG-style question with the community. Submissions start")} <b>{t("unverified")}</b> {t("and go live only after a human review — provenance is what keeps the bank trustworthy.")}
         </p>
         <ErrorSummary errors={errorsToList(errors)} />
         <div className="field-grid">
           <label className="field">
-            Type
+            {t("Type")}
             <select value={form.qtype} onChange={(e) => set("qtype", e.target.value)}>
               {Object.entries(TYPES).map(([value, label]) => (
                 <option key={value} value={value}>
-                  {label}
+                  {t(label)}
                 </option>
               ))}
             </select>
           </label>
           <label className="field">
-            Section
+            {t("Section")}
             <select value={form.section} onChange={(e) => set("section", e.target.value)}>
               {SECTIONS.map((s) => (
                 <option key={s} value={s}>
@@ -125,7 +125,7 @@ export default function Contribute() {
             </select>
           </label>
           <label className="field">
-            Difficulty (CEFR)
+            {t("Difficulty (CEFR)")}
             <select value={form.difficulty} onChange={(e) => set("difficulty", e.target.value)}>
               {CEFR_OPTIONS.map((d) => (
                 <option key={d} value={d}>
@@ -135,11 +135,11 @@ export default function Contribute() {
             </select>
           </label>
           <label className="field">
-            Tags (comma-separated)
+            {t("Tags (comma-separated)")}
             <input value={form.tags} onChange={(e) => set("tags", e.target.value)} placeholder="stress, phrasal-verbs" />
           </label>
           <label className="field wide">
-            Prompt (include the passage inline for cloze/reading)
+            {t("Prompt (include the passage inline for cloze/reading)")}
             <textarea
               id="c-prompt"
               value={form.prompt}
@@ -157,7 +157,7 @@ export default function Contribute() {
           </label>
           {form.qtype === "mcq" && (
             <label className="field wide">
-              Options (pipe-separated, e.g. "ratified|rectified|rebutted|refuted")
+              {t("Options (pipe-separated, e.g. \"ratified|rectified|rebutted|refuted\")")}
               <input
                 id="c-options"
                 value={form.options}
@@ -174,7 +174,7 @@ export default function Contribute() {
             </label>
           )}
           <label className="field">
-            Answer {form.qtype === "mcq" ? "(letter A–D)" : ""}
+            {t("Answer")} {form.qtype === "mcq" ? t("(letter A–D)") : ""}
             <input
               id="c-answer"
               value={form.answer}
@@ -190,20 +190,20 @@ export default function Contribute() {
             )}
           </label>
           <label className="field">
-            Accepted variants (pipe-separated)
+            {t("Accepted variants (pipe-separated)")}
             <input value={form.acceptedVariants} onChange={(e) => set("acceptedVariants", e.target.value)} />
           </label>
           <label className="field wide">
-            Audio clip path (for Listening questions — e.g. "/audio/paper-2023-part2.mp3")
+            {t("Audio clip path (for Listening questions — e.g. \"/audio/paper-2023-part2.mp3\")")}
             <input value={form.audio} onChange={(e) => set("audio", e.target.value)} placeholder="/audio/…" />
           </label>
           <label className="field wide">
-            Key words & phrases (comma-separated) — shown to students for quick dictionary lookup
+            {t("Key words & phrases (comma-separated) — shown to students for quick dictionary lookup")}
             <input value={form.keyWords} onChange={(e) => set("keyWords", e.target.value)} placeholder="at variance, abrupt, ratify" />
           </label>
         </div>
         <button className="btn btn-primary" onClick={() => void submit()} disabled={busy}>
-          {busy ? "Submitting…" : "Submit for review"}
+          {busy ? t("Submitting…") : t("Submit for review")}
         </button>
         {done && (
           <div className="banner ok" role="status">

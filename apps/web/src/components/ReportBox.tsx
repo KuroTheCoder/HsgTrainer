@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { api } from "../api";
 import { IconBug } from "../icons";
+import { t } from "../i18n";
 
 const QUESTION_REASONS = ["Wrong key", "Prompt is unclear / has errors", "Duplicate question", "Audio missing or wrong", "Other"];
 const BUG_REASONS = ["Something broke", "Wrong or missing content", "Idea / suggestion", "Other"];
@@ -37,7 +38,7 @@ export default function ReportBox({
       setReason("");
       setMessage("");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "report failed");
+      setError(e instanceof Error ? e.message : t("report failed"));
     } finally {
       setBusy(false);
     }
@@ -45,22 +46,22 @@ export default function ReportBox({
 
   return (
     <span className="notebox">
-      <button className="btn btn-sm btn-ghost" onClick={() => setOpen((o) => !o)} aria-expanded={open} title={label}>
+      <button className="btn btn-sm btn-ghost" onClick={() => setOpen((o) => !o)} aria-expanded={open} title={t(label)}>
         <IconBug size={13} />
-        {label}
+        {t(label)}
       </button>
       {open && (
-        <div className="report-box" role="dialog" aria-label={label}>
+        <div className="report-box" role="dialog" aria-label={t(label)}>
           {sent ? (
             <>
-              <p className="small"><b>Thanks — report sent.</b> The team will review it.</p>
+              <p className="small"><b>{t("Thanks — report sent.")}</b> {t("The team will review it.")}</p>
               <button className="btn btn-sm btn-ghost" onClick={() => { setSent(false); setOpen(false); }}>
-                Close
+                {t("Close")}
               </button>
             </>
           ) : (
             <>
-              <p className="small muted">What's wrong? Pick a reason:</p>
+              <p className="small muted">{t("What's wrong? Pick a reason:")}</p>
               <div className="report-reasons">
                 {reasons.map((r) => (
                   <button
@@ -69,24 +70,24 @@ export default function ReportBox({
                     aria-pressed={reason === r}
                     onClick={() => setReason(r)}
                   >
-                    {r}
+                    {t(r)}
                   </button>
                 ))}
               </div>
               <textarea
                 rows={2}
-                placeholder="Add details (optional)…"
+                placeholder={t("Add details (optional)…")}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                aria-label="Report details"
+                aria-label={t("Report details")}
               />
               {error && <div className="banner error" role="alert">{error}</div>}
               <div className="row">
                 <button className="btn btn-sm btn-primary" onClick={() => void submit()} disabled={!reason || busy}>
-                  {busy ? "Sending…" : "Send report"}
+                  {busy ? t("Sending…") : t("Send report")}
                 </button>
                 <button className="btn btn-sm btn-ghost" onClick={() => setOpen(false)}>
-                  Cancel
+                  {t("Cancel")}
                 </button>
               </div>
             </>

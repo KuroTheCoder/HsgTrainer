@@ -13,6 +13,7 @@ import { play, playScore } from "../sfx";
 import { launchConfetti } from "../confetti";
 import { renderMarkdown } from "../md";
 import { submitSession } from "../store";
+import { t } from "../i18n";
 import type { AnswerResult, CriterionScores, Question, WritingFeedback, WritingQuestion } from "../types";
 
 type Phase = "config" | "running" | "results" | "writing" | "writing-result";
@@ -27,7 +28,7 @@ const CRITERIA: { key: keyof CriterionScores; label: string }[] = [
 ];
 
 function StepsBar({ step }: { step: number }) {
-  const steps = ["Configure", "Answer", "Results"];
+  const steps = [t("Configure"), t("Answer"), t("Results")];
   return (
     <div className="steps-bar">
       {steps.map((label, i) => {
@@ -53,12 +54,12 @@ function Stamp({ tone, text }: { tone: "ok" | "warn" | "bad"; text: string }) {
 
 function CreditsDots({ remaining }: { remaining: number }) {
   return (
-    <span className="credits" title="AI feedback credits left today">
-      <span className="credits-label">AI credits</span>
+    <span className="credits" title={t("AI feedback credits left today")}>
+      <span className="credits-label">{t("AI credits")}</span>
       {Array.from({ length: 3 }, (_, i) => (
         <i key={i} className={i < remaining ? "on" : ""} aria-hidden="true" />
       ))}
-      <span className="muted small">{remaining} left today</span>
+      <span className="muted small">{t("{n} left today", { n: remaining })}</span>
     </span>
   );
 }
@@ -67,13 +68,13 @@ function KeyWords({ words, onLookup }: { words: string[]; onLookup: (word: strin
   if (!words.length) return null;
   return (
     <div className="key-words">
-      <span className="key-words-label">Key words & phrases</span>
+      <span className="key-words-label">{t("Key words & phrases")}</span>
       <div className="chip-row">
         {words.map((kw) => (
           <button
             key={kw}
             className="chip-btn chip-keyword"
-            title="Look up in the dictionary"
+            title={t("Look up in the dictionary")}
             onClick={(e) => {
               const r = e.currentTarget.getBoundingClientRect();
               onLookup(kw, r.left, r.bottom + 6);
@@ -132,7 +133,7 @@ export default function Practice() {
       if (ids?.length) {
         const s = await api.drawQuestions({ ids });
         questions = s.questions;
-        if (questions.length === 0) throw new Error("No verified questions for those ids.");
+        if (questions.length === 0) throw new Error(t("No verified questions for those ids."));
       } else if (isWriting) {
         await drawWriting();
         return;
@@ -145,7 +146,7 @@ export default function Practice() {
         });
         questions = s.questions;
         if (questions.length === 0) {
-          setError("No verified questions for this section yet — the content team is keying papers.");
+          setError(t("No verified questions for this section yet — the content team is keying papers."));
           setPhase("config");
           return;
         }
@@ -155,7 +156,7 @@ export default function Practice() {
       setResults(null);
       setPhase("running");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "failed to start session");
+      setError(e instanceof Error ? e.message : t("failed to start session"));
     } finally {
       setBusy(false);
     }
@@ -165,7 +166,7 @@ export default function Practice() {
     const res = await api.writingQuestions(1);
     const q = res.questions[0];
     if (!q) {
-      setError("No verified writing prompts yet.");
+      setError(t("No verified writing prompts yet."));
       setPhase("config");
       return;
     }
@@ -195,7 +196,7 @@ export default function Practice() {
     if (questions.length === 0) return;
     const missing = questions.filter((q) => !answers[q.id]?.trim());
     if (missing.length > 0) {
-      setError(`Answer every question first (${missing.length} left).`);
+      setError(t("Answer every question first ({n} left).", { n: missing.length }));
       return;
     }
     setBusy(true);
@@ -224,7 +225,7 @@ export default function Practice() {
       if (pct >= 80) launchConfetti({ count: pct === 100 ? 220 : 140 });
       setPhase("results");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "failed to submit");
+      setError(e instanceof Error ? e.message : t("failed to submit"));
     } finally {
       setBusy(false);
     }
@@ -241,7 +242,7 @@ export default function Practice() {
       play("complete");
       setPhase("writing-result");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "scoring failed");
+      setError(e instanceof Error ? e.message : t("scoring failed"));
     } finally {
       setBusy(false);
     }
@@ -262,17 +263,17 @@ export default function Practice() {
   return (
     <div className="page">
       <div className="page-head">
-        <h2>Practice</h2>
+        <h2>{t("Practice")}</h2>
       </div>
       {dict && <DictPopup word={dict.word} x={dict.x} y={dict.y} onClose={() => setDict(null)} />}
       <StepsBar step={step} />
       <span className="sr-only" role="status">
-        {busy ? "Working, please wait" : ""}
+        {busy ? t("Working, please wait") : ""}
       </span>
 
       {phase === "config" && (
         <div className="card panel">
-          <h3>1 · Pick a section</h3>
+          <h3>{t("1 · Pick a section")}</h3>
           <div className="section-tiles">
             {SECTIONS.map((s) => {
               const meta = sectionMeta(s.key);
@@ -288,7 +289,7 @@ export default function Practice() {
                   </span>
                   <span>
                     <b>{s.short}</b>
-                    <span className="muted">{meta?.deterministic ? "Instant feedback" : "AI-scored"}</span>
+                    <span className="muted">{meta?.deterministic ? t("Instant feedback") : t("AI-scored")}</span>
                   </span>
                 </button>
               );
@@ -298,7 +299,7 @@ export default function Practice() {
           {!isWriting && (
             <div className="setup-row">
               <div className="field">
-                Difficulty
+                {t("Difficulty")}
                 <div className="chip-row">
                   {DIFFICULTIES.map((d) => (
                     <button
@@ -314,7 +315,7 @@ export default function Practice() {
                 </div>
               </div>
               <div className="field">
-                Number of questions
+                {t("Number of questions")}
                 <SnapSlider
                   min={5}
                   max={25}
@@ -325,17 +326,17 @@ export default function Practice() {
                 />
               </div>
               <div className="field">
-                Book / tag
+                {t("Book / tag")}
                 <input
                   type="text"
                   className="answer-input"
-                  placeholder="e.g. word-form-drill (optional)"
+                  placeholder={t("e.g. word-form-drill (optional)")}
                   value={tag}
                   onChange={(e) => setTag(e.target.value)}
-                  aria-label="Practice tag"
+                  aria-label={t("Practice tag")}
                 />
                 <span className="hint small" style={{ marginTop: 4 }}>
-                  Scramble only questions with this tag — e.g. a specific book's drills.
+                  {t("Scramble only questions with this tag — e.g. a specific book's drills.")}
                 </span>
               </div>
             </div>
@@ -343,15 +344,13 @@ export default function Practice() {
 
           {isWriting && (
             <p className="hint" style={{ marginTop: 0, marginBottom: 18 }}>
-              Writing is scored by AI on the HSG rubric — content, organization, vocabulary, grammar. You get 3
-              feedback credits per day. Your essay is stored anonymously and used only to give you feedback (see the
-              Writing bank).
+              {t("Writing is scored by AI on the HSG rubric — content, organization, vocabulary, grammar. You get 3 feedback credits per day. Your essay is stored anonymously and used only to give you feedback (see the Writing bank).")}
             </p>
           )}
 
           {error && <div className="banner error">{error}</div>}
           <button className="btn btn-primary btn-lg btn-block" onClick={() => void start()} disabled={busy}>
-            {busy ? "Starting…" : isWriting ? "Draw a writing prompt" : "Start practice"}
+            {busy ? t("Starting…") : isWriting ? t("Draw a writing prompt") : t("Start practice")}
           </button>
         </div>
       )}
@@ -361,16 +360,16 @@ export default function Practice() {
           <div className="card panel" style={{ padding: "16px 20px" }}>
             <div className="spread">
               <div className="row" style={{ flex: 1 }}>
-                <strong>{sectionMeta(section)?.label ?? "Practice"}</strong>
+                <strong>{sectionMeta(section)?.label ?? t("Practice")}</strong>
                 <div className="progress-track">
                   <div className="progress-fill" style={{ width: `${(answeredCount / questions.length) * 100}%` }} />
                 </div>
                 <span className="muted small">
-                  {answeredCount}/{questions.length} answered
+                  {t("{n}/{total} answered", { n: answeredCount, total: questions.length })}
                 </span>
               </div>
               <button className="btn btn-primary" onClick={submit} disabled={busy || answeredCount < questions.length}>
-                {busy ? "Scoring…" : "Submit"}
+                {busy ? t("Scoring…") : t("Submit")}
               </button>
             </div>
             {error && (
@@ -400,7 +399,7 @@ export default function Practice() {
                     </span>
                   )}
                   <span className={`tag cefr ${cefrBand(q.difficulty)}`}>{q.difficulty}</span>
-                  {!answers[q.id]?.trim() && <span className="tag bad">unanswered</span>}
+                  {!answers[q.id]?.trim() && <span className="tag bad">{t("unanswered")}</span>}
                 </div>
                 <Reader questionId={q.id} text={q.prompt} className="prompt" onLookup={(w, x, y) => setDict({ word: w, x, y })} />
                 {q.audio && <AudioPlayer src={q.audio} />}
@@ -424,13 +423,13 @@ export default function Practice() {
                   <input
                     type="text"
                     className="answer-input"
-                    placeholder="Your answer…"
+                    placeholder={t("Your answer…")}
                     value={answers[q.id] ?? ""}
                     onChange={(e) => setAnswer(q.id, e.target.value)}
                   />
                 )}
                 <div className="question-actions">
-                  <NoteBox questionId={q.id} section={q.section} label="Note" />
+                  <NoteBox questionId={q.id} section={q.section} label={t("Note")} />
                   <ReportBox questionId={q.id} />
                 </div>
               </div>
@@ -441,7 +440,7 @@ export default function Practice() {
               onClick={submit}
               disabled={busy || answeredCount < questions.length}
             >
-              {busy ? "Scoring…" : answeredCount < questions.length ? `Submit (${answeredCount}/${questions.length} answered)` : "Submit"}
+              {busy ? t("Scoring…") : answeredCount < questions.length ? t("Submit ({n}/{total} answered)", { n: answeredCount, total: questions.length }) : t("Submit")}
             </button>
           </div>
         </>
@@ -453,19 +452,18 @@ export default function Practice() {
             <ScoreRing value={scoreSummary.correct} max={scoreSummary.total} tone={ringTone(scoreSummary.pct)} />
             <Stamp
               tone={ringTone(scoreSummary.pct)}
-              text={scoreSummary.pct >= 80 ? "A+" : scoreSummary.pct >= 60 ? "Keep going" : "Try again"}
+              text={scoreSummary.pct >= 80 ? "A+" : scoreSummary.pct >= 60 ? t("Keep going") : t("Try again")}
             />
             <div className="summary-meta">
               <h3>
-                {scoreSummary.pct >= 80 ? "Strong work!" : scoreSummary.pct >= 60 ? "Good — keep going" : "Room to grow"}
+                {scoreSummary.pct >= 80 ? t("Strong work!") : scoreSummary.pct >= 60 ? t("Good — keep going") : t("Room to grow")}
               </h3>
               <p className="muted">
-                {scoreSummary.correct}/{scoreSummary.total} correct ({scoreSummary.pct}%). Wrong answers are saved
-                to your mistake ledger.
+                {t("{correct}/{total} correct ({pct}%). Wrong answers are saved to your mistake ledger.", { correct: scoreSummary.correct, total: scoreSummary.total, pct: scoreSummary.pct })}
               </p>
               <div className="row">
                 <button className="btn btn-primary" onClick={() => setPhase("config")}>
-                  New set
+                  {t("New set")}
                 </button>
               </div>
             </div>
@@ -480,17 +478,17 @@ export default function Practice() {
                       {i + 1}.
                     </span>
                   </span>
-                  <span className={`tag ${r.correct ? "ok" : "bad"}`}>{r.correct ? "Correct" : "Wrong"}</span>
+                  <span className={`tag ${r.correct ? "ok" : "bad"}`}>{r.correct ? t("Correct") : t("Wrong")}</span>
                 </div>
                 <p className="prompt">{renderMarkdown(questions[i]?.prompt ?? "")}</p>
                 {questions[i]?.audio && <AudioPlayer src={questions[i].audio} />}
                 <KeyWords words={questions[i]?.keyWords ?? []} onLookup={(w, x, y) => setDict({ word: w, x, y })} />
                 <p className="small">
-                  Your answer: <b>{r.yourAnswer}</b>
+                  {t("Your answer")}: <b>{r.yourAnswer}</b>
                   {!r.correct && (
                     <>
                       {" "}
-                      — correct: <b>{r.expected}</b>
+                      — {t("correct")}: <b>{r.expected}</b>
                     </>
                   )}
                 </p>
@@ -504,11 +502,11 @@ export default function Practice() {
       {phase === "writing" && writingQ && (
         <div className="card panel">
           <div className="spread" style={{ marginBottom: 8 }}>
-            <strong>Writing prompt</strong>
+            <strong>{t("Writing prompt")}</strong>
             <div className="row">
               {remaining !== null && <CreditsDots remaining={remaining} />}
               <button className="btn btn-sm btn-ghost" onClick={() => void drawWriting()} disabled={busy}>
-                Another prompt
+                {t("Another prompt")}
               </button>
             </div>
           </div>
@@ -516,16 +514,16 @@ export default function Practice() {
           <textarea
             rows={12}
             className="answer-input"
-            placeholder="Write your essay here…"
+            placeholder={t("Write your essay here…")}
             value={writingResponse}
             onChange={(e) => setWritingResponse(e.target.value)}
             aria-describedby="writing-word-count"
           />
           <div className="question-actions">
-            <NoteBox questionId={writingQ.id} section="writing" label="Note" />
+            <NoteBox questionId={writingQ.id} section="writing" label={t("Note")} />
           </div>
           <p className="hint" id="writing-word-count" style={{ marginTop: 6 }}>
-            ≈ {wordCount} words
+            ≈ {t("{n} words", { n: wordCount })}
           </p>
           {error && (
             <div className="banner error" role="alert">
@@ -539,7 +537,7 @@ export default function Practice() {
             disabled={busy || !writingResponse.trim()}
           >
             <IconSparkle size={17} />
-            {busy ? "Scoring with AI…" : "Get AI feedback"}
+            {busy ? t("Scoring with AI…") : t("Get AI feedback")}
           </button>
         </div>
       )}
@@ -550,19 +548,19 @@ export default function Practice() {
             <ScoreRing value={writingFeedback.total ?? 0} max={20} tone={ringTone(((writingFeedback.total ?? 0) / 20) * 100)} />
             <Stamp
               tone={ringTone(((writingFeedback.total ?? 0) / 20) * 100)}
-              text={((writingFeedback.total ?? 0) / 20) * 100 >= 80 ? "A+" : ((writingFeedback.total ?? 0) / 20) * 100 >= 60 ? "Keep going" : "Try again"}
+              text={((writingFeedback.total ?? 0) / 20) * 100 >= 80 ? "A+" : ((writingFeedback.total ?? 0) / 20) * 100 >= 60 ? t("Keep going") : t("Try again")}
             />
             <div className="summary-meta">
-              <h3>Band {writingFeedback.band ?? "—"}</h3>
+              <h3>{t("Band")} {writingFeedback.band ?? "—"}</h3>
               <p className="muted">
                 {writingFeedback.status === "ok"
-                  ? "Scored against the HSG rubric. Your essay is saved to your history."
-                  : "Feedback unavailable right now."}
+                  ? t("Scored against the HSG rubric. Your essay is saved to your history.")
+                  : t("Feedback unavailable right now.")}
               </p>
               {remaining !== null && <CreditsDots remaining={remaining} />}
               <div className="row">
                 <button className="btn btn-primary" onClick={() => setPhase("config")}>
-                  New set
+                  {t("New set")}
                 </button>
               </div>
             </div>
@@ -595,13 +593,13 @@ export default function Practice() {
                 </div>
                 {writingFeedback.justification && (
                   <div>
-                    <h4 style={{ marginBottom: 4 }}>Why this score</h4>
+                    <h4 style={{ marginBottom: 4 }}>{t("Why this score")}</h4>
                     <p>{writingFeedback.justification}</p>
                   </div>
                 )}
                 {writingFeedback.fixes && writingFeedback.fixes.length > 0 && (
                   <div>
-                    <h4 style={{ marginBottom: 4 }}>How to improve</h4>
+                    <h4 style={{ marginBottom: 4 }}>{t("How to improve")}</h4>
                     <ul style={{ marginTop: 0 }}>
                       {writingFeedback.fixes.map((f, i) => (
                         <li key={i}>{f}</li>

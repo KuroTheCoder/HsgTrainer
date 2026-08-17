@@ -35,6 +35,15 @@
       ]
     },
     {
+      "slug": "media",
+      "title": "Media in notes",
+      "tags": [
+        "media",
+        "demo"
+      ],
+      "backlinks": []
+    },
+    {
       "slug": "word-formation",
       "title": "Word formation strategies",
       "tags": [

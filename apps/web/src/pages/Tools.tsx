@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { IconExternal } from "../icons";
+import { t } from "../i18n";
 
 interface BuiltInTool {
   name: string;
@@ -170,21 +171,20 @@ export default function Tools() {
   return (
     <div className="page-stack">
       <section className="card panel">
-        <h2>Free tools archive</h2>
+        <h2>{t("Free tools archive")}</h2>
         <p className="muted" style={{ margin: "6px 0 0" }}>
-          Everything on this page costs nothing. Tools we can't host or build for free are linked here instead — a
-          curated archive of what the community finds useful for HSG-style study.
+          {t("Everything on this page costs nothing. Tools we can't host or build for free are linked here instead — a curated archive of what the community finds useful for HSG-style study.")}
         </p>
       </section>
 
       <section>
-        <h3 className="tools-cat">Built into HsgTrainer</h3>
+        <h3 className="tools-cat">{t("Built into HsgTrainer")}</h3>
         <div className="tools-grid">
-          {BUILT_IN.map((t) => (
-            <Link key={t.name} to={t.to} className="tool-card">
-              <b>{t.name}</b>
-              <span className="tool-purpose">{t.purpose}</span>
-              <span className="tag ok">Built in · free</span>
+          {BUILT_IN.map((tool) => (
+            <Link key={tool.name} to={tool.to} className="tool-card">
+              <b>{t(tool.name)}</b>
+              <span className="tool-purpose">{t(tool.purpose)}</span>
+              <span className="tag ok">{t("Built in · free")}</span>
             </Link>
           ))}
         </div>
@@ -192,27 +192,27 @@ export default function Tools() {
 
       {Object.entries(COMMUNITY).map(([category, tools]) => (
         <section key={category}>
-          <h3 className="tools-cat">{category}</h3>
+          <h3 className="tools-cat">{t(category)}</h3>
           <div className="tools-grid">
-            {tools.map((t) => (
+            {tools.map((tool) => (
               <a
-                key={t.name}
-                href={t.href}
+                key={tool.name}
+                href={tool.href}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="tool-card"
                 onClick={(e) => {
-                  if (!t.consent) return;
+                  if (!tool.consent) return;
                   e.preventDefault();
-                  if (window.confirm(t.consent)) window.open(t.href, "_blank", "noopener,noreferrer");
+                  if (window.confirm(t(tool.consent))) window.open(tool.href, "_blank", "noopener,noreferrer");
                 }}
               >
                 <b>
-                  {t.name}
+                  {tool.name}
                   <IconExternal size={13} aria-hidden="true" />
                 </b>
-                <span className="tool-purpose">{t.purpose}</span>
-                <span className="tag ok">{t.free}</span>
+                <span className="tool-purpose">{t(tool.purpose)}</span>
+                <span className="tag ok">{t(tool.free)}</span>
               </a>
             ))}
           </div>
@@ -220,8 +220,7 @@ export default function Tools() {
       ))}
 
       <p className="hint">
-        Know a great free tool that belongs here? Mention it in a Contribute submission — the maintainer checks
-        community picks before adding them to the archive.
+        {t("Know a great free tool that belongs here? Mention it in a Contribute submission — the maintainer checks community picks before adding them to the archive.")}
       </p>
     </div>
   );

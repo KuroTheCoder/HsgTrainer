@@ -4,6 +4,7 @@ import { dueWords, getWordList, rateWord, removeWord, WORD_LIST_CHANGED_EVENT, t
 import { INTERVALS_DAYS, MAX_LEVEL, type VocabRating } from "../vocabSchedule";
 import { IconBook, IconExternal, IconTrash } from "../icons";
 import { play, playScore } from "../sfx";
+import { t } from "../i18n";
 
 function formatDate(iso: string): string {
   try {
@@ -24,7 +25,7 @@ function shuffle<T>(arr: T[]): T[] {
 
 function LevelDots({ lvl }: { lvl: number }) {
   return (
-    <span className="level-dots" title={`Level ${lvl}/${MAX_LEVEL} — every ${INTERVALS_DAYS[lvl] ?? 0} day(s)`} aria-label={`Level ${lvl} of ${MAX_LEVEL}`}>
+    <span className="level-dots" title={t("Level {lvl}/{max} — every {n} day(s)", { lvl, max: MAX_LEVEL, n: INTERVALS_DAYS[lvl] ?? 0 })} aria-label={t("Level {lvl} of {max}", { lvl, max: MAX_LEVEL })}>
       {Array.from({ length: MAX_LEVEL }, (_, i) => (
         <i key={i} className={i < lvl ? "on" : ""} aria-hidden="true" />
       ))}
@@ -42,12 +43,12 @@ function WordCard({ word, entry }: { word: string; entry: VocabEntry }) {
           <IconBook size={15} aria-hidden="true" />
           {word}
           <LevelDots lvl={entry.lvl ?? 0} />
-          <span className="muted small">added {formatDate(entry.addedAt)}</span>
+          <span className="muted small">{t("added {date}", { date: formatDate(entry.addedAt) })}</span>
         </button>
         <div className="row">
-          <button className="btn btn-sm btn-ghost" onClick={() => { removeWord(word); play("clear"); }} title={`Remove "${word}" from your list`}>
+          <button className="btn btn-sm btn-ghost" onClick={() => { removeWord(word); play("clear"); }} title={t("Remove \"{word}\" from your list", { word })}>
             <IconTrash size={13} aria-hidden="true" />
-            Remove
+            {t("Remove")}
           </button>
         </div>
       </div>
@@ -124,39 +125,39 @@ export default function WordList() {
     return (
       <div className="page">
         <div className="page-head">
-          <h2>Vocabulary review</h2>
-          <span className="tag accent">{total} left</span>
+          <h2>{t("Vocabulary review")}</h2>
+          <span className="tag accent">{t("{n} left", { n: total })}</span>
         </div>
         <div className="card panel review-card">
           {current ? (
             <>
-              <p className="hint" style={{ marginTop: 0 }}>Do you know this word?</p>
+              <p className="hint" style={{ marginTop: 0 }}>{t("Do you know this word?")}</p>
               <h3 className="review-word">{current}</h3>
               <div className="row">
                 <button className="btn btn-ghost" onClick={() => openDictionary(dictionaryLinks(current)[0]?.url ?? "")}>
                   <IconBook size={15} aria-hidden="true" />
-                  Look it up
+                  {t("Look it up")}
                 </button>
               </div>
               <div className="review-actions">
                 {RATINGS.map((r) => (
                   <button key={r.value} className={r.cls} onClick={() => rate(r.value)}>
-                    {r.label}
+                    {t(r.label)}
                   </button>
                 ))}
               </div>
               <button className="btn btn-sm btn-ghost" onClick={() => { setReviewing(false); setTick((t) => t + 1); }}>
-                End session
+                {t("End session")}
               </button>
             </>
           ) : (
             <div className="empty">
-              <b>Review complete</b>
+              <b>{t("Review complete")}</b>
               <p>
-                Knew it: <b>{summary.knew}</b> · Almost: <b>{summary.almost}</b> · Forgot: <b>{summary.forgot}</b>
+                {t("Knew it")}: <b>{summary.knew}</b> · {t("Almost")}: <b>{summary.almost}</b> · {t("Forgot")}: <b>{summary.forgot}</b>
               </p>
               <div className="row">
-                <button className="btn btn-primary" onClick={() => { setReviewing(false); setTick((t) => t + 1); }}>Back to list</button>
+                <button className="btn btn-primary" onClick={() => { setReviewing(false); setTick((t) => t + 1); }}>{t("Back to list")}</button>
               </div>
             </div>
           )}
@@ -168,16 +169,17 @@ export default function WordList() {
   return (
     <div className="page">
       <div className="page-head">
-        <h2>Word list</h2>
-        {count > 0 && <span className="tag accent">{count} saved</span>}
+        <h2>{t("Word list")}</h2>
+        {count > 0 && <span className="tag accent">{t("{n} saved", { n: count })}</span>}
       </div>
       {count === 0 ? (
         <div className="card panel">
           <div className="empty">
-            <b>No words saved yet</b>
+            <b>{t("No words saved yet")}</b>
             <p>
-              Select a word in any practice question and hit <b>Dictionary</b>, or tap a key-word chip, then press{" "}
-              <b>+ Add to word list</b>. Saved words live only in your browser.
+              {t("Select a word in any practice question and hit")} <b>{t("Dictionary")}</b>
+              {t(", or tap a key-word chip, then press")}{" "}
+              <b>+ {t("Add to word list")}</b>. {t("Saved words live only in your browser.")}
             </p>
           </div>
         </div>
@@ -186,15 +188,15 @@ export default function WordList() {
           <div className="card panel vocab-review">
             <div className="spread">
               <div>
-                <b>Spaced review</b>
+                <b>{t("Spaced review")}</b>
                 <p className="hint" style={{ margin: "2px 0 0" }}>
                   {due > 0
-                    ? `${due} word${due === 1 ? "" : "s"} due today — review drills them until you know them.`
-                    : "All caught up. New words are due immediately, then every 1, 3, 7, 14, 30 days."}
+                    ? t("{n} word{s} due today — review drills them until you know them.", { n: due, s: due === 1 ? "" : "s" })
+                    : t("All caught up. New words are due immediately, then every 1, 3, 7, 14, 30 days.")}
                 </p>
               </div>
               <button className="btn btn-primary" onClick={startReview} disabled={due === 0}>
-                {due === 0 ? "All caught up" : `Review ${due}`}
+                {due === 0 ? t("All caught up") : t("Review {n}", { n: due })}
               </button>
             </div>
           </div>

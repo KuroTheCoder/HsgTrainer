@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { useTheme, type Background } from "./theme";
 import { SECTIONS } from "./sections";
+import { t, useLocale } from "./i18n";
 import ThemeControls from "./components/ThemeControls";
 import { IconBolt, IconBook, IconClock, IconDoc, IconGear, IconPen, IconPlus, IconTarget, IconTool, IconTrend, IconUser, IconUsers, SectionIcon } from "./icons";
 import { NOTES_CHANGED_EVENT, noteIdsForSection } from "./reader";
@@ -59,13 +60,13 @@ function ThemeMenu() {
       <button
         className="theme-toggle"
         onClick={() => setOpen((o) => !o)}
-        aria-label="Theme settings"
+        aria-label={t("Theme settings")}
         aria-expanded={open}
       >
         <span className={open ? "rotate" : ""} style={{ display: "inline-flex" }}>
           <PaletteIcon />
         </span>
-        Theme
+        {t("Theme")}
       </button>
       {open && (
         <div className="card theme-pop">
@@ -116,65 +117,65 @@ function NavLinks() {
 
   return (
     <>
-      <div className="sidebar-label label-train">Train</div>
+      <div className="sidebar-label label-train">{t("Train")}</div>
       <NavLink to="/practice" className={({ isActive }) => (isActive ? "active" : "")}>
         <IconBolt size={15} />
-        Practice
+        {t("Practice")}
       </NavLink>
       <NavLink to="/exams" className={({ isActive }) => (isActive ? "active" : "")}>
         <IconClock size={15} />
-        Mock exam
+        {t("Mock exam")}
       </NavLink>
 
-      <div className="sidebar-label label-review">Review</div>
+      <div className="sidebar-label label-review">{t("Review")}</div>
       <NavLink to="/mistakes" className={({ isActive }) => (isActive ? "active" : "")}>
         <IconTarget size={15} />
-        My mistakes
+        {t("My mistakes")}
       </NavLink>
       <NavLink to="/progress" className={({ isActive }) => (isActive ? "active" : "")}>
         <IconTrend size={15} />
-        Progress
+        {t("Progress")}
       </NavLink>
 
-      <div className="sidebar-label label-saved">Saved</div>
+      <div className="sidebar-label label-saved">{t("Saved")}</div>
       <NavLink to="/writing" className={({ isActive }) => (isActive ? "active" : "")}>
         <IconPen size={15} />
-        Writing bank
+        {t("Writing bank")}
       </NavLink>
       <NavLink to="/words" className={({ isActive }) => (isActive ? "active" : "")}>
         <IconBook size={15} />
-        Word list
+        {t("Word list")}
         {vocabCount > 0 && <span className="nav-count">{vocabCount}</span>}
       </NavLink>
 
-      <div className="sidebar-label label-study">Study</div>
+      <div className="sidebar-label label-study">{t("Study")}</div>
       <NavLink to="/notes" className={({ isActive }) => (isActive ? "active" : "")}>
         <IconDoc size={15} />
-        Notes
+        {t("Notes")}
       </NavLink>
 
-      <div className="sidebar-label label-community">Community</div>
+      <div className="sidebar-label label-community">{t("Community")}</div>
       <NavLink to="/contribute" className={({ isActive }) => (isActive ? "active" : "")}>
         <IconPlus size={15} />
-        Contribute
+        {t("Contribute")}
       </NavLink>
       <NavLink to="/tools" className={({ isActive }) => (isActive ? "active" : "")}>
         <IconTool size={15} />
-        Free tools
+        {t("Free tools")}
       </NavLink>
       <NavLink to="/teachers" className={({ isActive }) => (isActive ? "active" : "")}>
         <IconUsers size={15} />
-        For teachers
+        {t("For teachers")}
       </NavLink>
 
-      <div className="sidebar-label label-account">Account</div>
+      <div className="sidebar-label label-account">{t("Account")}</div>
       <NavLink to="/account" className={({ isActive }) => (isActive ? "active" : "")}>
         <IconUser size={15} />
-        Account
+        {t("Account")}
       </NavLink>
       <NavLink to="/settings" className={({ isActive }) => (isActive ? "active" : "")}>
         <IconGear size={15} />
-        Settings
+        {t("Settings")}
       </NavLink>
     </>
   );
@@ -299,50 +300,50 @@ function TimerTool() {
 
   return (
     <div className={`timer-tool ${timeUp ? "timeup" : ""}`} ref={ref}>
-      <div className="timer-display" role="timer" aria-label={`${prefs.mode === "timer" ? "Countdown" : "Stopwatch"} ${mm}:${ss}`}>
+      <div className="timer-display" role="timer" aria-label={`${prefs.mode === "timer" ? t("Countdown") : t("Stopwatch")} ${mm}:${ss}`}>
         {prefs.mode === "timer" ? <IconClock size={13} aria-hidden="true" /> : null}
         <b>{mm}:{ss}</b>
       </div>
       <button className="btn btn-sm btn-ghost" onClick={running ? pause : start}>
-        {running ? "Pause" : timeUp ? "Restart" : "Start"}
+        {running ? t("Pause") : timeUp ? t("Restart") : t("Start")}
       </button>
       <button className="btn btn-sm btn-ghost" onClick={reset}>
-        Reset
+        {t("Reset")}
       </button>
       <button
         className="timer-gear"
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        aria-label="Timer settings"
-        title="Timer settings"
+        aria-label={t("Timer settings")}
+        title={t("Timer settings")}
       >
         <IconGear size={15} />
       </button>
       <span className="sr-only" aria-live="polite">
-        {timeUp ? "Time is up." : ""}
+        {timeUp ? t("Time is up.") : ""}
       </span>
       {open && (
         <div className="card timer-settings">
-          <div className="timer-settings-label">Mode</div>
+          <div className="timer-settings-label">{t("Mode")}</div>
           <div className="seg">
             <button
               className={prefs.mode === "stopwatch" ? "active" : ""}
               aria-pressed={prefs.mode === "stopwatch"}
               onClick={() => applyPrefs({ ...prefs, mode: "stopwatch" })}
             >
-              Stopwatch
+              {t("Stopwatch")}
             </button>
             <button
               className={prefs.mode === "timer" ? "active" : ""}
               aria-pressed={prefs.mode === "timer"}
               onClick={() => applyPrefs({ ...prefs, mode: "timer" })}
             >
-              Countdown
+              {t("Countdown")}
             </button>
           </div>
           {prefs.mode === "timer" && (
             <>
-              <div className="timer-settings-label">Countdown time</div>
+              <div className="timer-settings-label">{t("Countdown time")}</div>
               <SnapSlider
                 min={5}
                 max={60}
@@ -350,17 +351,76 @@ function TimerTool() {
                 value={prefs.durationMin}
                 onChange={(m) => applyPrefs({ ...prefs, durationMin: m })}
                 snapPoints={TIMER_DURATIONS}
-                format={(v) => `${v} min`}
+                format={(v) => `${v} ${t("min")}`}
               />
             </>
           )}
           <p className="timer-settings-hint">
             {prefs.mode === "timer"
-              ? "Counts down — exam-style pacing. Stops and flashes when time runs out."
-              : "Counts up — track how long a set takes you."}
+              ? t("Counts down — exam-style pacing. Stops and flashes when time runs out.")
+              : t("Counts up — track how long a set takes you.")}
           </p>
         </div>
       )}
+    </div>
+  );
+}
+
+const NAV_KEYS: Record<string, string> = {
+  h: "/",
+  p: "/practice",
+  e: "/exams",
+  m: "/mistakes",
+  r: "/progress",
+  w: "/words",
+  n: "/notes",
+  c: "/contribute",
+  t: "/tools",
+  f: "/teachers",
+  a: "/account",
+  s: "/settings",
+};
+
+function ShortcutsHelp({ onClose }: { onClose: () => void }) {
+  const rows: [string, string][] = [
+    ["g then h", "Home"],
+    ["g then p", "Practice"],
+    ["g then e", "Mock exam"],
+    ["g then m", "My mistakes"],
+    ["g then r", "Progress"],
+    ["g then w", "Word list"],
+    ["g then n", "Notes"],
+    ["g then c", "Contribute"],
+    ["g then t", "Free tools"],
+    ["g then f", "For teachers"],
+    ["g then a", "Account"],
+    ["g then s", "Settings"],
+    ["g then 1–7", "Practice a section"],
+    ["/", "Search notes (on Notes)"],
+    ["v / r / x / e / s", "Queue: verify / reject / details / edit / select"],
+    ["Esc", "Close dialogs and popups"],
+  ];
+  return (
+    <div className="help-overlay" role="dialog" aria-modal="true" aria-label={t("Keyboard shortcuts")} onClick={onClose}>
+      <div className="card help-card" onClick={(e) => e.stopPropagation()}>
+        <h3>{t("Keyboard shortcuts")}</h3>
+        <table className="help-table">
+          <tbody>
+            {rows.map(([keys, label]) => (
+              <tr key={keys}>
+                <td>
+                  <kbd>{keys}</kbd>
+                </td>
+                <td>{t(label)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <p className="hint">{t("Press ? to toggle this help. Shortcuts are disabled while typing.")}</p>
+        <button className="btn btn-primary" onClick={onClose}>
+          {t("Close")}
+        </button>
+      </div>
     </div>
   );
 }
@@ -369,6 +429,48 @@ export default function App() {
   const location = useLocation();
   const navigate = useNavigate();
   const [, setNoteTick] = useState(0);
+  const locale = useLocale();
+  const [helpOpen, setHelpOpen] = useState(false);
+  const gRef = useRef(false);
+  const gTimer = useRef(0);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement | null;
+      if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.tagName === "SELECT" || el.isContentEditable)) return;
+      if (e.key === "?") {
+        setHelpOpen((o) => !o);
+        return;
+      }
+      if (e.key === "Escape") {
+        setHelpOpen(false);
+        return;
+      }
+      if (e.key === "g") {
+        gRef.current = true;
+        window.clearTimeout(gTimer.current);
+        gTimer.current = window.setTimeout(() => {
+          gRef.current = false;
+        }, 1500);
+        return;
+      }
+      if (gRef.current) {
+        gRef.current = false;
+        window.clearTimeout(gTimer.current);
+        if (NAV_KEYS[e.key]) {
+          navigate(NAV_KEYS[e.key]!);
+          return;
+        }
+        const n = Number(e.key);
+        if (n >= 1 && n <= SECTIONS.length) navigate(`/practice?section=${SECTIONS[n - 1]!.key}`);
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      window.clearTimeout(gTimer.current);
+    };
+  }, [navigate]);
 
   useEffect(() => {
     const bump = () => setNoteTick((t) => t + 1);
@@ -396,8 +498,8 @@ export default function App() {
         <nav className="sidebar-nav" aria-label="Main">
           <NavLinks />
         </nav>
-        <div className="sidebar-label">Sections</div>
-        <nav className="sidebar-sections" aria-label="Sections">
+        <div className="sidebar-label">{t("Sections")}</div>
+        <nav className="sidebar-sections" aria-label={t("Sections")}>
           {SECTIONS.map((s) => {
             const noted = noteIdsForSection(s.key);
             return (
@@ -411,8 +513,8 @@ export default function App() {
                 {noted.length > 0 && (
                   <button
                     className="side-notes"
-                    title={`Review ${noted.length} noted question${noted.length > 1 ? "s" : ""} in ${s.short}`}
-                    aria-label={`Review ${noted.length} noted questions in ${s.short}`}
+                    title={t("Review {n} noted question{s} in {section}", { n: noted.length, s: noted.length > 1 ? "s" : "", section: s.short })}
+                    aria-label={t("Review {n} noted questions in {section}", { n: noted.length, section: s.short })}
                     onClick={() => navigate(`/practice?questions=${noted.join(",")}`)}
                   >
                     <IconPen size={11} />
@@ -425,9 +527,9 @@ export default function App() {
         </nav>
         <div className="sidebar-footer">
           <Link to="/admin" className="sidebar-admin">
-            Admin
+            {t("Admin")}
           </Link>
-          <span className="sidebar-note">Free HSG English training — community content, zero cost.</span>
+          <span className="sidebar-note">{t("Free HSG English training — community content, zero cost.")}</span>
         </div>
       </aside>
 
@@ -436,7 +538,7 @@ export default function App() {
           <div className="topbar-mobile">
             <Brand />
           </div>
-          <h2 className="topbar-title">{PAGE_TITLES[location.pathname] ?? "HsgTrainer"}</h2>
+          <h2 className="topbar-title">{t(PAGE_TITLES[location.pathname] ?? "HsgTrainer")}</h2>
           <div className="topbar-right">
             <nav className="topbar-nav" aria-label="Main">
               <NavLinks />
@@ -445,7 +547,8 @@ export default function App() {
             <ThemeMenu />
           </div>
         </header>
-        <main key={location.pathname} className="page-shell">
+        {helpOpen && <ShortcutsHelp onClose={() => setHelpOpen(false)} />}
+        <main key={`${location.pathname}-${locale}`} className="page-shell">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/practice" element={<Practice />} />
@@ -464,8 +567,8 @@ export default function App() {
           </Routes>
         </main>
         <footer className="footer">
-          <span>Free HSG English training — community content, zero cost.</span>
-          <Link to="/admin">Admin</Link>
+          <span>{t("Free HSG English training — community content, zero cost.")}</span>
+          <Link to="/admin">{t("Admin")}</Link>
         </footer>
       </div>
     </div>

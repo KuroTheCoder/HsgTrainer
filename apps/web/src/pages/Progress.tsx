@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { sectionMeta, tagStyle } from "../sections";
 import { ScoreRing } from "../components/ScoreRing";
 import { getStats } from "../store";
+import { t } from "../i18n";
 import { IconBolt, IconTarget, IconTrend, SectionIcon } from "../icons";
 import type { ProgressStats } from "../types";
 
@@ -43,7 +44,7 @@ export default function Progress() {
     try {
       setStats(await getStats(days));
     } catch (e) {
-      setError(e instanceof Error ? e.message : "load failed");
+      setError(e instanceof Error ? e.message : t("load failed"));
     } finally {
       setBusy(false);
     }
@@ -60,10 +61,10 @@ export default function Progress() {
     <div className="page">
       <div className="page-head">
         <h2>
-          <IconTrend size={18} /> Progress
+          <IconTrend size={18} /> {t("Progress")}
         </h2>
         <div className="row">
-          <div className="seg" role="radiogroup" aria-label="Time range">
+          <div className="seg" role="radiogroup" aria-label={t("Time range")}>
             {RANGES.map((r) => (
               <button
                 key={r.value}
@@ -72,12 +73,12 @@ export default function Progress() {
                 aria-checked={range === r.value}
                 onClick={() => setRange(r.value)}
               >
-                {r.label}
+                {t(r.label)}
               </button>
             ))}
           </div>
           <button className="btn btn-ghost btn-sm" onClick={() => void load(range)} disabled={busy}>
-            Refresh
+            {t("Refresh")}
           </button>
         </div>
       </div>
@@ -90,10 +91,10 @@ export default function Progress() {
 
       {!busy && stats && stats.totalSessions === 0 && (
         <div className="card empty">
-          <b>No progress yet</b>
-          <p>Run a practice session and your results will start showing up here — accuracy, streaks, and weak spots.</p>
+          <b>{t("No progress yet")}</b>
+          <p>{t("Run a practice session and your results will start showing up here — accuracy, streaks, and weak spots.")}</p>
           <Link to="/practice" className="btn btn-primary btn-sm">
-            <IconBolt size={14} /> Start practicing
+            <IconBolt size={14} /> {t("Start practicing")}
           </Link>
         </div>
       )}
@@ -104,21 +105,21 @@ export default function Progress() {
             <div className="card panel stat-card acc-ring">
               <ScoreRing value={stats.totalCorrect} max={Math.max(stats.totalAnswered, 1)} size={72} stroke={7} tone={ringTone} />
               <div>
-                <div className="stat-label">Accuracy</div>
+                <div className="stat-label">{t("Accuracy")}</div>
                 <div className="stat-num">{pct(stats.accuracy)}</div>
               </div>
             </div>
             <div className="card panel stat-card">
               <div className="stat-num">{stats.totalSessions}</div>
-              <div className="stat-label">Practice sessions</div>
+              <div className="stat-label">{t("Practice sessions")}</div>
             </div>
             <div className="card panel stat-card">
               <div className="stat-num">{stats.streak}</div>
-              <div className="stat-label">Day streak</div>
+              <div className="stat-label">{t("Day streak")}</div>
             </div>
             <div className="card panel stat-card">
               <div className="stat-num">{stats.bestDay ? pct(stats.bestDay.accuracy) : "—"}</div>
-              <div className="stat-label">{stats.bestDay ? `Best day · ${fmtDate(stats.bestDay.date)}` : "Best day"}</div>
+              <div className="stat-label">{stats.bestDay ? t("Best day · {date}", { date: fmtDate(stats.bestDay.date) }) : t("Best day")}</div>
             </div>
           </div>
 
@@ -129,19 +130,19 @@ export default function Progress() {
                   <SectionIcon icon={focusMeta.icon} size={16} />
                 </span>
                 <div>
-                  <b>Focus: {focusMeta.label}</b>
-                  <div className="muted small">Your weakest section with enough attempts — worth a drill.</div>
+                  <b>{t("Focus: {section}", { section: focusMeta.label })}</b>
+                  <div className="muted small">{t("Your weakest section with enough attempts — worth a drill.")}</div>
                 </div>
               </div>
               <Link to={`/practice?section=${stats.focus}`} className="btn btn-primary btn-sm">
-                <IconBolt size={14} /> Drill {focusMeta.short}
+                <IconBolt size={14} /> {t("Drill {section}", { section: focusMeta.short })}
               </Link>
             </div>
           )}
 
           {stats.bySection.length > 0 && (
             <div className="card panel" style={{ marginBottom: 18 }}>
-              <h3>By section</h3>
+              <h3>{t("By section")}</h3>
               <div className="section-bars">
                 {stats.bySection.map((s) => {
                   const meta = sectionMeta(s.section);
@@ -169,12 +170,12 @@ export default function Progress() {
 
           {stats.topTags.length > 0 && (
             <div className="card panel" style={{ marginBottom: 18 }}>
-              <h3>Skill gaps</h3>
-              <p className="muted small">Most-failed tags across your answers. Drill by topic when you practice.</p>
+              <h3>{t("Skill gaps")}</h3>
+              <p className="muted small">{t("Most-failed tags across your answers. Drill by topic when you practice.")}</p>
               <div className="row-chips">
-                {stats.topTags.map((t) => (
-                  <span key={t.tag} className="tag accent" title={`${t.wrong} wrong of ${t.total}`}>
-                    <IconTarget size={11} /> {t.tag} · {t.wrong} missed
+                {stats.topTags.map((tag) => (
+                  <span key={tag.tag} className="tag accent" title={t("{n} wrong of {total}", { n: tag.wrong, total: tag.total })}>
+                    <IconTarget size={11} /> {tag.tag} · {t("{n} missed", { n: tag.wrong })}
                   </span>
                 ))}
               </div>
@@ -183,7 +184,7 @@ export default function Progress() {
 
           {stats.recent.length > 0 && (
             <div className="card panel">
-              <h3>Recent sessions</h3>
+              <h3>{t("Recent sessions")}</h3>
               <div>
                 {stats.recent.map((r) => {
                   const meta = sectionMeta(r.section ?? "");
@@ -192,10 +193,10 @@ export default function Progress() {
                   return (
                     <div key={r.id} className="recent-row">
                       <span className="tag" style={tagStyle(r.section || "mixed")}>
-                        <SectionIcon icon={meta?.icon ?? ""} size={11} /> {meta?.short ?? (r.section ?? "Mixed")}
+                        <SectionIcon icon={meta?.icon ?? ""} size={11} /> {meta?.short ?? (r.section ?? t("Mixed"))}
                       </span>
                       <span className="grow muted small">
-                        {r.count} question{r.count === 1 ? "" : "s"} · {fmtDate(r.createdAt)}
+                        {t("{n} question{s}", { n: r.count, s: r.count === 1 ? "" : "s" })} · {fmtDate(r.createdAt)}
                       </span>
                       <span className={`tag ${scoreCls}`}>
                         {r.score}/{r.count}

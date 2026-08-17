@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { defaultDictUrl, dictionaryLinks, getDefaultDictId, openDictionary } from "../dictionary";
 import { addWord, hasWord } from "../vocab";
 import { IconBook, IconExternal, IconX } from "../icons";
+import { t } from "../i18n";
 
 export interface DictRequest {
   word: string;
@@ -66,20 +67,20 @@ export default function DictPopup({ word, x, y, onClose }: DictRequest & { onClo
       className="dict-pop"
       style={{ left, top }}
       role="dialog"
-      aria-label={`Dictionary: ${word}`}
+      aria-label={t("Dictionary: {word}", { word })}
     >
       <button
         className={`dict-ribbon ${ribbonOnLeft ? "left" : "right"}`}
         onClick={openDefault}
-        title={`Open in ${defaultName}`}
-        aria-label={`Open in ${defaultName}`}
+        title={t("Open in {name}", { name: defaultName })}
+        aria-label={t("Open in {name}", { name: defaultName })}
       >
         <IconBook size={12} aria-hidden="true" />
         <span className="dict-ribbon-name">{defaultName}</span>
         <IconExternal size={10} aria-hidden="true" />
       </button>
       <div className="dict-pop-body">
-        <button ref={closeRef} className="dict-close" onClick={onClose} aria-label="Close dictionary">
+        <button ref={closeRef} className="dict-close" onClick={onClose} aria-label={t("Close dictionary")}>
           <IconX size={13} />
         </button>
         <b className="dict-word">
@@ -92,16 +93,16 @@ export default function DictPopup({ word, x, y, onClose }: DictRequest & { onClo
             onClick={toggleSave}
             disabled={saved}
           >
-            {saved ? "In your word list" : "+ Add to word list"}
+            {saved ? t("In your word list") : t("+ Add to word list")}
           </button>
-          <span className="dict-links-label">See in dictionary</span>
+          <span className="dict-links-label">{t("See in dictionary")}</span>
           <div className="dict-links">
             {links.map((l) => (
               <button
                 key={l.id}
                 className={`dict-link ${l.id === defaultId ? "is-default" : ""}`}
                 onClick={() => openDictionary(l.url)}
-                title={l.hint ?? l.url}
+                title={l.hint ? t(l.hint) : l.url}
               >
                 <IconExternal size={11} aria-hidden="true" />
                 {l.name}

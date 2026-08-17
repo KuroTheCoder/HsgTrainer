@@ -16,7 +16,27 @@ export interface NoteContext {
 }
 
 const INLINE_RE =
-  /(!?)\[\[([^\]|]+)(?:\|([^\]]+))?\]\]|\[([^\]]+)\]\(([^)\s]+)\)|`([^`]+)`|\*\*([^*]+)\*\*|\*([^*\n]+)\*|(^|\s)#([A-Za-zÀ-ž0-9_\-/]+)/g;
+  /(!?)\[\[([^\]|]+)(?:\|([^\]]+))?\]\]|\[([^\]]+)\]\(([^)\s]+)\)|`([^`]+)`|\*\*([^*]+)\*\*|\*([^*\n]+)\*|(^|\s)#([A-Za-zÀ-ž0-9_\-/]+)|(https?:\/\/[^\s<>"']+)/g;
+
+/** Extract a YouTube video id from any of the common URL shapes, or null. */
+export function youtubeId(url: string): string | null {
+  const m = /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/.exec(url);
+  return m ? m[1] : null;
+}
+
+function Video({ id, keyBase }: { id: string; keyBase: string }) {
+  return (
+    <div key={keyBase} className="note-video-wrap">
+      <iframe
+        src={`https://www.youtube-nocookie.com/embed/${id}`}
+        title="YouTube video"
+        loading="lazy"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowFullScreen
+      />
+    </div>
+  );
+}
 
 function renderInline(text: string, ctx: NoteContext, keyBase: string): ReactNode[] {
   const out: ReactNode[] = [];
@@ -25,24 +45,43 @@ function renderInline(text: string, ctx: NoteContext, keyBase: string): ReactNod
   for (const m of text.matchAll(INLINE_RE)) {
     const pre = text.slice(last, m.index);
     if (pre) out.push(pre);
-    const [full, embed, target, alias, linkText, linkUrl, code, bold, italic, , tag] = m;
+    const [full, embed, target, alias, linkText, linkUrl, code, bold, italic, , tag, url] = m;
     const k = `${keyBase}-${i++}`;
     if (target) {
-      const slug = ctx.resolve(target.trim());
-      if (slug) {
-        out.push(
-          <Link key={k} to={`/notes/${slug}`} className="note-link">
-            {alias?.trim() || target.trim()}
-          </Link>,
-        );
-      } else if (embed) {
-        // Embed of something not in the curated set → link-out nowhere; show source.
-        out.push(<span key={k} className="note-embed-missing">{full}</span>);
+      if (embed && youtubeId(target.trim())) {
+        out.push(<Video key={k} id={youtubeId(target.trim())!} keyBase={k} />);
       } else {
-        out.push(<span key={k} className="note-missing-link">{full}</span>);
+        const slug = ctx.resolve(target.trim());
+        if (slug) {
+          out.push(
+            <Link key={k} to={`/notes/${slug}`} className="note-link">
+              {alias?.trim() || target.trim()}
+            </Link>,
+          );
+        } else if (embed) {
+          // Embed of something not in the curated set → link-out nowhere; show source.
+          out.push(<span key={k} className="note-embed-missing">{full}</span>);
+        } else {
+          out.push(<span key={k} className="note-missing-link">{full}</span>);
+        }
+      }
+    } else if (url) {
+      const clean = url.replace(/[.,;:!?]+$/, "");
+      const yid = youtubeId(clean);
+      if (yid) {
+        out.push(<Video key={k} id={yid} keyBase={k} />);
+      } else {
+        out.push(
+          <a key={k} href={clean} target="_blank" rel="noreferrer" className="note-link">
+            {clean}
+          </a>,
+        );
       }
     } else if (linkUrl) {
-      if (/^(https?:|mailto:)/.test(linkUrl)) {
+      const yid = youtubeId(linkUrl);
+      if (yid) {
+        out.push(<Video key={k} id={yid} keyBase={k} />);
+      } else if (/^(https?:|mailto:)/.test(linkUrl)) {
         out.push(
           <a key={k} href={linkUrl} target="_blank" rel="noreferrer" className="note-link">
             {linkText}
@@ -129,10 +168,13 @@ export function tokenize(src: string): Block[] {
       continue;
     }
 
-    // callout
-    const call = /^>\s*\[!(note|tip|warning|danger|info|example|quote)\]\s*([^:]*)(?::)?\s*$/.exec(line);
+    // callout (any [!type]; unknown types render as "note" so custom vault
+    // callouts degrade gracefully)
+    const call = /^>\s*\[!([\w-]+)\]\s*([^:]*)(?::)?\s*$/.exec(line);
     if (call) {
       const type = call[1]!.toLowerCase();
+      const known = ["note", "tip", "warning", "danger", "info", "example", "quote"];
+      const cls = known.includes(type) ? type : "note";
       const title = (call[2] ?? "").trim() || type;
       const buf: string[] = [];
       i++;
@@ -142,7 +184,7 @@ export function tokenize(src: string): Block[] {
         buf.push(q[1] ?? "");
         i++;
       }
-      blocks.push({ kind: "callout", calloutType: type, text: buf.join("\n"), lang: title });
+      blocks.push({ kind: "callout", calloutType: cls, text: buf.join("\n"), lang: title });
       continue;
     }
 

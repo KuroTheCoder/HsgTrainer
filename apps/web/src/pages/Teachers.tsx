@@ -13,6 +13,7 @@ import {
   SectionIcon,
 } from "../icons";
 import type { IconProps } from "../icons";
+import { t } from "../i18n";
 
 const IconCopy: FC<IconProps> = (p) => (
   <svg width={p.size ?? 15} height={p.size ?? 15} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -60,7 +61,7 @@ export default function Teachers() {
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2000);
     } catch {
-      window.prompt("Copy this link:", link);
+      window.prompt(t("Copy this link:"), link);
     }
   };
 
@@ -68,33 +69,31 @@ export default function Teachers() {
     <div className="page">
       <div className="page-head">
         <h2>
-          <IconUsers size={18} /> For teachers
+          <IconUsers size={18} /> {t("For teachers")}
         </h2>
       </div>
 
       <section className="card panel">
-        <h2 style={{ marginBottom: 8 }}>HSG practice for your class — no accounts, no setup.</h2>
+        <h2 style={{ marginBottom: 8 }}>{t("HSG practice for your class — no accounts, no setup.")}</h2>
         <p className="muted" style={{ maxWidth: "60ch", marginTop: 0 }}>
-          HsgTrainer gives every student real HSG-style questions with instant feedback, a mistakes ledger, and
-          progress tracking. There's nothing to install, no roster to manage, and no student data to protect — it
-          all stays anonymous.
+          {t("HsgTrainer gives every student real HSG-style questions with instant feedback, a mistakes ledger, and progress tracking. There's nothing to install, no roster to manage, and no student data to protect — it all stays anonymous.")}
         </p>
         <div className="row">
           <Link to="/practice" className="btn btn-primary">
-            <IconBolt size={16} /> Try a session
+            <IconBolt size={16} /> {t("Try a session")}
           </Link>
           <Link to="/exams" className="btn btn-ghost">
-            <IconClock size={16} /> Browse mock exams
+            <IconClock size={16} /> {t("Browse mock exams")}
           </Link>
         </div>
       </section>
 
       <section className="card panel">
-        <h3>Share a practice link</h3>
+        <h3>{t("Share a practice link")}</h3>
         <p className="muted" style={{ marginTop: 0 }}>
-          Pick a section, copy the link, and send it to your class. Students start instantly — no sign-up.
+          {t("Pick a section, copy the link, and send it to your class. Students start instantly — no sign-up.")}
         </p>
-        <div className="chip-row" role="radiogroup" aria-label="Section to share">
+        <div className="chip-row" role="radiogroup" aria-label={t("Section to share")}>
           {SECTIONS.map((s) => (
             <button
               key={s.key}
@@ -111,24 +110,24 @@ export default function Teachers() {
           <code className="share-link">{link}</code>
           <button className="btn btn-primary" onClick={() => void copy()}>
             {copied ? <IconCheck size={15} /> : <IconCopy size={15} />}
-            {copied ? "Copied!" : "Copy link"}
+            {copied ? t("Copied!") : t("Copy link")}
           </button>
         </div>
       </section>
 
-      <h3 className="tools-cat">Using it in the classroom</h3>
+      <h3 className="tools-cat">{t("Using it in the classroom")}</h3>
       <div className="tools-grid">
         {CLASSROOM.map((c) => (
           <div key={c.title} className="tool-card">
             <b>
-              <c.icon size={15} /> {c.title}
+              <c.icon size={15} /> {t(c.title)}
             </b>
-            <span className="tool-purpose">{c.text}</span>
+            <span className="tool-purpose">{t(c.text)}</span>
           </div>
         ))}
       </div>
 
-      <h3 className="tools-cat">What students can train</h3>
+      <h3 className="tools-cat">{t("What students can train")}</h3>
       <div className="section-grid">
         {SECTIONS.map((s, i) => {
           const meta = sectionMeta(s.key);
@@ -144,7 +143,7 @@ export default function Teachers() {
               </span>
               <div className="card-body">
                 <h3>{s.label}</h3>
-                <p>{meta?.deterministic ? "Instant feedback" : "AI-scored writing"}</p>
+                <p>{meta?.deterministic ? t("Instant feedback") : t("AI-scored writing")}</p>
               </div>
             </Link>
           );
@@ -153,11 +152,10 @@ export default function Teachers() {
 
       <section className="card panel">
         <h3>
-          <IconPen size={16} aria-hidden="true" /> Coming next
+          <IconPen size={16} aria-hidden="true" /> {t("Coming next")}
         </h3>
         <p className="muted" style={{ marginTop: 0 }}>
-          Real classroom features — classes, student rosters, and result overviews — are on the roadmap. They need a
-          proper account system, so until then the app stays fully anonymous and free.
+          {t("Real classroom features — classes, student rosters, and result overviews — are on the roadmap. They need a proper account system, so until then the app stays fully anonymous and free.")}
         </p>
       </section>
     </div>

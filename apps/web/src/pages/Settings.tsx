@@ -1,11 +1,12 @@
 import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { DICTIONARIES, getDefaultDictId, setDefaultDictId, getOpenMode, setOpenMode, type OpenMode } from "../dictionary";
-import { IconBook, IconBug, IconExternal, IconGear, IconPalette, IconPlay, IconVolume } from "../icons";
+import { IconBook, IconBug, IconExternal, IconGear, IconGlobe, IconPalette, IconPlay, IconVolume } from "../icons";
 import ThemeControls from "../components/ThemeControls";
 import ReportBox from "../components/ReportBox";
 import { clearAll, exportData, importData } from "../store";
 import { play, setSfxMuted, setSfxVolumeFor, sfxMuted, sfxVolumes, type SfxName } from "../sfx";
+import { LOCALES, setLocale, t, useLocale, type Locale } from "../i18n";
 
 const SOUND_LABELS: { name: SfxName; label: string; hint: string }[] = [
   { name: "click", label: "Clicks", hint: "Buttons, links, options" },
@@ -21,6 +22,7 @@ const SOUND_LABELS: { name: SfxName; label: string; hint: string }[] = [
 ];
 
 const TABS = [
+  { id: "language", label: "Language", icon: IconGlobe },
   { id: "appearance", label: "Appearance", icon: IconPalette },
   { id: "sounds", label: "Sounds", icon: IconVolume },
   { id: "dictionary", label: "Dictionary", icon: IconBook },
@@ -31,6 +33,7 @@ const TABS = [
 type TabId = (typeof TABS)[number]["id"];
 
 export default function Settings() {
+  const locale = useLocale();
   const [tab, setTab] = useState<TabId>("appearance");
   const [defaultId, setDefaultId] = useState(getDefaultDictId);
   const [openMode, setOpen] = useState<OpenMode>(getOpenMode);
@@ -60,30 +63,52 @@ export default function Settings() {
   return (
     <div className="page">
       <div className="page-head">
-        <h2>Settings</h2>
+        <h2>{t("Settings")}</h2>
       </div>
 
-      <nav className="settings-nav" aria-label="Settings sections">
-        {TABS.map((t) => {
-          const Icon = t.icon;
+      <nav className="settings-nav" aria-label={t("Settings sections")}>
+        {TABS.map((item) => {
+          const Icon = item.icon;
           return (
-            <button key={t.id} className={tab === t.id ? "active" : ""} aria-pressed={tab === t.id} onClick={() => setTab(t.id)}>
+            <button key={item.id} className={tab === item.id ? "active" : ""} aria-pressed={tab === item.id} onClick={() => setTab(item.id)}>
               <Icon size={16} aria-hidden="true" />
-              {t.label}
+              {t(item.label)}
             </button>
           );
         })}
       </nav>
 
+      {tab === "language" && (
+        <div className="card panel settings-panel">
+          <h3>
+            <IconGlobe size={16} aria-hidden="true" /> {t("Language")}
+          </h3>
+          <p className="muted">
+            {t("Choose the interface language. Vietnamese is still being translated — anything not translated yet shows in English, so the app never breaks.")}
+          </p>
+          <div className="chip-row" role="radiogroup" aria-label={t("Language")}>
+            {(Object.keys(LOCALES) as Locale[]).map((l) => (
+              <button
+                key={l}
+                className={`chip-btn ${locale === l ? "active" : ""}`}
+                role="radio"
+                aria-checked={locale === l}
+                onClick={() => setLocale(l)}
+              >
+                {LOCALES[l]}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {tab === "appearance" && (
         <div className="card panel settings-panel">
           <h3>
-            <IconPalette size={16} aria-hidden="true" /> Appearance
+            <IconPalette size={16} aria-hidden="true" /> {t("Appearance")}
           </h3>
           <p className="muted">
-            Ink color, notebook style, and pattern density. Everything applies instantly and is stored on this
-            device — no account needed. Save your favourite combos as presets, or share a theme link: whoever
-            opens it gets the same look.
+            {t("Ink color, notebook style, and pattern density. Everything applies instantly and is stored on this device — no account needed. Save your favourite combos as presets, or share a theme link: whoever opens it gets the same look.")}
           </p>
           <ThemeControls />
         </div>
@@ -92,21 +117,20 @@ export default function Settings() {
       {tab === "sounds" && (
         <div className="card panel settings-panel">
           <h3>
-            <IconVolume size={16} aria-hidden="true" /> Sounds
+            <IconVolume size={16} aria-hidden="true" /> {t("Sounds")}
           </h3>
           <p className="muted">
-            Small sounds for clicks, hovers, answers, and countdown warnings. Sound starts only after your first
-            click (browser rule) — and stays off until you turn it on here.
+            {t("Small sounds for clicks, hovers, answers, and countdown warnings. Sound starts only after your first click (browser rule) — and stays off until you turn it on here.")}
           </p>
           <div className="sfx-row">
-            <div className="chip-row" role="radiogroup" aria-label="Sound effects">
+            <div className="chip-row" role="radiogroup" aria-label={t("Sound effects")}>
               <button
                 className={`chip-btn ${sfxOn ? "active" : ""}`}
                 role="radio"
                 aria-checked={sfxOn}
                 onClick={() => toggleSfx(true)}
               >
-                On
+                {t("On")}
               </button>
               <button
                 className={`chip-btn ${!sfxOn ? "active" : ""}`}
@@ -114,7 +138,7 @@ export default function Settings() {
                 aria-checked={!sfxOn}
                 onClick={() => toggleSfx(false)}
               >
-                Off
+                {t("Off")}
               </button>
             </div>
           </div>
@@ -122,8 +146,8 @@ export default function Settings() {
             {SOUND_LABELS.map((s) => (
               <div key={s.name} className={`sound-row ${sfxOn ? "" : "muted-row"}`}>
                 <div className="sound-info">
-                  <b>{s.label}</b>
-                  <span className="muted small">{s.hint}</span>
+                  <b>{t(s.label)}</b>
+                  <span className="muted small">{t(s.hint)}</span>
                 </div>
                 <input
                   type="range"
@@ -131,7 +155,7 @@ export default function Settings() {
                   max={100}
                   step={5}
                   disabled={!sfxOn}
-                  aria-label={`${s.label} volume`}
+                  aria-label={t("{label} volume", { label: s.label })}
                   value={Math.round((volumes[s.name] ?? 0.8) * 100)}
                   onChange={(e) => changeSoundVolume(s.name, Number(e.target.value))}
                 />
@@ -139,8 +163,8 @@ export default function Settings() {
                 <button
                   className="btn btn-ghost btn-sm sound-test"
                   disabled={!sfxOn}
-                  aria-label={`Play ${s.label} sound`}
-                  title="Preview this sound"
+                  aria-label={t("Play {label} sound", { label: s.label })}
+                  title={t("Preview this sound")}
                   onClick={() => play(s.name)}
                 >
                   <IconPlay size={12} aria-hidden="true" />
@@ -149,8 +173,7 @@ export default function Settings() {
             ))}
           </div>
           <p className="hint">
-            Drop your own sound files into <code>public/sfx/</code> (see the README there for filenames) — missing
-            files are simply silent.
+            {t("Drop your own sound files into")} <code>public/sfx/</code> {t("(see the README there for filenames) — missing files are simply silent.")}
           </p>
         </div>
       )}
@@ -159,37 +182,35 @@ export default function Settings() {
         <>
           <div className="card panel settings-panel">
             <h3>
-              <IconBook size={16} aria-hidden="true" /> Default dictionary
+              <IconBook size={16} aria-hidden="true" /> {t("Default dictionary")}
             </h3>
             <p className="muted">
-              When you look up a word (select it in a prompt or tap a key-word chip), a ribbon appears on the
-              popup — one click opens your chosen dictionary. You can still pick another one from the popup.
+              {t("When you look up a word (select it in a prompt or tap a key-word chip), a ribbon appears on the popup — one click opens your chosen dictionary. You can still pick another one from the popup.")}
             </p>
-            <div className="chip-row" role="radiogroup" aria-label="Default dictionary">
+            <div className="chip-row" role="radiogroup" aria-label={t("Default dictionary")}>
               {DICTIONARIES.map((d) => (
                 <button
                   key={d.id}
                   className={`chip-btn ${defaultId === d.id ? "active" : ""}`}
                   role="radio"
                   aria-checked={defaultId === d.id}
-                  title={d.hint}
+                  title={d.hint ? t(d.hint) : undefined}
                   onClick={() => choose(d.id)}
                 >
                   {d.name}
                 </button>
               ))}
             </div>
-            <p className="hint">{DICTIONARIES.find((d) => d.id === defaultId)?.hint ?? ""}</p>
+            <p className="hint">{t(DICTIONARIES.find((d) => d.id === defaultId)?.hint ?? "")}</p>
           </div>
           <div className="card panel settings-panel">
             <h3>
-              <IconExternal size={16} aria-hidden="true" /> Open dictionary in
+              <IconExternal size={16} aria-hidden="true" /> {t("Open dictionary in")}
             </h3>
             <p className="muted">
-              How dictionary links open. A new tab never covers the page; a small window floats on top but may
-              hide the popup when the word is near the top-left corner of your screen.
+              {t("How dictionary links open. A new tab never covers the page; a small window floats on top but may hide the popup when the word is near the top-left corner of your screen.")}
             </p>
-            <div className="chip-row" role="radiogroup" aria-label="Open dictionary in">
+            <div className="chip-row" role="radiogroup" aria-label={t("Open dictionary in")}>
               {[
                 { key: "tab" as const, label: "New tab", desc: "Safe, never overlaps" },
                 { key: "window" as const, label: "Small window", desc: "Floats on top" },
@@ -199,15 +220,15 @@ export default function Settings() {
                   className={`chip-btn ${openMode === m.key ? "active" : ""}`}
                   role="radio"
                   aria-checked={openMode === m.key}
-                  title={m.desc}
+                  title={t(m.desc)}
                   onClick={() => chooseMode(m.key)}
                 >
-                  {m.label}
+                  {t(m.label)}
                 </button>
               ))}
             </div>
             <p className="hint">
-              {openMode === "tab" ? "Opens in a new browser tab." : "Opens a small 560×700 window over the page."}
+              {openMode === "tab" ? t("Opens in a new browser tab.") : t("Opens a small 560×700 window over the page.")}
             </p>
           </div>
         </>
@@ -218,12 +239,10 @@ export default function Settings() {
       {tab === "report" && (
         <div className="card panel settings-panel">
           <h3>
-            <IconBug size={16} aria-hidden="true" /> Report a problem
+            <IconBug size={16} aria-hidden="true" /> {t("Report a problem")}
           </h3>
           <p className="muted">
-            Something broken, missing, or off about the site? Tell us what happened — bug reports go straight to
-            the maintainer's review queue. Found a wrong key on a question? Use the Report button next to that
-            question.
+            {t("Something broken, missing, or off about the site? Tell us what happened — bug reports go straight to the maintainer's review queue. Found a wrong key on a question? Use the Report button next to that question.")}
           </p>
           <ReportBox bug />
         </div>
@@ -268,9 +287,9 @@ function DataTab() {
         /* private mode */
       }
       setLastExport(now);
-      setNotice("Backup downloaded. Keep the file somewhere safe (e.g. a Drive/iCloud/OneDrive folder).");
+      setNotice(t("Backup downloaded. Keep the file somewhere safe (e.g. a Drive/iCloud/OneDrive folder)."));
     } catch (e) {
-      setError(e instanceof Error ? e.message : "export failed");
+      setError(e instanceof Error ? e.message : t("export failed"));
     } finally {
       setBusy(false);
     }
@@ -282,9 +301,9 @@ function DataTab() {
     setNotice(null);
     try {
       const res = await importData(await file.text());
-      setNotice(`Imported ${res.sessions} session(s) and ${res.answers} answer(s).`);
+      setNotice(t("Imported {sessions} session(s) and {answers} answer(s).", { sessions: res.sessions, answers: res.answers }));
     } catch (e) {
-      setError(e instanceof Error ? e.message : "import failed");
+      setError(e instanceof Error ? e.message : t("import failed"));
     } finally {
       setBusy(false);
       if (fileRef.current) fileRef.current.value = "";
@@ -292,15 +311,15 @@ function DataTab() {
   };
 
   const doClear = async () => {
-    if (!window.confirm("Delete ALL local practice data (sessions, mistakes, progress) in this browser? This cannot be undone.")) return;
+    if (!window.confirm(t("Delete ALL local practice data (sessions, mistakes, progress) in this browser? This cannot be undone."))) return;
     setBusy(true);
     setError(null);
     setNotice(null);
     try {
       await clearAll();
-      setNotice("Local data cleared.");
+      setNotice(t("Local data cleared."));
     } catch (e) {
-      setError(e instanceof Error ? e.message : "clear failed");
+      setError(e instanceof Error ? e.message : t("clear failed"));
     } finally {
       setBusy(false);
     }
@@ -309,12 +328,10 @@ function DataTab() {
   return (
     <div className="card panel settings-panel">
       <h3>
-        <IconGear size={16} aria-hidden="true" /> Your local data
+        <IconGear size={16} aria-hidden="true" /> {t("Your local data")}
       </h3>
       <p className="muted">
-        All practice sessions, mistakes, and progress are stored in this browser — nothing lives on a server.
-        Export a backup file regularly and drop it into a synced folder (Drive, iCloud, OneDrive…) so the OS
-        backs it up for free. See the guide in <code>docs/backup.md</code>.
+        {t("All practice sessions, mistakes, and progress are stored in this browser — nothing lives on a server. Export a backup file regularly and drop it into a synced folder (Drive, iCloud, OneDrive…) so the OS backs it up for free. See the guide in")} <code>docs/backup.md</code>.
       </p>
       {error && (
         <div className="banner error" role="alert">
@@ -328,16 +345,15 @@ function DataTab() {
       )}
       {lastExport !== null && (
         <p className="hint">
-          Last export: {new Date(lastExport).toLocaleDateString()}. Re-export every few weeks — a backup is the
-          only copy of your progress.
+          {t("Last export")}: {new Date(lastExport).toLocaleDateString()}. {t("Re-export every few weeks — a backup is the only copy of your progress.")}
         </p>
       )}
       <div className="row" style={{ marginTop: 12 }}>
         <button className="btn btn-primary" onClick={() => void doExport()} disabled={busy}>
-          Export backup
+          {t("Export backup")}
         </button>
         <button className="btn btn-ghost" onClick={() => fileRef.current?.click()} disabled={busy}>
-          Import backup
+          {t("Import backup")}
         </button>
         <input
           ref={fileRef}
@@ -350,15 +366,15 @@ function DataTab() {
           }}
         />
         <button className="btn btn-sm btn-danger" onClick={() => void doClear()} disabled={busy}>
-          Delete all local data
+          {t("Delete all local data")}
         </button>
       </div>
       <p className="hint" style={{ marginTop: 14 }}>
-        Confused? The{" "}
+        {t("Confused? The")}{" "}
         <Link to="/notes/backup-guide" className="note-link">
-          step-by-step backup guide
+          {t("step-by-step backup guide")}
         </Link>{" "}
-        walks you through export, import, and what happens if you lose your data.
+        {t("walks you through export, import, and what happens if you lose your data.")}
       </p>
     </div>
   );

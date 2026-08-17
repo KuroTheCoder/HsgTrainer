@@ -12,6 +12,7 @@ import { play, playScore } from "../sfx";
 import { launchConfetti } from "../confetti";
 import { renderMarkdown } from "../md";
 import { submitSession } from "../store";
+import { t } from "../i18n";
 import type { AnswerResult, CriterionScores, ExamSectionResult, Paper, Question, WritingFeedback, WritingQuestion } from "../types";
 
 type Phase = "config" | "running" | "results" | "writing" | "writing-result";
@@ -128,7 +129,7 @@ export default function Exams() {
       const res = await api.getPapers();
       setPapers(res.papers);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "load failed");
+      setError(e instanceof Error ? e.message : t("load failed"));
     } finally {
       setBusy(false);
     }
@@ -145,7 +146,7 @@ export default function Exams() {
     try {
       const s = await api.drawQuestions({ paperId: p.id });
       if (s.questions.length === 0) {
-        setError("This paper has no answerable questions yet — the content team is keying papers.");
+        setError(t("This paper has no answerable questions yet — the content team is keying papers."));
         return;
       }
       setPaper(p);
@@ -158,7 +159,7 @@ export default function Exams() {
       setLeft(timeLimit * 60);
       setPhase("running");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "failed to start exam");
+      setError(e instanceof Error ? e.message : t("failed to start exam"));
     } finally {
       setBusy(false);
     }
@@ -169,7 +170,7 @@ export default function Exams() {
   const finish = async (timedOut = false) => {
     if (questions.length === 0) return;
     const unanswered = questions.length - answeredCount;
-    if (!timedOut && unanswered > 0 && !window.confirm(`Submit with ${unanswered} unanswered? They count as wrong.`)) return;
+    if (!timedOut && unanswered > 0 && !window.confirm(t("Submit with {n} unanswered? They count as wrong.", { n: unanswered }))) return;
     setBusy(true);
     setError(null);
     try {
@@ -206,7 +207,7 @@ export default function Exams() {
       setPhase("results");
       discardDraft();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "failed to submit");
+      setError(e instanceof Error ? e.message : t("failed to submit"));
     } finally {
       setBusy(false);
     }
@@ -239,7 +240,7 @@ export default function Exams() {
       const res = await api.paperWriting(paper.id);
       const q = res.questions[0];
       if (!q) {
-        setError("No verified writing prompts for this paper yet.");
+        setError(t("No verified writing prompts for this paper yet."));
         return;
       }
       setWritingQ(q);
@@ -247,7 +248,7 @@ export default function Exams() {
       setWritingFeedback(null);
       setPhase("writing");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "failed to draw writing prompt");
+      setError(e instanceof Error ? e.message : t("failed to draw writing prompt"));
     } finally {
       setBusy(false);
     }
@@ -265,7 +266,7 @@ export default function Exams() {
       setPhase("writing-result");
       discardDraft();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "scoring failed");
+      setError(e instanceof Error ? e.message : t("scoring failed"));
     } finally {
       setBusy(false);
     }
@@ -304,11 +305,11 @@ export default function Exams() {
   return (
     <div className="page">
       <div className="page-head">
-        <h2>Mock exam</h2>
+        <h2>{t("Mock exam")}</h2>
       </div>
       {dict && <DictPopup word={dict.word} x={dict.x} y={dict.y} onClose={() => setDict(null)} />}
       <span className="sr-only" role="status">
-        {busy ? "Working, please wait" : ""}
+        {busy ? t("Working, please wait") : ""}
       </span>
 
       {error && (
@@ -323,26 +324,26 @@ export default function Exams() {
             <div className="resume-banner">
               <div className="spread">
                 <div>
-                  <b>Exam in progress — {draft.paper.name}</b>
+                  <b>{t("Exam in progress — {name}", { name: draft.paper.name })}</b>
                   <p className="hint" style={{ margin: "2px 0 0" }}>
                     {draft.phase === "writing"
-                      ? "Writing task saved."
-                      : `Saved ${draft.savedAt > Date.now() - 60_000 ? "just now" : `${Math.round((Date.now() - draft.savedAt) / 60_000)} min ago`}.`}{" "}
-                    Pick up where you left off.
+                      ? t("Writing task saved.")
+                      : t("Saved {when}.", { when: draft.savedAt > Date.now() - 60_000 ? t("just now") : t("{n} min ago", { n: Math.round((Date.now() - draft.savedAt) / 60_000) }) })}{" "}
+                    {t("Pick up where you left off.")}
                   </p>
                 </div>
                 <div className="row">
                   <button className="btn btn-primary" onClick={resumeDraft}>
-                    Resume exam
+                    {t("Resume exam")}
                   </button>
                   <button className="btn btn-ghost" onClick={discardDraft}>
-                    Discard
+                    {t("Discard")}
                   </button>
                 </div>
               </div>
             </div>
           )}
-          <h3>Time limit</h3>
+          <h3>{t("Time limit")}</h3>
           <SnapSlider
             min={5}
             max={60}
@@ -350,13 +351,13 @@ export default function Exams() {
             value={timeLimit}
             onChange={setTimeLimit}
             snapPoints={[15, 30, 45, 60]}
-            format={(v) => `${v} min`}
+            format={(v) => `${v} ${t("min")}`}
           />
 
-          <h3 style={{ marginTop: 18 }}>Pick a paper</h3>
+          <h3 style={{ marginTop: 18 }}>{t("Pick a paper")}</h3>
           {!busy && papers.length === 0 && (
             <p className="hint">
-              No full papers available yet — verified official papers appear here once the content team keys them.
+              {t("No full papers available yet — verified official papers appear here once the content team keys them.")}
             </p>
           )}
           <div className="card-grid">
@@ -366,7 +367,7 @@ export default function Exams() {
                   <div>
                     <b>{p.name}</b>
                     <div className="muted small">
-                      {[p.year ? String(p.year) : null, p.province, p.grade].filter(Boolean).join(" · ") || "Official paper"}
+                      {[p.year ? String(p.year) : null, p.province, p.grade].filter(Boolean).join(" · ") || t("Official paper")}
                     </div>
                     <div className="row-chips" style={{ marginTop: 8 }}>
                       {Object.entries(p.sections)
@@ -379,12 +380,12 @@ export default function Exams() {
                             </span>
                           );
                         })}
-                      <span className="tag accent">{p.total} total</span>
+                      <span className="tag accent">{t("{n} total", { n: p.total })}</span>
                     </div>
                   </div>
                   <button className="btn btn-primary" onClick={() => void start(p)} disabled={busy}>
                     <IconBolt size={14} />
-                    Start exam
+                    {t("Start exam")}
                   </button>
                 </div>
               </div>
@@ -395,16 +396,16 @@ export default function Exams() {
 
       {phase === "running" && paper && questions.length > 0 && (
         <>
-          <div className="card panel" style={{ padding: "16px 20px" }}>
+           <div className="card panel" style={{ padding: "16px 20px" }}>
             <div className="spread">
               {reviewing ? (
                 <>
-                  <span className="tag accent">Review mode — no score</span>
+                  <span className="tag accent">{t("Review mode — no score")}</span>
                   <span className="muted small" style={{ flex: 1 }}>
-                    Try each question again, then reveal the answer to self-check.
+                    {t("Try each question again, then reveal the answer to self-check.")}
                   </span>
                   <button className="btn btn-ghost" onClick={() => setPhase("results")}>
-                    Back to results
+                    {t("Back to results")}
                   </button>
                 </>
               ) : (
@@ -417,13 +418,13 @@ export default function Exams() {
                     <div className="progress-fill" style={{ width: `${(answeredCount / questions.length) * 100}%` }} />
                   </div>
                   <span className="muted small">
-                    {answeredCount}/{questions.length} answered
+                    {t("{n}/{total} answered", { n: answeredCount, total: questions.length })}
                   </span>
                 </div>
               )}
               {!reviewing && (
                 <button className="btn btn-primary" onClick={() => void finish()} disabled={busy || answeredCount === 0}>
-                  {busy ? "Scoring…" : "Finish & submit"}
+                  {busy ? t("Scoring…") : t("Finish & submit")}
                 </button>
               )}
             </div>
@@ -444,7 +445,7 @@ export default function Exams() {
                     <span className="tag accent">{meta?.short ?? q.section}</span>
                     <span className="tag" style={tagStyle(q.qtype)}>{q.qtype}</span>
                     <span className={`tag cefr ${cefrBand(q.difficulty)}`}>{q.difficulty}</span>
-                    {!answers[q.id]?.trim() && <span className="tag bad">unanswered</span>}
+                    {!answers[q.id]?.trim() && <span className="tag bad">{t("unanswered")}</span>}
                   </div>
                   <Reader questionId={q.id} text={q.prompt} className="prompt" onLookup={(w, x, y) => setDict({ word: w, x, y })} />
                   {q.audio && <AudioPlayer src={q.audio} />}
@@ -468,13 +469,13 @@ export default function Exams() {
                     <input
                       type="text"
                       className="answer-input"
-                      placeholder="Your answer…"
+                      placeholder={t("Your answer…")}
                       value={answers[q.id] ?? ""}
                       onChange={(e) => setAnswer(q.id, e.target.value)}
                     />
                   )}
                   <div className="question-actions">
-                    <NoteBox questionId={q.id} section={q.section} label="Note" />
+                    <NoteBox questionId={q.id} section={q.section} label={t("Note")} />
                     <ReportBox questionId={q.id} />
                     {reviewing && results && (
                       <button
@@ -482,14 +483,14 @@ export default function Exams() {
                         onClick={() => setRevealed((r) => ({ ...r, [q.id]: !r[q.id] }))}
                         aria-expanded={!!revealed[q.id]}
                       >
-                        {revealed[q.id] ? "Hide answer" : "Reveal answer"}
+                        {revealed[q.id] ? t("Hide answer") : t("Reveal answer")}
                       </button>
                     )}
                   </div>
                   {reviewing && revealed[q.id] && results && (
                     <div className="reveal">
                       <p className="small">
-                        Your exam answer: <b>{results[i]?.yourAnswer || "— (not answered)"}</b> — correct:{" "}
+                        {t("Your exam answer")}: <b>{results[i]?.yourAnswer || t("— (not answered)")}</b> — {t("correct")}:{" "}
                         <b>{results[i]?.expected}</b>
                       </p>
                       {results[i]?.explanation && (
@@ -507,7 +508,7 @@ export default function Exams() {
                 onClick={() => void finish()}
                 disabled={busy || answeredCount === 0}
               >
-                {busy ? "Scoring…" : `Finish & submit (${answeredCount}/${questions.length} answered)`}
+                {busy ? t("Scoring…") : t("Finish & submit ({n}/{total} answered)", { n: answeredCount, total: questions.length })}
               </button>
             )}
           </div>
@@ -522,17 +523,16 @@ export default function Exams() {
               className={`stamp ${ringTone(scoreSummary.pct)}`}
               aria-hidden="true"
             >
-              {scoreSummary.pct >= 80 ? "A+" : scoreSummary.pct >= 60 ? "Keep going" : "Try again"}
+              {scoreSummary.pct >= 80 ? "A+" : scoreSummary.pct >= 60 ? t("Keep going") : t("Try again")}
             </div>
             <div className="summary-meta">
               <h3>{paper.name}</h3>
               <p className="muted">
-                {scoreSummary.correct}/{scoreSummary.total} correct ({scoreSummary.pct}%). Wrong answers are saved to
-                your mistake ledger.
+                {t("{correct}/{total} correct ({pct}%). Wrong answers are saved to your mistake ledger.", { correct: scoreSummary.correct, total: scoreSummary.total, pct: scoreSummary.pct })}
               </p>
               <div className="row">
                 <button className="btn btn-primary" onClick={() => setPhase("config")}>
-                  Back to papers
+                  {t("Back to papers")}
                 </button>
                 <button
                   className="btn btn-ghost"
@@ -544,12 +544,12 @@ export default function Exams() {
                   }}
                   disabled={busy}
                 >
-                  Review again (no score)
+                  {t("Review again (no score)")}
                 </button>
                 {paper.writing > 0 && writingFeedback === null && (
                   <button className="btn btn-ghost" onClick={() => void drawWriting()} disabled={busy}>
                     <IconSparkle size={14} />
-                    Writing task ({paper.writing})
+                    {t("Writing task ({n})", { n: paper.writing })}
                   </button>
                 )}
               </div>
@@ -557,7 +557,7 @@ export default function Exams() {
           </div>
 
           <div className="card panel" style={{ marginBottom: 18 }}>
-            <h3>By section</h3>
+            <h3>{t("By section")}</h3>
             <div className="section-bars">
               {bySection.map((s) => {
                 const meta = sectionMeta(s.section);
@@ -592,16 +592,16 @@ export default function Exams() {
                       {i + 1}.
                     </span>
                     <span className="tag accent">{meta?.short ?? ""}</span>
-                    <span className={`tag ${r.correct ? "ok" : "bad"}`}>{r.correct ? "Correct" : "Wrong"}</span>
+                    <span className={`tag ${r.correct ? "ok" : "bad"}`}>{r.correct ? t("Correct") : t("Wrong")}</span>
                   </div>
                   <p className="prompt">{q ? renderMarkdown(q.prompt) : ""}</p>
                   {q?.audio && <AudioPlayer src={q.audio} />}
                   <p className="small">
-                    Your answer: <b>{r.yourAnswer || "— (not answered)"}</b>
+                    {t("Your answer")}: <b>{r.yourAnswer || t("— (not answered)")}</b>
                     {!r.correct && (
                       <>
                         {" "}
-                        — correct: <b>{r.expected}</b>
+                        — {t("correct")}: <b>{r.expected}</b>
                       </>
                     )}
                   </p>
@@ -616,22 +616,22 @@ export default function Exams() {
       {phase === "writing" && writingQ && (
         <div className="card panel">
           <div className="spread" style={{ marginBottom: 8 }}>
-            <strong>Writing task — {paper?.name}</strong>
+            <strong>{t("Writing task — {name}", { name: paper?.name ?? "" })}</strong>
             {remaining !== null && (
-              <span className="muted small">AI credits: {remaining} left today</span>
+              <span className="muted small">{t("AI credits: {n} left today", { n: remaining })}</span>
             )}
           </div>
           <Reader questionId={writingQ.id} text={writingQ.prompt} className="prompt" onLookup={(w, x, y) => setDict({ word: w, x, y })} />
           <textarea
             rows={12}
             className="answer-input"
-            placeholder="Write your essay here…"
+            placeholder={t("Write your essay here…")}
             value={writingResponse}
             onChange={(e) => setWritingResponse(e.target.value)}
             aria-describedby="exam-writing-words"
           />
           <p className="hint" id="exam-writing-words" style={{ marginTop: 6 }}>
-            ≈ {wordCount} words · Writing is AI-scored on the HSG rubric (3 feedback credits per day).
+            ≈ {t("{n} words", { n: wordCount })} · {t("Writing is AI-scored on the HSG rubric (3 feedback credits per day).")}
           </p>
           <button
             className="btn btn-primary btn-lg btn-block"
@@ -640,7 +640,7 @@ export default function Exams() {
             disabled={busy || !writingResponse.trim()}
           >
             <IconSparkle size={17} />
-            {busy ? "Scoring with AI…" : "Get AI feedback"}
+            {busy ? t("Scoring with AI…") : t("Get AI feedback")}
           </button>
         </div>
       )}
@@ -648,18 +648,18 @@ export default function Exams() {
       {phase === "writing-result" && writingQ && writingFeedback && (
         <div className="card panel">
           <div className="spread" style={{ marginBottom: 8 }}>
-            <strong>Writing feedback</strong>
+            <strong>{t("Writing feedback")}</strong>
             <div className="row">
-              {remaining !== null && <span className="muted small">{remaining} AI credits left today</span>}
+              {remaining !== null && <span className="muted small">{t("{n} AI credits left today", { n: remaining })}</span>}
               <button className="btn btn-primary btn-sm" onClick={() => setPhase("config")}>
-                Back to papers
+                {t("Back to papers")}
               </button>
             </div>
           </div>
           <p className="prompt" style={{ marginTop: 0 }}>{renderMarkdown(writingQ.prompt)}</p>
           <div className="row" style={{ marginBottom: 12 }}>
             <span className={`tag ${writingFeedback.status === "ok" ? "ok" : "warn"}`}>
-              {writingFeedback.status === "ok" ? `Band ${writingFeedback.band ?? "—"} · ${writingFeedback.total ?? 0}/20` : "Feedback unavailable"}
+              {writingFeedback.status === "ok" ? t("Band {band} · {score}/20", { band: writingFeedback.band ?? "—", score: writingFeedback.total ?? 0 }) : t("Feedback unavailable")}
             </span>
           </div>
           {writingFeedback.status !== "ok" && (
@@ -687,13 +687,13 @@ export default function Exams() {
               </div>
               {writingFeedback.justification && (
                 <div>
-                  <h4 style={{ marginBottom: 4 }}>Why this score</h4>
+                  <h4 style={{ marginBottom: 4 }}>{t("Why this score")}</h4>
                   <p>{writingFeedback.justification}</p>
                 </div>
               )}
               {writingFeedback.fixes && writingFeedback.fixes.length > 0 && (
                 <div>
-                  <h4 style={{ marginBottom: 4 }}>How to improve</h4>
+                  <h4 style={{ marginBottom: 4 }}>{t("How to improve")}</h4>
                   <ul style={{ marginTop: 0 }}>
                     {writingFeedback.fixes.map((f, i) => (
                       <li key={i}>{f}</li>

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../api";
 import { sectionGradient, SECTIONS, sectionMeta, tagStyle } from "../sections";
+import { t } from "../i18n";
 import {
   IconArrow,
   IconBolt,
@@ -64,34 +65,34 @@ export default function Home() {
           <div>
             <span className="hero-eyebrow">
               <IconShield size={13} />
-              For HSG English candidates · free forever
+              {t("For HSG English candidates · free forever")}
             </span>
             <h1>
-              Train for the <em>HSG English</em> exam.
+              {t("Train for the")} <em>{t("HSG English")}</em> {t("exam.")}
             </h1>
-            <p>Real exam formats, instant feedback, human-verified content — and a ledger that shows exactly where you keep dropping points.</p>
+            <p>{t("Real exam formats, instant feedback, human-verified content — and a ledger that shows exactly where you keep dropping points.")}</p>
             <div className="hero-actions">
               <Link to="/practice" className="btn btn-primary btn-lg">
                 <IconBolt size={17} />
-                Start practicing
+                {t("Start practicing")}
               </Link>
               <Link to="/exams" className="btn btn-ghost btn-lg">
                 <IconClock size={17} />
-                Mock exam
+                {t("Mock exam")}
               </Link>
             </div>
             <div className="hero-stats">
               <span>
                 <b>6</b>
-                exam sections
+                {t("exam sections")}
               </span>
               <span>
                 <b>100%</b>
-                free forever
+                {t("free forever")}
               </span>
               <span>
-                <b>Human</b>
-                -verified content
+                <b>{t("Human")}</b>
+                {t("-verified content")}
               </span>
             </div>
           </div>
@@ -122,7 +123,7 @@ export default function Home() {
               <div className="mock-foot">
                 <ScoreRing value={4} max={5} size={44} stroke={5} tone="ok" />
                 <span>
-                  Correct — <b>C1 · advanced</b>
+                  {t("Correct")} — <b>C1 · {t("advanced")}</b>
                 </span>
               </div>
             </div>
@@ -131,7 +132,7 @@ export default function Home() {
       </section>
 
       <h3 className="dash-title">
-        <IconTrend size={15} /> Jump back in
+        <IconTrend size={15} /> {t("Jump back in")}
       </h3>
       <div className="quick-tiles">
         <Link to="/practice" className="quick-tile">
@@ -139,8 +140,8 @@ export default function Home() {
             <IconBolt size={18} />
           </span>
           <span>
-            <b>Practice</b>
-            <span className="tile-sub">New set in any section</span>
+            <b>{t("Practice")}</b>
+            <span className="tile-sub">{t("New set in any section")}</span>
           </span>
         </Link>
         <Link to="/exams" className="quick-tile">
@@ -148,9 +149,9 @@ export default function Home() {
             <IconClock size={18} />
           </span>
           <span>
-            <b>Mock exam</b>
+            <b>{t("Mock exam")}</b>
             <span className="tile-sub">
-              {paperCount == null ? "Checking papers…" : paperCount === 0 ? "No full papers yet" : `${paperCount} paper${paperCount === 1 ? "" : "s"} ready`}
+              {paperCount == null ? t("Checking papers…") : paperCount === 0 ? t("No full papers yet") : t("{n} paper{s} ready", { n: paperCount, s: paperCount === 1 ? "" : "s" })}
             </span>
           </span>
         </Link>
@@ -159,9 +160,9 @@ export default function Home() {
             <IconTarget size={18} />
           </span>
           <span>
-            <b>Mistakes</b>
+            <b>{t("Mistakes")}</b>
             <span className="tile-sub">
-              {mistakeCount == null ? "Checking…" : mistakeCount === 0 ? "All clear" : `${mistakeCount} to drill`}
+              {mistakeCount == null ? t("Checking…") : mistakeCount === 0 ? t("All clear") : t("{n} to drill", { n: mistakeCount })}
             </span>
           </span>
         </Link>
@@ -170,9 +171,9 @@ export default function Home() {
             <IconPen size={18} />
           </span>
           <span>
-            <b>Writing bank</b>
+            <b>{t("Writing bank")}</b>
             <span className="tile-sub">
-              {essayCount == null ? "Checking…" : essayCount === 0 ? "Write your first essay" : `${essayCount} essay${essayCount === 1 ? "" : "s"} saved`}
+              {essayCount == null ? t("Checking…") : essayCount === 0 ? t("Write your first essay") : t("{n} essay{s} saved", { n: essayCount, s: essayCount === 1 ? "" : "s" })}
             </span>
           </span>
         </Link>
@@ -188,10 +189,10 @@ export default function Home() {
 
       {loaded && !hasProgress && (
         <section className="card panel dash-empty">
-          <b>Your progress will appear here</b>
-          <p>Run a practice session and this dashboard starts tracking accuracy, streaks, and your weakest sections.</p>
+          <b>{t("Your progress will appear here")}</b>
+          <p>{t("Run a practice session and this dashboard starts tracking accuracy, streaks, and your weakest sections.")}</p>
           <Link to="/practice" className="btn btn-primary btn-sm">
-            <IconBolt size={14} /> Start practicing
+            <IconBolt size={14} /> {t("Start practicing")}
           </Link>
         </section>
       )}
@@ -202,16 +203,16 @@ export default function Home() {
             <div className="dash-ring">
               <ScoreRing value={stats.totalCorrect} max={Math.max(stats.totalAnswered, 1)} size={84} stroke={8} tone={ringTone(stats.accuracy)} />
               <div>
-                <div className="stat-label">Accuracy</div>
+                <div className="stat-label">{t("Accuracy")}</div>
                 <b>{pct(stats.accuracy)}</b>
               </div>
             </div>
             <div className="dash-kpi">
-              <span>Streak</span>
-              <b>{stats.streak} day{stats.streak === 1 ? "" : "s"}</b>
+              <span>{t("Streak")}</span>
+              <b>{stats.streak} {t("day{s}", { s: stats.streak === 1 ? "" : "s" })}</b>
             </div>
             <div className="dash-kpi">
-              <span>Sessions</span>
+              <span>{t("Sessions")}</span>
               <b>{stats.totalSessions}</b>
             </div>
           </div>
@@ -237,18 +238,18 @@ export default function Home() {
             {focusMeta && (
               <Link to={`/practice?section=${stats.focus ?? ""}`} className="focus-chip" style={{ "--fg": focusMeta.color } as CSSProperties}>
                 <IconTarget size={14} />
-                Focus: {focusMeta.short}
+                {t("Focus: {section}", { section: focusMeta.short })}
               </Link>
             )}
             <Link to="/progress" className="btn btn-ghost btn-sm">
-              <IconTrend size={14} /> Full progress
+              <IconTrend size={14} /> {t("Full progress")}
             </Link>
           </div>
         </section>
       )}
 
       <h3 className="landing-title">
-        Train every section <span className="muted">— real exam formats</span>
+        {t("Train every section")} <span className="muted">— {t("real exam formats")}</span>
       </h3>
       <div className="section-grid">
         {SECTIONS.map((s, i) => (
@@ -266,7 +267,7 @@ export default function Home() {
               <p>{s.description}</p>
             </div>
             <span className="card-meta">
-              {s.deterministic ? "Instant feedback" : "AI-scored"}
+              {s.deterministic ? t("Instant feedback") : t("AI-scored")}
               <IconArrow size={14} />
             </span>
           </Link>
@@ -277,27 +278,27 @@ export default function Home() {
         <div className="strip-body">
           <IconPlus size={22} />
           <div>
-            <b>Have a good HSG question?</b>
-            <span className="muted">Share it — it goes live after a quick human review.</span>
+            <b>{t("Have a good HSG question?")}</b>
+            <span className="muted">{t("Share it — it goes live after a quick human review.")}</span>
           </div>
         </div>
         <Link to="/contribute" className="btn btn-primary">
-          Contribute
+          {t("Contribute")}
         </Link>
       </section>
 
       <div className="why-row">
         <span className="why-point">
           <IconCheck size={15} />
-          <b>Instant feedback</b> &middot; every option explained
+          <b>{t("Instant feedback")}</b> &middot; {t("every option explained")}
         </span>
         <span className="why-point">
           <IconShield size={15} />
-          <b>Human-verified</b> content only
+          <b>{t("Human-verified")}</b> {t("content only")}
         </span>
         <span className="why-point">
           <IconSparkle size={15} />
-          <b>Free forever</b> &middot; no account needed
+          <b>{t("Free forever")}</b> &middot; {t("no account needed")}
         </span>
       </div>
     </div>

@@ -5,6 +5,7 @@ import { cefrBand, sectionMeta, SECTIONS, tagStyle } from "../sections";
 import { IconBolt, IconTarget, IconTrash, SectionIcon } from "../icons";
 import { renderMarkdown } from "../md";
 import { play } from "../sfx";
+import { t } from "../i18n";
 import type { Mistake } from "../types";
 
 function timeAgo(iso: string): string {
@@ -12,10 +13,10 @@ function timeAgo(iso: string): string {
   const min = 60_000;
   const hour = 3_600_000;
   const day = 86_400_000;
-  if (diff < min) return "just now";
-  if (diff < hour) return `${Math.floor(diff / min)}m ago`;
-  if (diff < day) return `${Math.floor(diff / hour)}h ago`;
-  if (diff < 30 * day) return `${Math.floor(diff / day)}d ago`;
+  if (diff < min) return t("just now");
+  if (diff < hour) return t("{n}m ago", { n: Math.floor(diff / min) });
+  if (diff < day) return t("{n}h ago", { n: Math.floor(diff / hour) });
+  if (diff < 30 * day) return t("{n}d ago", { n: Math.floor(diff / day) });
   return new Date(iso).toLocaleDateString();
 }
 
@@ -36,7 +37,7 @@ export default function Mistakes() {
       setMistakes(res);
       setSelected(new Set());
     } catch (e) {
-      setError(e instanceof Error ? e.message : "load failed");
+      setError(e instanceof Error ? e.message : t("load failed"));
     } finally {
       setBusy(false);
     }
@@ -64,35 +65,35 @@ export default function Mistakes() {
   const clearSelected = async () => {
     const ids = [...selected];
     if (ids.length === 0) return;
-    if (!window.confirm(`Delete ${ids.length} mistake(s)? This cannot be undone.`)) return;
+    if (!window.confirm(t("Delete {n} mistake(s)? This cannot be undone.", { n: ids.length }))) return;
     setBusy(true);
     setError(null);
     setNotice(null);
     try {
       const res = await deleteMistakes({ ids });
-      setNotice(`${res.deleted} mistake(s) deleted.`);
+      setNotice(t("{n} mistake(s) deleted.", { n: res.deleted }));
       play("clear");
       await load(section);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "delete failed");
+      setError(e instanceof Error ? e.message : t("delete failed"));
       setBusy(false);
     }
   };
 
   const clearAll = async () => {
     if (mistakes.length === 0) return;
-    const scope = section ? ` in ${sectionMeta(section)?.label ?? section}` : "";
-    if (!window.confirm(`Delete ALL mistake rows${scope}? This cannot be undone.`)) return;
+    const scope = section ? t(" in {section}", { section: sectionMeta(section)?.label ?? section }) : "";
+    if (!window.confirm(t("Delete ALL mistake rows{s}? This cannot be undone.", { s: scope }))) return;
     setBusy(true);
     setError(null);
     setNotice(null);
     try {
       const res = await deleteMistakes({ section: section || undefined });
-      setNotice(`${res.deleted} mistake(s) deleted.`);
+      setNotice(t("{n} mistake(s) deleted.", { n: res.deleted }));
       play("clear");
       await load(section);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "delete failed");
+      setError(e instanceof Error ? e.message : t("delete failed"));
       setBusy(false);
     }
   };
@@ -115,10 +116,10 @@ export default function Mistakes() {
   return (
     <div className="page">
       <div className="page-head">
-        <h2>My mistakes</h2>
+        <h2>{t("My mistakes")}</h2>
         <div className="row">
           <select value={section} onChange={(e) => setSection(e.target.value)}>
-            <option value="">All sections</option>
+            <option value="">{t("All sections")}</option>
             {SECTIONS.map((s) => (
               <option key={s.key} value={s.key}>
                 {s.label}
@@ -126,7 +127,7 @@ export default function Mistakes() {
             ))}
           </select>
           <button className="btn btn-ghost btn-sm" onClick={() => void load(section)} disabled={busy}>
-            Refresh
+            {t("Refresh")}
           </button>
         </div>
       </div>
@@ -145,8 +146,8 @@ export default function Mistakes() {
 
       {!busy && mistakes.length === 0 && (
         <div className="card empty">
-          <b>No mistakes yet</b>
-          <p>Keep practicing — wrong answers land here so you can drill your weak spots.</p>
+          <b>{t("No mistakes yet")}</b>
+          <p>{t("Keep practicing — wrong answers land here so you can drill your weak spots.")}</p>
         </div>
       )}
 
@@ -154,7 +155,7 @@ export default function Mistakes() {
         <div className="card panel mistake-summary" style={{ padding: "16px 20px", marginBottom: 18 }}>
           <div className="row">
             <span className="tag accent">
-              <IconTarget size={12} /> {mistakes.length} mistake(s)
+              <IconTarget size={12} /> {t("{n} mistake(s)", { n: mistakes.length })}
             </span>
             {[...countBySection.entries()].map(([sec, n]) => {
               const meta = sectionMeta(sec);
@@ -166,13 +167,13 @@ export default function Mistakes() {
               );
             })}
             {topGap && (
-              <span className="tag accent" title={`Most frequent tag across your mistakes (${topGap.count})`}>
-                Top gap: {topGap.tag}
+              <span className="tag accent" title={t("Most frequent tag across your mistakes ({n})", { n: topGap.count })}>
+                {t("Top gap")}: {topGap.tag}
               </span>
             )}
           </div>
           <div className="spread" style={{ marginTop: 10 }}>
-            <span className="hint">Study loop: drill these in a fresh session — get each one right and it clears from this list automatically.</span>
+            <span className="hint">{t("Study loop: drill these in a fresh session — get each one right and it clears from this list automatically.")}</span>
             <div className="row">
               <button
                 className="btn btn-primary btn-sm"
@@ -180,25 +181,25 @@ export default function Mistakes() {
                 disabled={mistakes.length === 0}
               >
                 <IconBolt size={14} />
-                Study now
+                {t("Study now")}
               </button>
               <button
                 className="btn btn-sm btn-danger"
                 onClick={() => void clearSelected()}
                 disabled={selected.size === 0 || busy}
-                title="Delete the selected mistakes"
+                title={t("Delete the selected mistakes")}
               >
                 <IconTrash size={14} />
-                Clear selected{selected.size > 0 ? ` (${selected.size})` : ""}
+                {t("Clear selected")}{selected.size > 0 ? t(" ({n})", { n: selected.size }) : ""}
               </button>
               <button
                 className="btn btn-sm btn-danger"
                 onClick={() => void clearAll()}
                 disabled={mistakes.length === 0 || busy}
-                title="Delete every mistake in this browser"
+                title={t("Delete every mistake in this browser")}
               >
                 <IconTrash size={14} />
-                Clear all
+                {t("Clear all")}
               </button>
             </div>
           </div>
@@ -211,13 +212,13 @@ export default function Mistakes() {
           return (
             <div key={m.answerId} className={`question wrong ${selected.has(m.answerId) ? "row-selected" : ""}`} style={{ "--i": i } as CSSProperties}>
               <div className="question-head">
-                <label className="row-check" title="Select for deletion">
+                <label className="row-check" title={t("Select for deletion")}>
                   <input
                     type="checkbox"
                     checked={selected.has(m.answerId)}
                     onChange={() => toggleSelected(m.answerId)}
                   />
-                  <span className="sr-only">Select mistake {i + 1}</span>
+                  <span className="sr-only">{t("Select mistake {n}", { n: i + 1 })}</span>
                 </label>
                 <span className="qnum">
                   <span className="qnum-icon">
@@ -235,15 +236,15 @@ export default function Mistakes() {
                 <button
                   className="btn btn-ghost btn-sm ml-auto"
                   onClick={() => navigate(`/practice?questions=${m.questionId}`)}
-                  title="Drill this question in a fresh session — get it right to clear it"
+                  title={t("Drill this question in a fresh session — get it right to clear it")}
                 >
                   <IconBolt size={12} />
-                  Drill
+                  {t("Drill")}
                 </button>
               </div>
               <p className="prompt">{renderMarkdown(m.prompt)}</p>
               <p className="small">
-                Your answer: <b>{m.yourAnswer}</b> — correct: <b>{m.expected}</b>
+                {t("Your answer")}: <b>{m.yourAnswer}</b> — {t("correct")}: <b>{m.expected}</b>
               </p>
               {m.explanation && <p className="explanation">{renderMarkdown(m.explanation)}</p>}
             </div>
