@@ -9,6 +9,7 @@ These are the maintainer's study guides, curated from the Obsidian vault and ren
 
 - Start with [[word-formation]] — the biggest scoring section in most tỉnh/thành phố papers.
 - Then [[cloze-strategy]] for the cloze passages.
+- New to the app's backup system? Read [[backup-guide]] so your progress never disappears.
 - New guides appear here as they get curated; the app never shows graph view, canvas, or plugins — open the vault in Obsidian for those.
 
 ## What you can do here

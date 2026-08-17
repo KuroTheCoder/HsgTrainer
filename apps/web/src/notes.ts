@@ -9,6 +9,7 @@ export interface NoteMeta {
   slug: string;
   title: string;
   tags: string[];
+  backlinks?: string[];
 }
 
 export interface Note extends NoteMeta {

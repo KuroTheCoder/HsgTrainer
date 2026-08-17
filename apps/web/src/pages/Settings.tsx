@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { DICTIONARIES, getDefaultDictId, setDefaultDictId, getOpenMode, setOpenMode, type OpenMode } from "../dictionary";
 import { IconBook, IconBug, IconExternal, IconGear, IconPalette, IconPlay, IconVolume } from "../icons";
 import ThemeControls from "../components/ThemeControls";
@@ -232,9 +233,19 @@ export default function Settings() {
 }
 
 function DataTab() {
+  const LAST_EXPORT_KEY = "hsg_last_export";
+
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [lastExport, setLastExport] = useState<number | null>(() => {
+    try {
+      const v = Number(localStorage.getItem(LAST_EXPORT_KEY));
+      return Number.isFinite(v) && v > 0 ? v : null;
+    } catch {
+      return null;
+    }
+  });
   const fileRef = useRef<HTMLInputElement>(null);
 
   const doExport = async () => {
@@ -250,6 +261,13 @@ function DataTab() {
       a.download = `hsgtrainer-backup-${new Date().toISOString().slice(0, 10)}.json`;
       a.click();
       URL.revokeObjectURL(url);
+      const now = Date.now();
+      try {
+        localStorage.setItem(LAST_EXPORT_KEY, String(now));
+      } catch {
+        /* private mode */
+      }
+      setLastExport(now);
       setNotice("Backup downloaded. Keep the file somewhere safe (e.g. a Drive/iCloud/OneDrive folder).");
     } catch (e) {
       setError(e instanceof Error ? e.message : "export failed");
@@ -308,6 +326,12 @@ function DataTab() {
           {notice}
         </div>
       )}
+      {lastExport !== null && (
+        <p className="hint">
+          Last export: {new Date(lastExport).toLocaleDateString()}. Re-export every few weeks — a backup is the
+          only copy of your progress.
+        </p>
+      )}
       <div className="row" style={{ marginTop: 12 }}>
         <button className="btn btn-primary" onClick={() => void doExport()} disabled={busy}>
           Export backup
@@ -329,6 +353,13 @@ function DataTab() {
           Delete all local data
         </button>
       </div>
+      <p className="hint" style={{ marginTop: 14 }}>
+        Confused? The{" "}
+        <Link to="/notes/backup-guide" className="note-link">
+          step-by-step backup guide
+        </Link>{" "}
+        walks you through export, import, and what happens if you lose your data.
+      </p>
     </div>
   );
 }

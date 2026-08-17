@@ -51,6 +51,11 @@ export default function Notes() {
     [metas],
   );
 
+  const backlinks = useMemo(
+    () => (current && metas ? (metas.find((m) => m.slug === current.slug)?.backlinks ?? []).map((s) => metas.find((m) => m.slug === s)).filter((m): m is NoteMeta => !!m) : []),
+    [current, metas],
+  );
+
   const list = useMemo(() => {
     if (!metas) return [];
     const q = query.trim().toLowerCase();
@@ -130,6 +135,18 @@ export default function Notes() {
                   )}
                 </header>
                 <div className="note-prose">{renderNote(current.body, ctx)}</div>
+                {backlinks.length > 0 && (
+                  <footer className="note-backlinks">
+                    <b>Linked from</b>
+                    <div className="chip-row">
+                      {backlinks.map((m) => (
+                        <Link key={m.slug} to={`/notes/${m.slug}`} className="chip-btn">
+                          {m.title}
+                        </Link>
+                      ))}
+                    </div>
+                  </footer>
+                )}
               </>
             )}
           </article>
@@ -155,6 +172,17 @@ export default function Notes() {
               </li>
             ))}
           </ul>
+          <div className="card panel vault-card">
+            <h3>Take the notes to Obsidian</h3>
+            <p className="muted">
+              Prefer your own reader? Download the whole vault — the same notes plus a minimal Obsidian setup —
+              and open the folder in the free Obsidian app. Full graph view, backlinks, and your own themes and
+              plugins work there.
+            </p>
+            <a className="btn btn-primary" href="/notes/hsgtrainer-vault.zip" download>
+              Download vault (.zip)
+            </a>
+          </div>
         </div>
       )}
     </div>

@@ -3325,6 +3325,11 @@ th { color: var(--muted); font-weight: 600; }
 .notes-index-list li { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .notes-index-list a { font-weight: 600; color: var(--text); }
 .notes-index-list a:hover { color: var(--accent); }
+.note-backlinks { margin-top: 28px; padding-top: 14px; border-top: 2px dashed color-mix(in srgb, var(--accent) 40%, transparent); }
+.note-backlinks b { display: block; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 8px; }
+.vault-card { margin-top: 22px; border-style: dashed; }
+.vault-card h3 { margin: 0 0 6px; }
+.vault-card p { margin: 0 0 12px; }
 @media (max-width: 900px) {
   .notes-page { grid-template-columns: minmax(0, 1fr); }
   .notes-list { position: static; }

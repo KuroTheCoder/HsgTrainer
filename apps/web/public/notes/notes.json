@@ -1,11 +1,26 @@
 {
   "notes": [
     {
+      "slug": "backup-guide",
+      "title": "Backing up and restoring your progress",
+      "tags": [
+        "backup",
+        "guide",
+        "help"
+      ],
+      "backlinks": [
+        "index"
+      ]
+    },
+    {
       "slug": "cloze-strategy",
       "title": "Cloze technique",
       "tags": [
         "cloze",
         "technique"
+      ],
+      "backlinks": [
+        "index"
       ]
     },
     {
@@ -14,6 +29,9 @@
       "tags": [
         "guide",
         "hsgtrainer"
+      ],
+      "backlinks": [
+        "word-formation"
       ]
     },
     {
@@ -22,6 +40,9 @@
       "tags": [
         "word-formation",
         "strategy"
+      ],
+      "backlinks": [
+        "index"
       ]
     }
   ]
