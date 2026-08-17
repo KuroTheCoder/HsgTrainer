@@ -9,7 +9,8 @@
     "dev:api": "npm run dev -w @hsgtrainer/api",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
-    "build": "npm run build --workspaces --if-present"
+    "build": "npm run build --workspaces --if-present",
+    "lint:content": "node scripts/lint-content.mjs"
   },
   "engines": {
     "node": ">=20"

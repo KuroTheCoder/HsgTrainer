@@ -10,11 +10,11 @@ interface ToolbarState {
   text: string;
 }
 
-/** Shrink a selection range so leading/trailing whitespace is not part of it. */
-function trimRangeWhitespace(range: Range): void {
+/** Trim leading quotes/brackets and trailing punctuation/whitespace off a selection range. */
+function trimSelection(range: Range): void {
   const raw = range.toString();
-  const leading = raw.length - raw.trimStart().length;
-  const trailing = raw.length - raw.trimEnd().length;
+  const leading = raw.match(/^[\s"'([{\u2018\u201C]*/)?.[0].length ?? 0;
+  const trailing = raw.match(/[\s.,;:!?…'")\]}]\u2019\u201D-]+$/)?.[0].length ?? 0;
   if (leading === 0 && trailing === 0) return;
   if (range.startContainer instanceof Text) {
     range.setStart(range.startContainer, Math.min(range.startOffset + leading, range.startContainer.data.length));
@@ -50,7 +50,7 @@ export function Reader({
     if (!wrap) return;
     if (sel && wrap.contains(sel.anchorNode) && !sel.isCollapsed && sel.rangeCount > 0) {
       const range = sel.getRangeAt(0);
-      trimRangeWhitespace(range);
+      trimSelection(range);
       const text = range.toString().trim();
       if (text.length < 2 || text.length > 300) {
         setToolbar(null);

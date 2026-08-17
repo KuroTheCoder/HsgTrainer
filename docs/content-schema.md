@@ -68,6 +68,16 @@ audio exists. See `apps/web/public/audio/README.md`.
 
 ## Workflows
 
+### 0. Every keying session: lint first
+
+```bash
+npm run lint:content            # validates every content/**/*.json locally
+```
+
+`scripts/lint-content.mjs` checks the canonical format (enums, option ranges,
+required fields) and prints per-question errors/warnings with the valid values
+included, so you fix mistakes before any import. Exit code 1 on errors.
+
 ### A. Google Sheet → CSV → admin bulk import (recommended for bulk)
 
 Columns: `qtype, section, prompt, options (pipe-separated), answer, accepted_variants (pipe-separated), tags (comma-separated), key_words (comma-separated), audio, difficulty, source_type, source_name, source_year, source_grade, source_province`
