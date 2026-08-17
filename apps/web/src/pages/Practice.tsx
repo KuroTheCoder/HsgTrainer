@@ -99,10 +99,12 @@ function redundantTypeTag(section: string, qtype: string): boolean {
 export default function Practice() {
   const [params] = useSearchParams();
   const initialSection = params.get("section") ?? "lexico-grammar";
+  const initialTag = params.get("tag") ?? "";
 
   const [phase, setPhase] = useState<Phase>("config");
   const [section, setSection] = useState(initialSection);
   const [difficulty, setDifficulty] = useState("");
+  const [tag, setTag] = useState(initialTag);
   const [count, setCount] = useState(10);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [sessionId, setSessionId] = useState<number | null>(null);
@@ -142,6 +144,7 @@ export default function Practice() {
       const s = await api.startSession({
         section: sectionMeta(section)?.deterministic ? section : undefined,
         difficulty: difficulty || undefined,
+        tag: tag.trim() || undefined,
         count,
       });
       if (s.questions.length === 0) {
@@ -310,6 +313,20 @@ export default function Practice() {
                   onChange={setCount}
                   snapPoints={[5, 10, 15, 20, 25]}
                 />
+              </div>
+              <div className="field">
+                Book / tag
+                <input
+                  type="text"
+                  className="answer-input"
+                  placeholder="e.g. word-form-drill (optional)"
+                  value={tag}
+                  onChange={(e) => setTag(e.target.value)}
+                  aria-label="Practice tag"
+                />
+                <span className="hint small" style={{ marginTop: 4 }}>
+                  Scramble only questions with this tag — e.g. a specific book's drills.
+                </span>
               </div>
             </div>
           )}

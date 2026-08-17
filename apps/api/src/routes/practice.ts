@@ -15,6 +15,7 @@ function anonId(c: { req: { header: (n: string) => string | undefined } }): stri
 practice.get("/questions", async (c) => {
   const section = c.req.query("section") ?? null;
   const difficulty = c.req.query("difficulty") ?? null;
+  const tag = c.req.query("tag") ?? null;
   const count = Math.min(parseInt(c.req.query("count") ?? "10", 10) || 10, 25);
 
   let sql = `SELECT * FROM questions
@@ -27,6 +28,10 @@ practice.get("/questions", async (c) => {
   if (difficulty) {
     sql += ` AND difficulty = ?`;
     params.push(difficulty);
+  }
+  if (tag) {
+    sql += ` AND tags LIKE ?`;
+    params.push(`%"${tag}"%`);
   }
   sql += ` ORDER BY RANDOM() LIMIT ?`;
   params.push(String(count));
@@ -41,6 +46,7 @@ practice.post("/sessions", async (c) => {
   const body = (await c.req.json().catch(() => ({}))) as {
     section?: string;
     difficulty?: string;
+    tag?: string;
     count?: number;
     questionIds?: number[];
     paperId?: number;
@@ -78,6 +84,10 @@ practice.post("/sessions", async (c) => {
     if (body.difficulty) {
       sql += ` AND difficulty = ?`;
       params.push(body.difficulty);
+    }
+    if (body.tag) {
+      sql += ` AND tags LIKE ?`;
+      params.push(`%"${body.tag}"%`);
     }
     sql += ` ORDER BY RANDOM() LIMIT ?`;
     params.push(String(count));

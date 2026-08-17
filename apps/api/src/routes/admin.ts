@@ -193,6 +193,25 @@ admin.post("/questions/bulk", async (c) => {
   return c.json({ report }, 201);
 });
 
+// -------- bulk status flip (explicit admin action: e.g. verify a whole book after spot-check) --------
+
+admin.post("/questions/status", async (c) => {
+  const body = (await c.req.json().catch(() => null)) as { ids?: unknown; status?: unknown } | null;
+  const status = body?.status;
+  if (typeof status !== "string" || !(VERIFICATION_STATUSES as readonly string[]).includes(status)) {
+    return c.json({ error: "status must be one of: " + VERIFICATION_STATUSES.join(", ") }, 400);
+  }
+  const ids = Array.isArray(body?.ids) ? [...new Set(body.ids.map(Number).filter((n) => Number.isInteger(n) && n > 0))] : [];
+  if (ids.length === 0 || ids.length > 5000) return c.json({ error: "ids[] required (1-5000)" }, 400);
+  const res = await c.env.DB.prepare(
+    `UPDATE questions SET verification_status = ?, reviewed_by = ?, reviewed_at = datetime('now')
+     WHERE id IN (${ids.map(() => "?").join(",")})`,
+  )
+    .bind(status, "admin", ...ids.map(String))
+    .run();
+  return c.json({ updated: res.meta.changes });
+});
+
 // -------- edit / verify / reject --------
 
 admin.patch("/questions/:id", async (c) => {

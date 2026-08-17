@@ -47,15 +47,16 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
 export const api = {
   health: () => request<{ ok: boolean }>("/health"),
 
-  drawQuestions: (opts: { section?: string; difficulty?: string; count?: number }) => {
+  drawQuestions: (opts: { section?: string; difficulty?: string; tag?: string; count?: number }) => {
     const qs = new URLSearchParams();
     if (opts.section) qs.set("section", opts.section);
     if (opts.difficulty) qs.set("difficulty", opts.difficulty);
+    if (opts.tag) qs.set("tag", opts.tag);
     if (opts.count) qs.set("count", String(opts.count));
     return request<{ questions: Question[] }>(`/questions?${qs}`);
   },
 
-  startSession: (opts: { section?: string; difficulty?: string; count?: number; questionIds?: number[]; paperId?: number }) =>
+  startSession: (opts: { section?: string; difficulty?: string; tag?: string; count?: number; questionIds?: number[]; paperId?: number }) =>
     request<SessionQuestions>("/sessions", {
       method: "POST",
       body: JSON.stringify(opts),
