@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { renderMarkdown } from "../md";
-import { addHighlight, getHighlights, getNote, saveNote, type Note } from "../reader";
+import { addHighlight, getHighlights, getNote, removeHighlight, saveNote, type Note } from "../reader";
 import { IconPen } from "../icons";
 
 interface ToolbarState {
@@ -67,6 +67,13 @@ export function Reader({
     dismiss();
   };
 
+  const unhighlight = () => {
+    if (!toolbar) return;
+    removeHighlight(questionId, toolbar.text);
+    setHighlights(getHighlights(questionId));
+    dismiss();
+  };
+
   // The toolbar renders inside the question card, but its coordinates are
   // viewport-space (from the selection rect). Portal it to <body> and use
   // document-space absolute positioning so it stays glued to the word as the
@@ -85,9 +92,15 @@ export function Reader({
             Dictionary
           </button>
         )}
-        <button onClick={highlight} title="Save as highlight">
-          Highlight
-        </button>
+        {highlights.includes(toolbar.text) ? (
+          <button onClick={unhighlight} title="Remove this highlight">
+            Unhighlight
+          </button>
+        ) : (
+          <button onClick={highlight} title="Save as highlight">
+            Highlight
+          </button>
+        )}
       </span>,
       document.body,
     );
