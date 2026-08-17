@@ -46,6 +46,25 @@ The product has **no listening support at all**: sections are only `phonetics | 
 
 ---
 
+## 7. Local-first grind + premium sync — the monetization path
+
+**Decision (2026-08-17): the app goes local-first.** All grind data (sessions, answers, mistake ledger, progress) moves to the browser (IndexedDB); D1 serves only question banks, AI writing scoring, reports, admin. Sync is deliberately NOT built — users "just need a place to grind". Backup = one exported JSON save file + a short guide (put it in a Google Drive / iCloud / OneDrive folder; the OS syncs it free).
+
+- **Funding link (wanted ASAP):** set up a Ko-fi/BuyMeACoffee-style link and put it on the site (footer + settings). "If they wanna sync without headache, money talks" — painless server-side sync is the natural **premium** tier once the funding path exists.
+- **Done looks like:** export/import save file + backup guide; a funding link live; (later, only if traction) a paid "cloud sync" tier.
+- **Status (2026-08-17):** agreed in design discussion; local-first migration not started. First slice: shared `packages/scoring` + IndexedDB store + export/import, then Mistakes/Progress/Home data sources.
+
+## 8. Obsidian vault → in-app study notes viewer
+
+The maintainer has well-documented Obsidian vaults and wants to share them with users. Obsidian is an Electron app — a "native" viewer means rebuilding it; but Obsidian's core is markdown + a few syntax extensions, so a **curated renderer is cheap** and zero-dep (extend the hand-rolled `apps/web/src/md.tsx` from inline-only to block-level + Obsidian syntax).
+
+- **Scope:** headings, lists, tables, code fences, blockquotes, **wikilinks** `[[Page]]` → internal navigation, **tags** `#tag` → chips, **callouts** `> [!note]`, **frontmatter** hidden, embeds `![[file]]` → link-out. NO graph view / canvas / plugins — tell users to open the vault in Obsidian for those.
+- **Hosting (lazy path):** curated markdown-only subset committed as `content/notes/**/*.md`, served statically, rendered at a `/notes` page with a file sidebar. Attachments/images either committed or linked out. Full-vault hosting on R2 (10GB free) only if the curated subset proves too small.
+- **Done looks like:** `/notes` page rendering the maintainer's curated vault subset with wikilink navigation; backup/sync still via the save file.
+- **Status (2026-08-17):** agreed in design discussion; not started. Feasible in one focused session (renderer upgrade + notes page + a first small vault).
+
+---
+
 ## Reminders
 
 - Surface these ideas to the maintainer at the start of every session (see AGENTS.md convention).
