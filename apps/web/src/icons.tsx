@@ -190,6 +190,14 @@ export const IconUsers: FC<IconProps> = (p) => (
   </svg>
 );
 
+export const IconDoc: FC<IconProps> = (p) => (
+  <svg {...base(p)}>
+    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+    <path d="M14 2v6h6" />
+    <path d="M9 13h6M9 17h6" />
+  </svg>
+);
+
 export const IconQuote: FC<IconProps> = (p) => (
   <svg {...base(p)} fill="currentColor" stroke="none">
     <path d="M10 7H6a3 3 0 0 0-3 3v7h7v-7H7.5A2.5 2.5 0 0 1 10 7.5V7zm11 0h-4a3 3 0 0 0-3 3v7h7v-7h-3.5a2.5 2.5 0 0 1 2.5-2.5V7z" />

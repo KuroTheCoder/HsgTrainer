@@ -3,7 +3,7 @@ import { Link, NavLink, Route, Routes, useLocation, useNavigate } from "react-ro
 import { useTheme, type Background } from "./theme";
 import { SECTIONS } from "./sections";
 import ThemeControls from "./components/ThemeControls";
-import { IconBolt, IconBook, IconClock, IconGear, IconPen, IconPlus, IconTarget, IconTool, IconTrend, IconUser, IconUsers, SectionIcon } from "./icons";
+import { IconBolt, IconBook, IconClock, IconDoc, IconGear, IconPen, IconPlus, IconTarget, IconTool, IconTrend, IconUser, IconUsers, SectionIcon } from "./icons";
 import { NOTES_CHANGED_EVENT, noteIdsForSection } from "./reader";
 import { WORD_LIST_CHANGED_EVENT, getWordList } from "./vocab";
 import Home from "./pages/Home";
@@ -19,6 +19,7 @@ import Teachers from "./pages/Teachers";
 import Progress from "./pages/Progress";
 import Exams from "./pages/Exams";
 import Writing from "./pages/Writing";
+import Notes from "./pages/Notes";
 import SnapSlider from "./components/SnapSlider";
 
 function PaletteIcon() {
@@ -146,6 +147,12 @@ function NavLinks() {
         {vocabCount > 0 && <span className="nav-count">{vocabCount}</span>}
       </NavLink>
 
+      <div className="sidebar-label label-study">Study</div>
+      <NavLink to="/notes" className={({ isActive }) => (isActive ? "active" : "")}>
+        <IconDoc size={15} />
+        Notes
+      </NavLink>
+
       <div className="sidebar-label label-community">Community</div>
       <NavLink to="/contribute" className={({ isActive }) => (isActive ? "active" : "")}>
         <IconPlus size={15} />
@@ -181,6 +188,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/exams": "Mock exam",
   "/writing": "Writing bank",
   "/words": "Word list",
+  "/notes": "Notes",
   "/contribute": "Contribute",
   "/tools": "Free tools",
   "/teachers": "For teachers",
@@ -446,6 +454,7 @@ export default function App() {
             <Route path="/exams" element={<Exams />} />
             <Route path="/writing" element={<Writing />} />
             <Route path="/words" element={<WordList />} />
+            <Route path="/notes/:slug?" element={<Notes />} />
             <Route path="/contribute" element={<Contribute />} />
             <Route path="/tools" element={<Tools />} />
             <Route path="/teachers" element={<Teachers />} />
