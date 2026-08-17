@@ -34,7 +34,7 @@ Training platform for **Vietnam HSG English exams** (kỳ thi chọn học sinh 
 | Settings hub (/settings — tabbed pause-menu nav: Appearance / Sounds / Dictionary) | Shipped |
 | Theming (12 palettes, custom color, 6 backgrounds, pattern intensity, presets, share links) | Shipped |
 | Sound effects (clicks/hovers/chimes/warnings) with per-sound volume + confetti on strong runs | Shipped |
-| Vocabulary trainer (spaced repetition on the word list) | Roadmap |
+| Vocabulary trainer (spaced repetition on the word list) | Shipped |
 | Teacher/classroom rosters, data sync/portability | Roadmap |
 | Content depth (key real papers) | Ongoing |
 

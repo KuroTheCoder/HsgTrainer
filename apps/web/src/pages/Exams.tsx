@@ -45,6 +45,84 @@ export default function Exams() {
   const [writingResponse, setWritingResponse] = useState("");
   const [writingFeedback, setWritingFeedback] = useState<WritingFeedback | null>(null);
 
+  // review-only replay of a finished exam (no timer, no score)
+  const [reviewing, setReviewing] = useState(false);
+  const [revealed, setRevealed] = useState<Record<number, boolean>>({});
+
+  const DRAFT_KEY = "hsg-exam-draft";
+  interface Draft {
+    paper: Paper;
+    questions: Question[];
+    sessionId: number;
+    answers: Record<number, string>;
+    deadline: number;
+    phase: "running" | "writing";
+    writingQ: WritingQuestion | null;
+    writingResponse: string;
+    savedAt: number;
+  }
+  const [draft, setDraft] = useState<Draft | null>(() => {
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      if (!raw) return null;
+      const d = JSON.parse(raw) as Draft;
+      return d && d.paper && d.sessionId ? d : null;
+    } catch {
+      return null; // private mode / corrupt draft
+    }
+  });
+
+  const discardDraft = () => {
+    setDraft(null);
+    try {
+      localStorage.removeItem(DRAFT_KEY);
+    } catch {
+      /* private mode */
+    }
+  };
+
+  const saveDraft = () => {
+    if (phase !== "running" && phase !== "writing") return;
+    if (reviewing || !paper || !sessionId) return;
+    try {
+      localStorage.setItem(
+        DRAFT_KEY,
+        JSON.stringify({
+          paper,
+          questions,
+          sessionId,
+          answers,
+          deadline: deadlineRef.current,
+          phase,
+          writingQ,
+          writingResponse,
+          savedAt: Date.now(),
+        } satisfies Draft),
+      );
+    } catch {
+      /* private mode */
+    }
+  };
+
+  useEffect(() => {
+    saveDraft();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, answers, writingResponse, questions, paper, sessionId, writingQ]);
+
+  const resumeDraft = () => {
+    if (!draft) return;
+    setPaper(draft.paper);
+    setQuestions(draft.questions);
+    setSessionId(draft.sessionId);
+    setAnswers(draft.answers);
+    setWritingQ(draft.writingQ);
+    setWritingResponse(draft.writingResponse);
+    deadlineRef.current = draft.deadline;
+    setLeft(Math.max(0, Math.round((draft.deadline - Date.now()) / 1000)));
+    setReviewing(false);
+    setPhase(draft.phase);
+  };
+
   const loadPapers = useCallback(async () => {
     setBusy(true);
     setError(null);
@@ -65,6 +143,7 @@ export default function Exams() {
   const start = async (p: Paper) => {
     setBusy(true);
     setError(null);
+    discardDraft();
     try {
       const s = await api.startSession({ paperId: p.id });
       if (s.questions.length === 0) {
@@ -76,6 +155,8 @@ export default function Exams() {
       setSessionId(s.sessionId);
       setAnswers({});
       setResults(null);
+      setReviewing(false);
+      setRevealed({});
       deadlineRef.current = Date.now() + timeLimit * 60_000;
       setLeft(timeLimit * 60);
       setPhase("running");
@@ -117,6 +198,7 @@ export default function Exams() {
       playScore(pct);
       if (pct >= 80) launchConfetti({ count: pct === 100 ? 220 : 140 });
       setPhase("results");
+      discardDraft();
     } catch (e) {
       setError(e instanceof Error ? e.message : "failed to submit");
     } finally {
@@ -130,7 +212,7 @@ export default function Exams() {
 
   const deadlineRef = useRef(0);
   useEffect(() => {
-    if (phase !== "running") return;
+    if (phase !== "running" || reviewing) return;
     const id = window.setInterval(() => {
       const rem = Math.max(0, Math.round((deadlineRef.current - Date.now()) / 1000));
       setLeft(rem);
@@ -175,6 +257,7 @@ export default function Exams() {
       setRemaining(res.remaining);
       play("complete");
       setPhase("writing-result");
+      discardDraft();
     } catch (e) {
       setError(e instanceof Error ? e.message : "scoring failed");
     } finally {
@@ -230,6 +313,29 @@ export default function Exams() {
 
       {phase === "config" && (
         <div className="card panel">
+          {draft && (
+            <div className="resume-banner">
+              <div className="spread">
+                <div>
+                  <b>Exam in progress — {draft.paper.name}</b>
+                  <p className="hint" style={{ margin: "2px 0 0" }}>
+                    {draft.phase === "writing"
+                      ? "Writing task saved."
+                      : `Saved ${draft.savedAt > Date.now() - 60_000 ? "just now" : `${Math.round((Date.now() - draft.savedAt) / 60_000)} min ago`}.`}{" "}
+                    Pick up where you left off.
+                  </p>
+                </div>
+                <div className="row">
+                  <button className="btn btn-primary" onClick={resumeDraft}>
+                    Resume exam
+                  </button>
+                  <button className="btn btn-ghost" onClick={discardDraft}>
+                    Discard
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
           <h3>Time limit</h3>
           <SnapSlider
             min={5}
@@ -285,21 +391,35 @@ export default function Exams() {
         <>
           <div className="card panel" style={{ padding: "16px 20px" }}>
             <div className="spread">
-              <div className="row" style={{ flex: 1 }}>
-                <strong>{paper.name}</strong>
-                <span className={`timer-chip ${left <= 60 ? "bad" : ""}`} aria-live="polite">
-                  {mm}:{ss}
-                </span>
-                <div className="progress-track" style={{ flex: 1 }}>
-                  <div className="progress-fill" style={{ width: `${(answeredCount / questions.length) * 100}%` }} />
+              {reviewing ? (
+                <>
+                  <span className="tag accent">Review mode — no score</span>
+                  <span className="muted small" style={{ flex: 1 }}>
+                    Try each question again, then reveal the answer to self-check.
+                  </span>
+                  <button className="btn btn-ghost" onClick={() => setPhase("results")}>
+                    Back to results
+                  </button>
+                </>
+              ) : (
+                <div className="row" style={{ flex: 1 }}>
+                  <strong>{paper.name}</strong>
+                  <span className={`timer-chip ${left <= 60 ? "bad" : ""}`} aria-live="polite">
+                    {mm}:{ss}
+                  </span>
+                  <div className="progress-track" style={{ flex: 1 }}>
+                    <div className="progress-fill" style={{ width: `${(answeredCount / questions.length) * 100}%` }} />
+                  </div>
+                  <span className="muted small">
+                    {answeredCount}/{questions.length} answered
+                  </span>
                 </div>
-                <span className="muted small">
-                  {answeredCount}/{questions.length} answered
-                </span>
-              </div>
-              <button className="btn btn-primary" onClick={() => void finish()} disabled={busy || answeredCount === 0}>
-                {busy ? "Scoring…" : "Finish & submit"}
-              </button>
+              )}
+              {!reviewing && (
+                <button className="btn btn-primary" onClick={() => void finish()} disabled={busy || answeredCount === 0}>
+                  {busy ? "Scoring…" : "Finish & submit"}
+                </button>
+              )}
             </div>
           </div>
 
@@ -349,18 +469,40 @@ export default function Exams() {
                   )}
                   <div className="question-actions">
                     <NoteBox questionId={q.id} section={q.section} label="Note" />
+                    {reviewing && results && (
+                      <button
+                        className="btn btn-sm btn-ghost"
+                        onClick={() => setRevealed((r) => ({ ...r, [q.id]: !r[q.id] }))}
+                        aria-expanded={!!revealed[q.id]}
+                      >
+                        {revealed[q.id] ? "Hide answer" : "Reveal answer"}
+                      </button>
+                    )}
                   </div>
+                  {reviewing && revealed[q.id] && results && (
+                    <div className="reveal">
+                      <p className="small">
+                        Your exam answer: <b>{results[i]?.yourAnswer || "— (not answered)"}</b> — correct:{" "}
+                        <b>{results[i]?.expected}</b>
+                      </p>
+                      {results[i]?.explanation && (
+                        <p className="explanation">{renderMarkdown(results[i]!.explanation)}</p>
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}
-            <button
-              className="btn btn-primary btn-lg btn-block"
-              style={{ marginTop: 8 }}
-              onClick={() => void finish()}
-              disabled={busy || answeredCount === 0}
-            >
-              {busy ? "Scoring…" : `Finish & submit (${answeredCount}/${questions.length} answered)`}
-            </button>
+            {!reviewing && (
+              <button
+                className="btn btn-primary btn-lg btn-block"
+                style={{ marginTop: 8 }}
+                onClick={() => void finish()}
+                disabled={busy || answeredCount === 0}
+              >
+                {busy ? "Scoring…" : `Finish & submit (${answeredCount}/${questions.length} answered)`}
+              </button>
+            )}
           </div>
         </>
       )}
@@ -384,6 +526,18 @@ export default function Exams() {
               <div className="row">
                 <button className="btn btn-primary" onClick={() => setPhase("config")}>
                   Back to papers
+                </button>
+                <button
+                  className="btn btn-ghost"
+                  onClick={() => {
+                    setAnswers({});
+                    setRevealed({});
+                    setReviewing(true);
+                    setPhase("running");
+                  }}
+                  disabled={busy}
+                >
+                  Review again (no score)
                 </button>
                 {paper.writing > 0 && writingFeedback === null && (
                   <button className="btn btn-ghost" onClick={() => void drawWriting()} disabled={busy}>

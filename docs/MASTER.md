@@ -71,13 +71,14 @@ Hand fonts (Kalam display, Patrick Hand UI), wobbly irregular radii, hard offset
 
 ## 7. Roadmap & parking lot (short — see `docs/roadmap.md`, `docs/product-notes.md`)
 
-- **Shortlist:** content depth (import real past papers — the moat; includes a missing **listening** section, see `docs/product-notes.md` §6), vocabulary trainer (quick win, client-side only).
-- **Exam flow depth:** per-section clocks, review-only mode, draft autosave/resume, paper difficulty calibration.
+- **Shortlist:** content depth (import real past papers — the moat; includes a missing **listening** section, see `docs/product-notes.md` §6).
+- **Exam flow depth:** review-only replay + draft autosave/resume shipped; still open: per-section clocks (needs official per-part timings), paper difficulty calibration (needs real content).
 - **Parked:** teacher/classroom (needs account layer — conflicts with anonymous-first), AI question authorship, data sync/portability, richer writing diagnostics.
 - **Parking lot (maintainer ideas, unscopped):** page-by-page UX/UI redesign, theme polish (transitions, more palettes/customization), storage strategy to stay costless, guided training path ("a 5-year-old gets it"), contribution UX simplification.
 
 ## 8. Recent work log (append newest at top)
 
+- **2026-08-17** — Session: exam flow depth — review-only replay (re-run a finished exam with no timer/score; per-question "Reveal answer" shows your answer + correct + explanation) and draft autosave/resume (exam answers, timer deadline, and writing draft survive refresh/close via localStorage; "Resume exam"/"Discard" banner on the paper picker). Deliberately deferred: per-section clocks (needs official per-part timings) and difficulty calibration (needs real content). Vocabulary trainer + highlight fixes earlier same day (see below). All on `master`, **not pushed**.
 - **2026-08-17** — Session: vocabulary trainer shipped (Leitner spaced review on the word list — levels 0–5, intervals 1/3/7/14/30 days, self-graded forgot/almost/knew, re-drill forgot words in-session, look-up button, level dots + due panel; pure scheduler in `vocabSchedule.ts` + 5 unit tests). All on `master`, **not pushed**.
 - **2026-08-16** — Session: listening basics shipped (section + `audio` column, migration 0006 rebuilds questions table; player in practice/exam/review; audio field in admin/contribute/bulk CSV; demo listening questions; `/audio/` static-files convention). All on `master`, **not pushed**.
 - **2026-08-16** — Session: SnapSlider custom redesign (boxed, ticks on track, no-lag bubble, hover-sound steps) → countdown picker uses it; debug playground moved into Admin (dev tab); directional 3D pass (bevels, gloss, press states); background shift fix (own fixed `bg-layer` div); color-coded tags everywhere (sections/qtypes/hashed free-form, progress scores by ratio); `docs/product-notes.md` parking lot + MASTER.md created. All on `master`, **not pushed**.

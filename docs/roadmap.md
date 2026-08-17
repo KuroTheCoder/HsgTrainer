@@ -20,7 +20,7 @@ Parking lot: maintainer ideas that are not yet scoped live in `docs/product-note
 - **Richer writing diagnostics.** Current on-device diagnostics (`apps/web/src/analyzeEssay.ts`) cover readability, vocabulary variety, and conservative style flags. Add spelling (nspell) and write-good-style lints when a real content library justifies it.
 - **AI-generated questions.** Currently blocked from the live bank (trust rule). Revisit only with a human-verification pipeline and strong guardrails.
 - **UX polish.** Reduced-motion audits, keyboard navigation passes, more fine-grained analytics (topic-level trends), and progress history charts (day/week sparklines over `answers`).
-- **Mock-exam fidelity.** Timed section pacing (per-section clocks), answer-review-only mode after an exam, and automatic paper difficulty calibration once real papers exist.
+- **Mock-exam fidelity.** ~~Timed section pacing (per-section clocks), answer-review-only mode after an exam, and automatic paper difficulty calibration once real papers exist.~~ **Shipped 2026-08-17** — review-only replay (no timer/score, per-question "Reveal answer") and draft autosave/resume (exam answers + writing draft survive refresh, timer deadline preserved, resume/discard banner). Still open when real papers exist: per-section clocks (needs official per-part timings) and difficulty calibration.
 
 ## Guardrails that shape all of the above
 
