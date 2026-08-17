@@ -51,8 +51,9 @@ The product has **no listening support at all**: sections are only `phonetics | 
 **Decision (2026-08-17): the app goes local-first.** All grind data (sessions, answers, mistake ledger, progress) moves to the browser (IndexedDB); D1 serves only question banks, AI writing scoring, reports, admin. Sync is deliberately NOT built — users "just need a place to grind". Backup = one exported JSON save file + a short guide (put it in a Google Drive / iCloud / OneDrive folder; the OS syncs it free).
 
 - **Funding link (wanted ASAP):** set up a Ko-fi/BuyMeACoffee-style link and put it on the site (footer + settings). "If they wanna sync without headache, money talks" — painless server-side sync is the natural **premium** tier once the funding path exists.
+- **Pack distribution (refined 2026-08-17):** question packs are NOT served by or linked from the app's runtime — Drive is a plain download link, users grab the pack file manually and import it into the app (file picker → local storage). No Drive API, no OAuth, no ToS issues; the pack lives on the user's device. Later (only if traction), a native app can auto-scan the download folder for packs after a download — trivial on desktop, harder on phones (file mobility), so phone UX stays manual import.
 - **Done looks like:** export/import save file + backup guide; a funding link live; (later, only if traction) a paid "cloud sync" tier.
-- **Status (2026-08-17):** agreed in design discussion; local-first migration not started. First slice: shared `packages/scoring` + IndexedDB store + export/import, then Mistakes/Progress/Home data sources.
+- **Status (2026-08-17):** in progress. First slice: shared `packages/scoring` (done) + IndexedDB store + export/import, then Mistakes/Progress/Home data sources.
 
 ## 8. Obsidian vault → in-app study notes viewer
 

@@ -35,11 +35,11 @@ Rules that keep it free: deterministic-first scoring, AI only where it earns the
 
 | Area | Status |
 |---|---|
-| Practice (deterministic sections, instant scoring) | Shipped |
-| Mistake ledger + study loop ("Study now", per-card drill, auto-clear) | Shipped |
-| Progress & analytics (/progress — accuracy, streaks, per-section bars, skill gaps) | Shipped |
-| Mock exam (/exams — past papers, timed run, per-section results, writing stage) | Shipped |
-| Writing bank (/writing — essay history + on-device diagnostics) | Shipped |
+| Practice (deterministic sections, instant scoring) | Shipped — **local-first** (client-scored, IndexedDB) |
+| Mistake ledger + study loop ("Study now", per-card drill, auto-clear) | Shipped — **local** (browser IndexedDB) |
+| Progress & analytics (/progress — accuracy, streaks, per-section bars, skill gaps) | Shipped — **local** (derived from browser data) |
+| Mock exam (/exams — past papers, timed run, per-section results, writing stage) | Shipped — deterministic parts local, writing stage server (AI) |
+| Writing bank (/writing — essay history + on-device diagnostics) | Shipped (server-side) |
 | AI writing feedback (HSG rubric, 3 credits/day) | Shipped |
 | Contribute + admin review | Shipped |
 | Free tools archive (dictionaries, external graders with consent gate) | Shipped |
@@ -74,10 +74,11 @@ Hand fonts (Kalam display, Patrick Hand UI), wobbly irregular radii, hard offset
 - **Shortlist:** content depth (import real past papers — the moat; includes a missing **listening** section, see `docs/product-notes.md` §6).
 - **Exam flow depth:** review-only replay + draft autosave/resume shipped; still open: per-section clocks (needs official per-part timings), paper difficulty calibration (needs real content).
 - **Parked:** teacher/classroom (needs account layer — conflicts with anonymous-first), AI question authorship, data sync/portability, richer writing diagnostics.
-- **Parking lot (maintainer ideas, unscopped):** page-by-page UX/UI redesign, theme polish (transitions, more palettes/customization), storage strategy to stay costless, guided training path ("a 5-year-old gets it"), contribution UX simplification.
+- **Parking lot (maintainer ideas, unscopped):** page-by-page UX/UI redesign, theme polish (transitions, more palettes/customization), storage strategy to stay costless, guided training path ("a 5-year-old gets it"), contribution UX simplification, pack distribution (Drive link → manual import, see `docs/product-notes.md` §7).
 
 ## 8. Recent work log (append newest at top)
 
+- **2026-08-17** — Session: **local-first migration (the grind goes client-side).** New workspace package `packages/scoring` (`@hsgtrainer/scoring` — `scoreQuestion`/`normalizeAnswer`/types moved out of the API; consumed by both API and web; root workspaces now include `packages/*`). Practice and mock exams no longer create server sessions: draws are plain reads (`GET /questions` gained `ids` + `paperId` params, answers now included in the payload for client scoring), and submissions are scored in the browser by the new `apps/web/src/store.ts` IndexedDB ledger (db `hsg`, `sessions` + `answers` with full question snapshots so mistakes/progress work offline; same semantics as the server — a correct retry clears prior wrong rows; `deriveStats` is a faithful port of the server `/stats` aggregation, unit-tested). Mistakes/Progress/Home read the local store; mistake deletion is now user-local (no admin gate). AI explanation fill survives via a new `POST /explain` (logic extracted to `lib/explain.ts`, shared with the legacy submit route, same daily cap). Settings gained a **Data** tab: export/import backup file + delete-all; new `docs/backup.md` guide (export → drop into a Drive/iCloud/OneDrive synced folder). Legacy server session routes remain for API compat. All on `master`, **not pushed**.
 - **2026-08-17** — Session: reporting + whole-source verify + admin button colors. Users can flag a question (Report button in practice/exam question actions — wrong key / unclear prompt / duplicate / audio / other) or file a bug (new "Report" tab in Settings); both land in the new `reports` table (migration 0007, docs updated) and get triaged in a new admin **Reports** tab (open/resolved, "Open in queue" shortcut). "Verify all" / "Reject all" buttons flip a whole source at once (new `POST /admin/sources/:id/questions/status` with `fromStatus` guard) — in the review queue when a source filter is active, and per-source in the Sources tab (confirm dialog; spot-check first). Admin action colors are now semantic: **verify = green** (`btn-success`), **reject = red** (`btn-danger`), **edit = blue** (`btn-edit`). Fixed the long-dormant migration bug: `0006_audio.sql` re-written to the pattern that actually works — miniflare ignores `defer_foreign_keys` and the rename-swap rewrites child FK clauses, so the rebuild uses DROP + rename with `foreign_keys OFF` (applies cleanly on fresh DBs with no answers rows; the local DB already had the schema, so 0006+0007 were recorded manually via `d1_migrations`). All on `master`, **not pushed**.
 - **2026-08-17** — Session: admin review queue — verbal question view + inline editing + scrollable list. "Details" now renders the question readably (full prompt with `____` blank highlight, key chip, variant/keyword/tag chips, difficulty, source, explanation) instead of a JSON dump; "Edit" opens an inline labeled form (prompt, key, comma-list variants/keywords/tags, explanation, qtype/section/difficulty selects) saved via the existing PATCH endpoint (extended to accept `qtype`/`section`); the queue list scrolls inside its own box (filters/bulk bar/pager stay fixed, no page-long scroll). PATCH round-trip smoke-tested live (incl. qtype/section change) and test edits to sample rows 5/6 restored to seed values. All on `master`, **not pushed**.
 - **2026-08-17** — Session: admin review queue upgraded — filter bar (status / source / section / qtype / free-text search on prompt+key), pagination (50/page with `total` count; API now supports `offset` + `section`/`qtype`/`source`/`tag`/`q` params), per-page checkbox selection with bulk Verify/Reject action bar (batched via the existing `POST /admin/questions/status` endpoint), plus per-row quick buttons. Live-verified against local D1 (3903 unverified, filters + search + pagination all correct). All on `master`, **not pushed**.
@@ -108,4 +109,5 @@ Hand fonts (Kalam display, Patrick Hand UI), wobbly irregular radii, hard offset
 | `docs/content-schema.md` | Canonical question-draft schema + import workflow (read before keying papers) |
 | `docs/rubric.md` | Writing rubric + AI scoring prompt |
 | `docs/operations.md` | Quota guardrails, keys, deploy |
+| `docs/backup.md` | Local-data backup guide (export → synced folder) |
 | `docs/roadmap.md` | Deferred directions |

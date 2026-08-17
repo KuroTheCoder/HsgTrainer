@@ -1,6 +1,6 @@
 ﻿import { useCallback, useEffect, useMemo, useState, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
-import { api, getAdminToken } from "../api";
+import { deleteMistakes, getMistakes } from "../store";
 import { cefrBand, sectionMeta, SECTIONS, tagStyle } from "../sections";
 import { IconBolt, IconTarget, IconTrash, SectionIcon } from "../icons";
 import { renderMarkdown } from "../md";
@@ -27,14 +27,13 @@ export default function Mistakes() {
   const [notice, setNotice] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const navigate = useNavigate();
-  const isAdmin = getAdminToken() !== null;
 
   const load = useCallback(async (sec: string) => {
     setBusy(true);
     setError(null);
     try {
-      const res = await api.getMistakes(sec || undefined);
-      setMistakes(res.mistakes);
+      const res = await getMistakes(sec || undefined);
+      setMistakes(res);
       setSelected(new Set());
     } catch (e) {
       setError(e instanceof Error ? e.message : "load failed");
@@ -70,7 +69,7 @@ export default function Mistakes() {
     setError(null);
     setNotice(null);
     try {
-      const res = await api.deleteMistakes({ ids });
+      const res = await deleteMistakes({ ids });
       setNotice(`${res.deleted} mistake(s) deleted.`);
       play("clear");
       await load(section);
@@ -88,7 +87,7 @@ export default function Mistakes() {
     setError(null);
     setNotice(null);
     try {
-      const res = await api.deleteMistakes({ section: section || undefined });
+      const res = await deleteMistakes({ section: section || undefined });
       setNotice(`${res.deleted} mistake(s) deleted.`);
       play("clear");
       await load(section);
@@ -175,32 +174,32 @@ export default function Mistakes() {
           <div className="spread" style={{ marginTop: 10 }}>
             <span className="hint">Study loop: drill these in a fresh session — get each one right and it clears from this list automatically.</span>
             <div className="row">
-              <button className="btn btn-primary btn-sm" onClick={practiceThese} disabled={mistakes.length === 0}>
+              <button
+                className="btn btn-primary btn-sm"
+                onClick={practiceThese}
+                disabled={mistakes.length === 0}
+              >
                 <IconBolt size={14} />
                 Study now
               </button>
-              {isAdmin && (
-                <>
-                  <button
-                    className="btn btn-sm btn-danger"
-                    onClick={() => void clearSelected()}
-                    disabled={selected.size === 0 || busy}
-                    title="Delete the selected mistakes"
-                  >
-                    <IconTrash size={14} />
-                    Clear selected{selected.size > 0 ? ` (${selected.size})` : ""}
-                  </button>
-                  <button
-                    className="btn btn-sm btn-danger"
-                    onClick={() => void clearAll()}
-                    disabled={mistakes.length === 0 || busy}
-                    title="Delete every mistake row (all users)"
-                  >
-                    <IconTrash size={14} />
-                    Clear all
-                  </button>
-                </>
-              )}
+              <button
+                className="btn btn-sm btn-danger"
+                onClick={() => void clearSelected()}
+                disabled={selected.size === 0 || busy}
+                title="Delete the selected mistakes"
+              >
+                <IconTrash size={14} />
+                Clear selected{selected.size > 0 ? ` (${selected.size})` : ""}
+              </button>
+              <button
+                className="btn btn-sm btn-danger"
+                onClick={() => void clearAll()}
+                disabled={mistakes.length === 0 || busy}
+                title="Delete every mistake in this browser"
+              >
+                <IconTrash size={14} />
+                Clear all
+              </button>
             </div>
           </div>
         </div>
@@ -212,16 +211,14 @@ export default function Mistakes() {
           return (
             <div key={m.answerId} className={`question wrong ${selected.has(m.answerId) ? "row-selected" : ""}`} style={{ "--i": i } as CSSProperties}>
               <div className="question-head">
-                {isAdmin && (
-                  <label className="row-check" title="Select for deletion">
-                    <input
-                      type="checkbox"
-                      checked={selected.has(m.answerId)}
-                      onChange={() => toggleSelected(m.answerId)}
-                    />
-                    <span className="sr-only">Select mistake {i + 1}</span>
-                  </label>
-                )}
+                <label className="row-check" title="Select for deletion">
+                  <input
+                    type="checkbox"
+                    checked={selected.has(m.answerId)}
+                    onChange={() => toggleSelected(m.answerId)}
+                  />
+                  <span className="sr-only">Select mistake {i + 1}</span>
+                </label>
                 <span className="qnum">
                   <span className="qnum-icon">
                     <SectionIcon icon={meta?.icon ?? ""} size={15} />

@@ -11,6 +11,7 @@ import DictPopup, { type DictRequest } from "../components/DictPopup";
 import { play, playScore } from "../sfx";
 import { launchConfetti } from "../confetti";
 import { renderMarkdown } from "../md";
+import { submitSession } from "../store";
 import type { AnswerResult, CriterionScores, ExamSectionResult, Paper, Question, WritingFeedback, WritingQuestion } from "../types";
 
 type Phase = "config" | "running" | "results" | "writing" | "writing-result";
@@ -30,7 +31,6 @@ export default function Exams() {
   const [paper, setPaper] = useState<Paper | null>(null);
   const [timeLimit, setTimeLimit] = useState(30);
   const [questions, setQuestions] = useState<Question[]>([]);
-  const [sessionId, setSessionId] = useState<number | null>(null);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [results, setResults] = useState<AnswerResult[] | null>(null);
   const [dict, setDict] = useState<DictRequest | null>(null);
@@ -54,7 +54,6 @@ export default function Exams() {
   interface Draft {
     paper: Paper;
     questions: Question[];
-    sessionId: number;
     answers: Record<number, string>;
     deadline: number;
     phase: "running" | "writing";
@@ -67,7 +66,7 @@ export default function Exams() {
       const raw = localStorage.getItem(DRAFT_KEY);
       if (!raw) return null;
       const d = JSON.parse(raw) as Draft;
-      return d && d.paper && d.sessionId ? d : null;
+      return d && d.paper && Array.isArray(d.questions) ? d : null;
     } catch {
       return null; // private mode / corrupt draft
     }
@@ -84,14 +83,13 @@ export default function Exams() {
 
   const saveDraft = () => {
     if (phase !== "running" && phase !== "writing") return;
-    if (reviewing || !paper || !sessionId) return;
+    if (reviewing || !paper) return;
     try {
       localStorage.setItem(
         DRAFT_KEY,
         JSON.stringify({
           paper,
           questions,
-          sessionId,
           answers,
           deadline: deadlineRef.current,
           phase,
@@ -108,13 +106,12 @@ export default function Exams() {
   useEffect(() => {
     saveDraft();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase, answers, writingResponse, questions, paper, sessionId, writingQ]);
+  }, [phase, answers, writingResponse, questions, paper, writingQ]);
 
   const resumeDraft = () => {
     if (!draft) return;
     setPaper(draft.paper);
     setQuestions(draft.questions);
-    setSessionId(draft.sessionId);
     setAnswers(draft.answers);
     setWritingQ(draft.writingQ);
     setWritingResponse(draft.writingResponse);
@@ -146,14 +143,13 @@ export default function Exams() {
     setError(null);
     discardDraft();
     try {
-      const s = await api.startSession({ paperId: p.id });
+      const s = await api.drawQuestions({ paperId: p.id });
       if (s.questions.length === 0) {
         setError("This paper has no answerable questions yet — the content team is keying papers.");
         return;
       }
       setPaper(p);
       setQuestions(s.questions);
-      setSessionId(s.sessionId);
       setAnswers({});
       setResults(null);
       setReviewing(false);
@@ -171,7 +167,7 @@ export default function Exams() {
   const answeredCount = useMemo(() => questions.filter((q) => answers[q.id]?.trim()).length, [questions, answers]);
 
   const finish = async (timedOut = false) => {
-    if (!sessionId) return;
+    if (questions.length === 0) return;
     const unanswered = questions.length - answeredCount;
     if (!timedOut && unanswered > 0 && !window.confirm(`Submit with ${unanswered} unanswered? They count as wrong.`)) return;
     setBusy(true);
@@ -179,8 +175,17 @@ export default function Exams() {
     try {
       const answered = questions
         .filter((q) => answers[q.id]?.trim())
-        .map((q) => ({ questionId: q.id, response: answers[q.id] ?? "" }));
-      const res = await api.submitAnswers(sessionId, answered);
+        .map((q) => ({ questionId: q.id, response: answers[q.id] ?? "", question: q }));
+      const res = await submitSession({ section: null, difficulty: null, skill: "exam" }, answered);
+      const wrongMissing = res.results.filter((r) => !r.correct && !r.explanation).map((r) => r.questionId);
+      if (wrongMissing.length > 0) {
+        // Best-effort AI explanation fill — never fails the submission.
+        api.explain(wrongMissing).then(({ explanations }) => {
+          setResults((prev) =>
+            (prev ?? []).map((r) => ({ ...r, explanation: explanations[r.questionId] ?? r.explanation })),
+          );
+        }).catch(() => undefined);
+      }
       const byId = new Map(res.results.map((r) => [r.questionId, r]));
       const full: AnswerResult[] = questions.map((q) => {
         const r = byId.get(q.id);
@@ -189,7 +194,7 @@ export default function Exams() {
             questionId: q.id,
             yourAnswer: "",
             correct: false,
-            expected: q.acceptedVariants[0] ?? "",
+            expected: q.answer,
             explanation: null,
           }
         );

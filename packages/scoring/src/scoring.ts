@@ -1,5 +1,5 @@
 import { normalizeAnswer } from "./normalize";
-import { DETERMINISTIC_TYPES, parseJsonList, type QuestionRow } from "../types";
+import { DETERMINISTIC_TYPES, parseJsonList, type ScoreableQuestion } from "./types";
 
 export interface ScoreResult {
   correct: boolean;
@@ -10,8 +10,9 @@ export interface ScoreResult {
 /**
  * Deterministic scoring for fixed-answer question types.
  * Never touches the AI — this is the $0 path (see docs/architecture.md).
+ * Shared by the API (server-side scoring) and the web app (local-first scoring).
  */
-export function scoreQuestion(q: QuestionRow, response: string): ScoreResult {
+export function scoreQuestion(q: ScoreableQuestion, response: string): ScoreResult {
   if (!DETERMINISTIC_TYPES.includes(q.qtype)) {
     return { correct: false, expected: q.answer, score: 0 };
   }
@@ -23,7 +24,7 @@ export function scoreQuestion(q: QuestionRow, response: string): ScoreResult {
     return { correct, expected: key, score: correct ? 1 : 0 };
   }
 
-  const accepted = [q.answer, ...parseJsonList(q.accepted_variants)].map(normalizeAnswer);
+  const accepted = [q.answer, ...(Array.isArray(q.accepted_variants) ? q.accepted_variants : parseJsonList(q.accepted_variants))].map(normalizeAnswer);
   const correct = accepted.includes(normalizeAnswer(response));
   return { correct, expected: q.answer, score: correct ? 1 : 0 };
 }

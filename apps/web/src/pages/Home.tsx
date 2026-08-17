@@ -16,6 +16,7 @@ import {
   SectionIcon,
 } from "../icons";
 import { ScoreRing } from "../components/ScoreRing";
+import { getMistakes, getStats } from "../store";
 import type { CSSProperties } from "react";
 import type { ProgressStats } from "../types";
 
@@ -38,10 +39,10 @@ export default function Home() {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    Promise.allSettled([api.getStats(30), api.getMistakes(), api.getPapers(), api.getWritingHistory()]).then(
+    Promise.allSettled([getStats(30), getMistakes(), api.getPapers(), api.getWritingHistory()]).then(
       ([s, m, p, w]) => {
         if (s.status === "fulfilled") setStats(s.value);
-        if (m.status === "fulfilled") setMistakeCount(m.value.mistakes.length);
+        if (m.status === "fulfilled") setMistakeCount(m.value.length);
         if (p.status === "fulfilled") setPaperCount(p.value.papers.length);
         if (w.status === "fulfilled") setEssayCount(w.value.entries.length);
         setLoaded(true);

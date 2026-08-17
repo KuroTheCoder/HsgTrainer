@@ -9,6 +9,7 @@ export interface Question {
   prompt: string;
   options: string[];
   acceptedVariants: string[];
+  answer: string;
   difficulty: string;
   tags: string[];
   keyWords: string[];

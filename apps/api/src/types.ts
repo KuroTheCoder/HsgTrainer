@@ -65,19 +65,3 @@ export function parseJsonList(raw: string | null): string[] {
   }
 }
 
-export function toQuestionShape(row: QuestionRow) {
-  return {
-    id: row.id,
-    qtype: row.qtype,
-    section: row.section,
-    prompt: row.prompt,
-    options: parseJsonList(row.options),
-    acceptedVariants: parseJsonList(row.accepted_variants),
-    difficulty: row.difficulty,
-    tags: parseJsonList(row.tags),
-    keyWords: parseJsonList(row.key_words),
-    audio: row.audio,
-    verificationStatus: row.verification_status,
-    explanation: row.explanation,
-  };
-}

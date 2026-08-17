@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { api } from "../api";
 import { sectionMeta, tagStyle } from "../sections";
 import { ScoreRing } from "../components/ScoreRing";
+import { getStats } from "../store";
 import { IconBolt, IconTarget, IconTrend, SectionIcon } from "../icons";
 import type { ProgressStats } from "../types";
 
@@ -41,7 +41,7 @@ export default function Progress() {
     setBusy(true);
     setError(null);
     try {
-      setStats(await api.getStats(days));
+      setStats(await getStats(days));
     } catch (e) {
       setError(e instanceof Error ? e.message : "load failed");
     } finally {

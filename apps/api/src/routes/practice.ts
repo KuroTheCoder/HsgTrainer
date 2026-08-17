@@ -1,40 +1,76 @@
 import { Hono } from "hono";
 import type { Env } from "../env";
 import { adminAuth } from "../middleware/adminAuth";
-import { DETERMINISTIC_TYPES, toQuestionShape, type QuestionRow } from "../types";
-import { scoreQuestion } from "../lib/scoring";
-import { generateExplanation } from "../ai/adapter";
+import { DETERMINISTIC_TYPES, parseJsonList, type QuestionRow } from "../types";
+import { scoreQuestion } from "@hsgtrainer/scoring";
+import { fillExplanations } from "../lib/explain";
 
 const practice = new Hono<{ Bindings: Env }>();
+
+function toQuestionShape(row: QuestionRow) {
+  return {
+    id: row.id,
+    qtype: row.qtype,
+    section: row.section,
+    prompt: row.prompt,
+    options: parseJsonList(row.options),
+    acceptedVariants: parseJsonList(row.accepted_variants),
+    answer: row.answer,
+    difficulty: row.difficulty,
+    tags: parseJsonList(row.tags),
+    keyWords: parseJsonList(row.key_words),
+    audio: row.audio,
+    verificationStatus: row.verification_status,
+    explanation: row.explanation,
+  };
+}
 
 function anonId(c: { req: { header: (n: string) => string | undefined } }): string | null {
   return c.req.header("X-Anon-Id") ?? null;
 }
 
 // Draw practice questions: verified, deterministic types only.
+// Filters: ids (explicit set), paperId (full paper), section/difficulty/tag, count.
 practice.get("/questions", async (c) => {
   const section = c.req.query("section") ?? null;
   const difficulty = c.req.query("difficulty") ?? null;
   const tag = c.req.query("tag") ?? null;
+  const ids = (c.req.query("ids") ?? "")
+    .split(",")
+    .map((s) => Number(s.trim()))
+    .filter((n) => Number.isInteger(n) && n > 0)
+    .slice(0, 25);
+  const paperId = c.req.query("paperId") ? Number(c.req.query("paperId")) : null;
   const count = Math.min(parseInt(c.req.query("count") ?? "10", 10) || 10, 25);
 
   let sql = `SELECT * FROM questions
     WHERE verification_status = 'verified' AND qtype IN (${DETERMINISTIC_TYPES.map(() => "?").join(",")})`;
   const params: string[] = [...DETERMINISTIC_TYPES];
-  if (section) {
-    sql += ` AND section = ?`;
-    params.push(section);
+
+  if (ids.length > 0) {
+    // Explicit drill set (mistakes flow). Ignore other filters.
+    sql += ` AND id IN (${ids.map(() => "?").join(",")}) ORDER BY id`;
+    params.push(...ids.map(String));
+  } else if (paperId && Number.isInteger(paperId) && paperId > 0) {
+    // Full-paper draw (mock exam): every verified deterministic question.
+    sql += ` AND source_id = ? ORDER BY section, id`;
+    params.push(String(paperId));
+  } else {
+    if (section) {
+      sql += ` AND section = ?`;
+      params.push(section);
+    }
+    if (difficulty) {
+      sql += ` AND difficulty = ?`;
+      params.push(difficulty);
+    }
+    if (tag) {
+      sql += ` AND tags LIKE ?`;
+      params.push(`%"${tag}"%`);
+    }
+    sql += ` ORDER BY RANDOM() LIMIT ?`;
+    params.push(String(count));
   }
-  if (difficulty) {
-    sql += ` AND difficulty = ?`;
-    params.push(difficulty);
-  }
-  if (tag) {
-    sql += ` AND tags LIKE ?`;
-    params.push(`%"${tag}"%`);
-  }
-  sql += ` ORDER BY RANDOM() LIMIT ?`;
-  params.push(String(count));
 
   const { results } = await c.env.DB.prepare(sql).bind(...params).all<QuestionRow>();
   return c.json({ questions: results.map(toQuestionShape) });
@@ -185,34 +221,10 @@ practice.post("/sessions/:id/answers", async (c) => {
   // under the daily budget. Deterministic types only — writing is M3.
   // Best-effort: a DB/AI failure here must never fail the submission itself.
   if (wrongDeterministic.length > 0) {
-    try {
-      const cap = Math.max(0, parseInt(c.env.EXPLAIN_DAILY_CAP ?? "100", 10) || 0);
-      if (cap > 0) {
-        const { results: countRows } = await c.env.DB.prepare(
-          `SELECT COUNT(*) AS n FROM questions
-           WHERE explanation IS NOT NULL AND explanation_generated_at >= datetime('now', 'start of day')`,
-        ).all<{ n: number }>();
-        const used = countRows[0]?.n ?? 0;
-        const budget = Math.max(0, cap - used);
-        const generated = new Map<number, string>();
-        for (const q of wrongDeterministic.slice(0, budget)) {
-          const text = await generateExplanation(c.env, q);
-          if (text) {
-            generated.set(q.id, text);
-            await c.env.DB.prepare(
-              `UPDATE questions SET explanation = ?, explanation_generated_at = datetime('now') WHERE id = ?`,
-            )
-              .bind(text, q.id)
-              .run();
-          }
-        }
-        for (const r of resultsOut) {
-          const gen = generated.get(r.questionId);
-          if (gen) r.explanation = gen;
-        }
-      }
-    } catch {
-      // explanation cache unavailable → proceed without explanations
+    const generated = await fillExplanations(c.env, wrongDeterministic);
+    for (const r of resultsOut) {
+      const gen = generated.get(r.questionId);
+      if (gen) r.explanation = gen;
     }
   }
 
@@ -225,6 +237,23 @@ practice.post("/sessions/:id/answers", async (c) => {
     cleared,
     results: resultsOut,
   });
+});
+
+// Best-effort explanation fill for local (client-scored) sessions. The web
+// app asks only for wrong deterministic answers missing an explanation;
+// the daily cap + failure tolerance live in lib/explain.ts.
+practice.post("/explain", async (c) => {
+  const body = (await c.req.json().catch(() => ({}))) as { questionIds?: number[] };
+  const ids = [...new Set((body.questionIds ?? []).map(Number).filter((n) => Number.isInteger(n) && n > 0))].slice(0, 25);
+  if (ids.length === 0) return c.json({ explanations: {} });
+
+  const { results } = await c.env.DB.prepare(
+    `SELECT * FROM questions WHERE id IN (${ids.map(() => "?").join(",")})`,
+  )
+    .bind(...ids.map(String))
+    .all<QuestionRow>();
+  const generated = await fillExplanations(c.env, results);
+  return c.json({ explanations: Object.fromEntries(generated) });
 });
 
 // Mistake ledger: every wrong answer for this anonymous user, newest first.

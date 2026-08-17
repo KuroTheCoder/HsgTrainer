@@ -48,14 +48,23 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
 export const api = {
   health: () => request<{ ok: boolean }>("/health"),
 
-  drawQuestions: (opts: { section?: string; difficulty?: string; tag?: string; count?: number }) => {
+  drawQuestions: (opts: { section?: string; difficulty?: string; tag?: string; count?: number; ids?: number[]; paperId?: number }) => {
     const qs = new URLSearchParams();
     if (opts.section) qs.set("section", opts.section);
     if (opts.difficulty) qs.set("difficulty", opts.difficulty);
     if (opts.tag) qs.set("tag", opts.tag);
     if (opts.count) qs.set("count", String(opts.count));
+    if (opts.ids?.length) qs.set("ids", opts.ids.join(","));
+    if (opts.paperId) qs.set("paperId", String(opts.paperId));
     return request<{ questions: Question[] }>(`/questions?${qs}`);
   },
+
+  // Best-effort AI explanation fill for locally-scored wrong answers.
+  explain: (questionIds: number[]) =>
+    request<{ explanations: Record<number, string> }>("/explain", {
+      method: "POST",
+      body: JSON.stringify({ questionIds }),
+    }),
 
   startSession: (opts: { section?: string; difficulty?: string; tag?: string; count?: number; questionIds?: number[]; paperId?: number }) =>
     request<SessionQuestions>("/sessions", {

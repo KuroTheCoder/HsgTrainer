@@ -12,6 +12,7 @@ import DictPopup, { type DictRequest } from "../components/DictPopup";
 import { play, playScore } from "../sfx";
 import { launchConfetti } from "../confetti";
 import { renderMarkdown } from "../md";
+import { submitSession } from "../store";
 import type { AnswerResult, CriterionScores, Question, WritingFeedback, WritingQuestion } from "../types";
 
 type Phase = "config" | "running" | "results" | "writing" | "writing-result";
@@ -108,7 +109,6 @@ export default function Practice() {
   const [tag, setTag] = useState(initialTag);
   const [count, setCount] = useState(10);
   const [questions, setQuestions] = useState<Question[]>([]);
-  const [sessionId, setSessionId] = useState<number | null>(null);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [results, setResults] = useState<AnswerResult[] | null>(null);
   const [dict, setDict] = useState<DictRequest | null>(null);
@@ -128,33 +128,29 @@ export default function Practice() {
     setBusy(true);
     setError(null);
     try {
+      let questions: Question[];
       if (ids?.length) {
-        const s = await api.startSession({ questionIds: ids });
-        if (s.questions.length === 0) throw new Error("No verified questions for those ids.");
-        setQuestions(s.questions);
-        setSessionId(s.sessionId);
-        setAnswers({});
-        setResults(null);
-        setPhase("running");
-        return;
-      }
-      if (isWriting) {
+        const s = await api.drawQuestions({ ids });
+        questions = s.questions;
+        if (questions.length === 0) throw new Error("No verified questions for those ids.");
+      } else if (isWriting) {
         await drawWriting();
         return;
+      } else {
+        const s = await api.drawQuestions({
+          section: sectionMeta(section)?.deterministic ? section : undefined,
+          difficulty: difficulty || undefined,
+          tag: tag.trim() || undefined,
+          count,
+        });
+        questions = s.questions;
+        if (questions.length === 0) {
+          setError("No verified questions for this section yet — the content team is keying papers.");
+          setPhase("config");
+          return;
+        }
       }
-      const s = await api.startSession({
-        section: sectionMeta(section)?.deterministic ? section : undefined,
-        difficulty: difficulty || undefined,
-        tag: tag.trim() || undefined,
-        count,
-      });
-      if (s.questions.length === 0) {
-        setError("No verified questions for this section yet — the content team is keying papers.");
-        setPhase("config");
-        return;
-      }
-      setQuestions(s.questions);
-      setSessionId(s.sessionId);
+      setQuestions(questions);
       setAnswers({});
       setResults(null);
       setPhase("running");
@@ -196,7 +192,7 @@ export default function Practice() {
   const answeredCount = useMemo(() => questions.filter((q) => answers[q.id]?.trim()).length, [questions, answers]);
 
   const submit = async () => {
-    if (!sessionId) return;
+    if (questions.length === 0) return;
     const missing = questions.filter((q) => !answers[q.id]?.trim());
     if (missing.length > 0) {
       setError(`Answer every question first (${missing.length} left).`);
@@ -205,10 +201,23 @@ export default function Practice() {
     setBusy(true);
     setError(null);
     try {
-      const res = await api.submitAnswers(
-        sessionId,
-        questions.map((q) => ({ questionId: q.id, response: answers[q.id] ?? "" })),
+      const res = await submitSession(
+        {
+          section: sectionMeta(section)?.deterministic ? section : null,
+          difficulty: difficulty || null,
+          skill: null,
+        },
+        questions.map((q) => ({ questionId: q.id, response: answers[q.id] ?? "", question: q })),
       );
+      const wrongMissing = res.results.filter((r) => !r.correct && !r.explanation).map((r) => r.questionId);
+      if (wrongMissing.length > 0) {
+        // Best-effort AI explanation fill — never fails the submission.
+        api.explain(wrongMissing).then(({ explanations }) => {
+          setResults((prev) =>
+            (prev ?? []).map((r) => ({ ...r, explanation: explanations[r.questionId] ?? r.explanation })),
+          );
+        }).catch(() => undefined);
+      }
       const pct = Math.round((res.results.filter((r) => r.correct).length / res.results.length) * 100);
       setResults(res.results);
       playScore(pct);

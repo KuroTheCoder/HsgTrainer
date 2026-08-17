@@ -2,7 +2,8 @@
   "name": "hsgtrainer",
   "private": true,
   "workspaces": [
-    "apps/*"
+    "apps/*",
+    "packages/*"
   ],
   "scripts": {
     "dev:web": "npm run dev -w @hsgtrainer/web",

@@ -1,30 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { scoreQuestion } from "./scoring";
-import { normalizeAnswer } from "./normalize";
-import type { QuestionRow } from "../types";
+import { scoreQuestion } from "../src/scoring";
+import { normalizeAnswer } from "../src/normalize";
+import type { ScoreableQuestion } from "../src/types";
 
-function q(partial: Partial<QuestionRow>): QuestionRow {
+function q(partial: Partial<ScoreableQuestion>): ScoreableQuestion {
   return {
     id: 1,
-    source_id: null,
     qtype: "fill-blank",
-    section: "lexico-grammar",
-    prompt: "test",
-    options: null,
     answer: "answer",
     accepted_variants: "[]",
-    rubric_ref: null,
-    explanation: null,
-    tags: "[]",
-    key_words: "[]",
-    difficulty: "B2",
-    audio: null,
-    verification_status: "verified",
-    prompt_hash: "x",
-    submitted_by: null,
-    reviewed_by: null,
-    reviewed_at: null,
-    created_at: "",
     ...partial,
   };
 }

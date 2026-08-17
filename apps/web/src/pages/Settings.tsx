@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { DICTIONARIES, getDefaultDictId, setDefaultDictId, getOpenMode, setOpenMode, type OpenMode } from "../dictionary";
-import { IconBook, IconBug, IconExternal, IconPalette, IconPlay, IconVolume } from "../icons";
+import { IconBook, IconBug, IconExternal, IconGear, IconPalette, IconPlay, IconVolume } from "../icons";
 import ThemeControls from "../components/ThemeControls";
 import ReportBox from "../components/ReportBox";
+import { clearAll, exportData, importData } from "../store";
 import { play, setSfxMuted, setSfxVolumeFor, sfxMuted, sfxVolumes, type SfxName } from "../sfx";
 
 const SOUND_LABELS: { name: SfxName; label: string; hint: string }[] = [
@@ -22,6 +23,7 @@ const TABS = [
   { id: "appearance", label: "Appearance", icon: IconPalette },
   { id: "sounds", label: "Sounds", icon: IconVolume },
   { id: "dictionary", label: "Dictionary", icon: IconBook },
+  { id: "data", label: "Data", icon: IconGear },
   { id: "report", label: "Report", icon: IconBug },
 ] as const;
 
@@ -210,6 +212,8 @@ export default function Settings() {
         </>
       )}
 
+      {tab === "data" && <DataTab />}
+
       {tab === "report" && (
         <div className="card panel settings-panel">
           <h3>
@@ -223,6 +227,108 @@ export default function Settings() {
           <ReportBox bug />
         </div>
       )}
+    </div>
+  );
+}
+
+function DataTab() {
+  const [notice, setNotice] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const doExport = async () => {
+    setBusy(true);
+    setError(null);
+    setNotice(null);
+    try {
+      const json = await exportData();
+      const blob = new Blob([json], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `hsgtrainer-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      setNotice("Backup downloaded. Keep the file somewhere safe (e.g. a Drive/iCloud/OneDrive folder).");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "export failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const doImport = async (file: File) => {
+    setBusy(true);
+    setError(null);
+    setNotice(null);
+    try {
+      const res = await importData(await file.text());
+      setNotice(`Imported ${res.sessions} session(s) and ${res.answers} answer(s).`);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "import failed");
+    } finally {
+      setBusy(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
+
+  const doClear = async () => {
+    if (!window.confirm("Delete ALL local practice data (sessions, mistakes, progress) in this browser? This cannot be undone.")) return;
+    setBusy(true);
+    setError(null);
+    setNotice(null);
+    try {
+      await clearAll();
+      setNotice("Local data cleared.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "clear failed");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="card panel settings-panel">
+      <h3>
+        <IconGear size={16} aria-hidden="true" /> Your local data
+      </h3>
+      <p className="muted">
+        All practice sessions, mistakes, and progress are stored in this browser — nothing lives on a server.
+        Export a backup file regularly and drop it into a synced folder (Drive, iCloud, OneDrive…) so the OS
+        backs it up for free. See the guide in <code>docs/backup.md</code>.
+      </p>
+      {error && (
+        <div className="banner error" role="alert">
+          {error}
+        </div>
+      )}
+      {notice && (
+        <div className="banner ok" role="status">
+          {notice}
+        </div>
+      )}
+      <div className="row" style={{ marginTop: 12 }}>
+        <button className="btn btn-primary" onClick={() => void doExport()} disabled={busy}>
+          Export backup
+        </button>
+        <button className="btn btn-ghost" onClick={() => fileRef.current?.click()} disabled={busy}>
+          Import backup
+        </button>
+        <input
+          ref={fileRef}
+          type="file"
+          accept=".json,application/json"
+          className="sr-only"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) void doImport(f);
+          }}
+        />
+        <button className="btn btn-sm btn-danger" onClick={() => void doClear()} disabled={busy}>
+          Delete all local data
+        </button>
+      </div>
     </div>
   );
 }
